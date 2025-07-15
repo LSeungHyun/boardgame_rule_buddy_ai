@@ -11,6 +11,11 @@ const KOREAN_INITIALS = [
   'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'
 ];
 
+// 한글 유니코드 범위 상수
+const HANGUL_SYLLABLE_START = 44032; // '가'의 유니코드 값
+const HANGUL_SYLLABLE_END = 55203;   // '힣'의 유니코드 값
+const HANGUL_INITIAL_COUNT = 588;    // 각 초성당 글자 수 (중성 21개 × 종성 28개)
+
 /**
  * 한글 문자에서 초성을 추출합니다
  * @param char 한글 문자
@@ -19,9 +24,11 @@ const KOREAN_INITIALS = [
 export function getKoreanInitial(char: string): string {
   const charCode = char.charCodeAt(0);
 
-  // 한글 완성형 범위 (가-힣: 44032-55203)
-  if (charCode >= 44032 && charCode <= 55203) {
-    const initialIndex = Math.floor((charCode - 44032) / 588);
+  // 한글 완성형 범위 확인 (가-힣)
+  if (charCode >= HANGUL_SYLLABLE_START && charCode <= HANGUL_SYLLABLE_END) {
+    // 한글 완성형에서 초성 인덱스 계산
+    // 공식: (글자코드 - 가의코드) / (중성수 × 종성수) = 초성 인덱스
+    const initialIndex = Math.floor((charCode - HANGUL_SYLLABLE_START) / HANGUL_INITIAL_COUNT);
     return KOREAN_INITIALS[initialIndex];
   }
 
@@ -57,6 +64,12 @@ export function isAllKoreanInitials(text: string): boolean {
 
 /**
  * 검색어가 대상 텍스트와 매칭되는지 확인합니다 (초성 검색 포함)
+ * 
+ * 검색 로직:
+ * 1. 일반 문자열 포함 검색을 먼저 수행
+ * 2. 검색어가 모든 초성으로 구성된 경우에만 초성 검색 수행
+ * 3. 초성 검색은 대상 텍스트의 초성을 추출하여 검색어와 비교
+ * 
  * @param searchTerm 검색어
  * @param targetText 대상 텍스트
  * @returns 매칭 여부
@@ -65,7 +78,7 @@ export function isKoreanSearchMatch(searchTerm: string, targetText: string): boo
   const normalizedSearch = searchTerm.toLowerCase().trim();
   const normalizedTarget = targetText.toLowerCase();
 
-  // 일반 문자열 포함 검색
+  // 일반 문자열 포함 검색 (빠른 경로)
   if (normalizedTarget.includes(normalizedSearch)) {
     return true;
   }

@@ -15,11 +15,27 @@ export interface ChatMessage {
     content: string;
 }
 
-export interface GameSelectionProps {
+// 검색 관련 상태와 핸들러를 그룹화
+export interface SearchConfig {
+    term: string;
+    setTerm: (term: string) => void;
+}
+
+// UI 상태를 그룹화
+export interface UIConfig {
+    isLoading: boolean;
+}
+
+// 데이터와 핸들러를 그룹화
+export interface GameDataConfig {
     games: Game[];
     onSelectGame: (game: Game) => void;
-    searchTerm: string;
-    setSearchTerm: (term: string) => void;
+}
+
+export interface GameSelectionProps {
+    search: SearchConfig;
+    ui: UIConfig;
+    data: GameDataConfig;
 }
 
 export interface ChatMessageProps {

@@ -3,17 +3,14 @@
 import React from 'react';
 import { GameSelectionProps } from '@/types/game';
 
-interface ExtendedGameSelectionProps extends GameSelectionProps {
-    isLoading?: boolean;
-}
-
 export default function GameSelection({
-    games,
-    onSelectGame,
-    searchTerm,
-    setSearchTerm,
-    isLoading = false
-}: ExtendedGameSelectionProps) {
+    search,
+    ui,
+    data
+}: GameSelectionProps) {
+    const { term: searchTerm, setTerm: setSearchTerm } = search;
+    const { isLoading } = ui;
+    const { games, onSelectGame } = data;
 
     const clearAllFilters = () => {
         setSearchTerm('');

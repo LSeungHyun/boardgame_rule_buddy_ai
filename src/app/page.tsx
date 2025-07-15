@@ -5,6 +5,7 @@ import GameSelection from '@/components/GameSelection';
 import ChatScreen from '@/components/ChatScreen';
 import { Game, ChatMessage } from '@/types/game';
 import { fetchGames, GameFilters } from '@/features/games/api';
+import { errorHandler, AppError } from '@/lib/error-handler';
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<'selection' | 'chat'>('selection');
@@ -40,8 +41,12 @@ export default function Home() {
         setGames(filteredGames);
         setError(null);
       } catch (err) {
-        console.error('게임 로드 실패:', err);
-        setError(err instanceof Error ? err.message : '게임을 불러올 수 없습니다.');
+        const appError = errorHandler.handle(err, {
+          function: 'loadFilteredGames',
+          searchTerm
+        });
+
+        setError(errorHandler.getUserMessage(appError));
         setGames([]);
       } finally {
         setIsLoadingGames(false);
@@ -84,7 +89,7 @@ export default function Home() {
 ## 📌 절대 변경 금지
 - 규칙서·FAQ에 명시된 **사실 관계**(카드 효과, 타이밍, 숫자, 용어)
 - 질문자가 제시한 **상황·수치**
-- 순서: ⚡️→📖→💡→🔗 4단 구성
+- 순서: ⚡️→📖→💡→�� 4단 구성
 
 ## ✨ 개선 허용
 - 문단 재배치·줄바꿈·마크다운 강조(굵게, 인라인 코드 등)
@@ -192,11 +197,17 @@ export default function Home() {
         />
       ) : (
         <GameSelection
-          games={games}
-          onSelectGame={handleSelectGame}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          isLoading={isLoadingGames}
+          search={{
+            term: searchTerm,
+            setTerm: setSearchTerm
+          }}
+          ui={{
+            isLoading: isLoadingGames
+          }}
+          data={{
+            games,
+            onSelectGame: handleSelectGame
+          }}
         />
       )}
     </main>
