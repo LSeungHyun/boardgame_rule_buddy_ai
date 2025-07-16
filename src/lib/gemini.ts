@@ -1,4 +1,4 @@
-import { createGameRulePrompt } from './prompts';
+import { systemPrompt } from './prompts';
 
 /**
  * Gemini API를 사용한 AI 서비스
@@ -44,8 +44,8 @@ export async function askGameQuestion(
         throw new GeminiApiError("Gemini API 키가 설정되지 않았습니다. 환경변수를 확인해주세요.");
     }
 
-    // 프롬프트 생성
-    const prompt = createGameRulePrompt(gameTitle, userQuestion);
+    // systemPrompt 기반 프롬프트 생성
+    const prompt = `${systemPrompt}\n\n게임 제목: ${gameTitle}\n사용자 질문: ${userQuestion}`;
 
     // 디버깅을 위한 로그 (개발 환경에서만)
     if (process.env.NODE_ENV === 'development') {
