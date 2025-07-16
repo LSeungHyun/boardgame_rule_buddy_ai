@@ -10,9 +10,20 @@ export interface Game {
     createdAt?: string;
 }
 
+// 리서치 단계 타입 추가
+export type ResearchStage = 'analyzing' | 'searching' | 'processing' | 'completed';
+
 export interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
+    // 리서치 관련 메타데이터 (assistant 메시지용)
+    researchUsed?: boolean;
+    sources?: string[];
+    fromCache?: boolean;
+    complexity?: {
+        score: number;
+        reasoning: string[];
+    };
 }
 
 // 검색 관련 상태와 핸들러를 그룹화
@@ -46,6 +57,10 @@ export interface ChatScreenProps {
     game: Game;
     onGoBack: () => void;
     messages: ChatMessage[];
-    onSendMessage: (text: string) => void;
+    onSendMessage: (text: string, callbacks?: {
+        onResearchStart?: () => void;
+        onResearchProgress?: (stage: ResearchStage) => void;
+        onComplete?: () => void;
+    }) => void;
     isLoading: boolean;
 } 

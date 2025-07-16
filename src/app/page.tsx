@@ -6,7 +6,7 @@ import ChatScreen from '@/components/ChatScreen';
 import { Game, ChatMessage } from '@/types/game';
 import { fetchGames, GameFilters } from '@/features/games/api';
 import { errorHandler, AppError } from '@/lib/error-handler';
-import { askGameQuestion } from '@/lib/gemini';
+import { askGameQuestionWithSmartResearch } from '@/lib/gemini';
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<'selection' | 'chat'>('selection');
@@ -79,7 +79,13 @@ export default function Home() {
     setMessages([]);
   };
 
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (text: string, callbacks?: {
+    onResearchStart?: () => void;
+    onResearchProgress?: (stage: string) => void;
+    onComplete?: () => void;
+  }) => {
+    console.log('🚀 [페이지] handleSendMessage 호출됨:', { text, 게임: selectedGame?.title });
+    
     if (!selectedGame) {
       console.error("선택된 게임이 없습니다.");
       return;
@@ -90,8 +96,40 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      const assistantResponse = await askGameQuestion(selectedGame.title, text);
-      setMessages(prev => [...prev, { role: 'assistant', content: assistantResponse }]);
+      console.log('📞 [페이지] askGameQuestionWithSmartResearch 호출 시작');
+      // 스마트 리서치 기능이 포함된 AI 답변 요청
+      const result = await askGameQuestionWithSmartResearch(
+        selectedGame.title, 
+        text,
+        callbacks?.onResearchStart
+      );
+      console.log('📥 [페이지] askGameQuestionWithSmartResearch 결과 받음:', {
+        researchUsed: result.researchUsed,
+        fromCache: result.fromCache,
+        complexity: result.complexity?.score
+      });
+
+      // 리서치 진행 단계별 콜백 실행
+      if (result.researchUsed && callbacks?.onResearchProgress) {
+        callbacks.onResearchProgress('processing');
+        // 약간의 지연으로 사용자 경험 개선
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        callbacks.onResearchProgress('completed');
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      // 메타데이터를 포함한 assistant 메시지 생성
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: result.answer,
+        researchUsed: result.researchUsed,
+        sources: result.sources,
+        fromCache: result.fromCache,
+        complexity: result.complexity
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+      
     } catch (err) {
       console.error("AI 답변 생성 오류:", err);
       const errorMessage = err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다";
@@ -101,6 +139,9 @@ export default function Home() {
       }]);
     } finally {
       setIsLoading(false);
+      if (callbacks?.onComplete) {
+        callbacks.onComplete();
+      }
     }
   };
 
