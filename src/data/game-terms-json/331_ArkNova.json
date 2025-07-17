@@ -1,0 +1,157 @@
+{
+    "metadata": {
+        "game_id": 331,
+        "game_name_korean": "아크노바",
+        "game_name_english": "Ark Nova",
+        "publisher_korean": "코리아보드게임즈",
+        "publisher_original": "Feuerland Spiele",
+        "edition": "Korean First Edition",
+        "year": 2021,
+        "bgg_link": "https://boardgamegeek.com/boardgame/342942",
+        "official_site": "https://capstone-games.com/board-games/ark-nova/",
+        "rulebook_source": "공식 한국어 룰북",
+        "research_date": "2025-01-23",
+        "term_count": 40,
+        "complexity_level": "Complex",
+        "sources": "Manual compilation from Gemini + GPT research"
+    },
+    "game_specific_terms": {
+        "core_mechanics": {
+            "보존 점수": {
+                "english": "Conservation Point",
+                "description": "동물원의 과학적 기여도 및 환경 보호 활동을 나타내는 점수",
+                "category": "핵심 메커니즘"
+            },
+            "명성": {
+                "english": "Reputation",
+                "description": "동물원의 학술적 명성을 나타내는 지표",
+                "category": "핵심 메커니즘"
+            },
+            "휴식": {
+                "english": "Break",
+                "description": "휴식 트랙이 끝에 도달했을 때 모든 플레이어가 함께 진행하는 관리 단계",
+                "category": "핵심 메커니즘"
+            },
+            "행동력": {
+                "english": "Strength",
+                "description": "행동 카드가 놓인 슬롯(1-5)에 따라 결정되는 행동의 세기",
+                "category": "핵심 메커니즘"
+            },
+            "업그레이드": {
+                "english": "Upgrade",
+                "description": "행동 카드를 기본(I)면에서 강화된(II)면으로 뒤집는 것",
+                "category": "핵심 메커니즘"
+            }
+        },
+        "components": {
+            "동물원 지도": {
+                "english": "Zoo Map",
+                "description": "각 플레이어가 사용하는 개인 보드",
+                "category": "구성물"
+            },
+            "협회 보드": {
+                "english": "Association Board",
+                "description": "공용 보드로, 협회 행동을 수행하는 장소",
+                "category": "구성물"
+            },
+            "우리 타일": {
+                "english": "Enclosure Tile",
+                "description": "동물을 수용하기 위한 기본 건물 타일",
+                "category": "구성물"
+            },
+            "특수 우리": {
+                "english": "Special Enclosure",
+                "description": "특수 능력을 가진 우리 시설",
+                "category": "구성물"
+            },
+            "키오스크": {
+                "english": "Kiosk",
+                "description": "동물원 내 매점 역할을 하는 1칸 크기 건물",
+                "category": "구성물"
+            },
+            "X-토큰": {
+                "english": "X-token",
+                "description": "다양한 효과를 나타내는 범용 토큰",
+                "category": "구성물"
+            }
+        },
+        "animals_abilities": {
+            "코뿔소": {
+                "english": "Rhinoceros",
+                "description": "아프리카 대형 포유류, 높은 어필과 보존 가치",
+                "category": "동물"
+            },
+            "관철": {
+                "english": "Determination",
+                "description": "특정 동물의 고유 능력",
+                "category": "동물 능력"
+            },
+            "소화력": {
+                "english": "Resilience",
+                "description": "초식동물의 고유 능력",
+                "category": "동물 능력"
+            },
+            "협력": {
+                "english": "Cooperation",
+                "description": "사회성 동물의 고유 능력",
+                "category": "동물 능력"
+            }
+        },
+        "buildings": {
+            "파충류 집": {
+                "english": "Reptile House",
+                "description": "파충류 전용 특수 우리",
+                "category": "특수 건물"
+            },
+            "대형 조류 사육장": {
+                "english": "Large Bird Aviary",
+                "description": "대형 조류 전용 특수 우리",
+                "category": "특수 건물"
+            },
+            "애완동물 교감 공간": {
+                "english": "Petting Zoo",
+                "description": "방문객과 동물의 교감 공간",
+                "category": "특수 건물"
+            }
+        },
+        "actions": {
+            "동물 행동": {
+                "english": "Animals Action",
+                "description": "동물 카드 획득 및 배치",
+                "category": "행동"
+            },
+            "협회 행동": {
+                "english": "Association Action",
+                "description": "협회 보드에서 수행하는 행동",
+                "category": "행동"
+            },
+            "후원자 행동": {
+                "english": "Sponsors Action",
+                "description": "후원자 카드 획득 및 활용",
+                "category": "행동"
+            },
+            "건설 행동": {
+                "english": "Build Action",
+                "description": "우리 및 건물 건설",
+                "category": "행동"
+            },
+            "카드 행동": {
+                "english": "Cards Action",
+                "description": "카드 뽑기 및 관리",
+                "category": "행동"
+            }
+        },
+        "scoring": {
+            "어필": {
+                "english": "Appeal",
+                "description": "동물이 방문객에게 주는 매력도",
+                "category": "점수"
+            },
+            "최종 점수": {
+                "english": "Final Score",
+                "description": "어필과 보존 점수의 교집합으로 결정되는 최종 점수",
+                "category": "점수"
+            }
+        }
+    }
+}

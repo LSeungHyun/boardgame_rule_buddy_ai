@@ -128,7 +128,11 @@ export default function GameSelection({
                             <div
                                 key={game.id}
                                 className="game-card rounded-xl p-4 cursor-pointer group"
-                                onClick={() => onSelectGame(game)}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onSelectGame(game);
+                                }}
                             >
                                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                                     <div className="flex-1">

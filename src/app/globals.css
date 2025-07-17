@@ -49,17 +49,6 @@
   animation: fadeIn 0.3s ease-out forwards;
 }
 
-/* Stagewise 툴바와의 충돌 방지 */
-header[class*="glass-chat"] {
-  z-index: 9999 !important;
-  position: relative;
-}
-
-/* 앱 헤더가 다른 툴바들보다 위에 표시되도록 보장 */
-.sticky[class*="z-50"] {
-  z-index: 9999 !important;
-}
-
 .animate-gameCardGlow {
   animation: gameCardGlow 2s ease-in-out infinite;
 }

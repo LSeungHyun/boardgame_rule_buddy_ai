@@ -14,232 +14,161 @@ export default function Home() {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // 데이터 상태
+  const [researchStage, setResearchStage] = useState<ResearchStage>('analyzing');
   const [games, setGames] = useState<Game[]>([]);
-  const [isLoadingGames, setIsLoadingGames] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<GameFilters>({});
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // 개발 환경에서 V2 분석 테스트용 토글
-  const [useV2Analysis, setUseV2Analysis] = useState(false);
-
-  // 검색어가 있을 때만 게임 목록 로드
   useEffect(() => {
-    const loadFilteredGames = async () => {
-      // 검색어가 없으면 게임 목록을 비움
-      if (!searchTerm.trim()) {
-        setGames([]);
-        return;
-      }
-
+    const loadGames = async () => {
       try {
-        setIsLoadingGames(true);
-
-        const filters: GameFilters = {};
-
-        if (searchTerm.trim()) {
-          filters.searchTerm = searchTerm.trim();
-        }
-
-        const filteredGames = await fetchGames(filters);
-        setGames(filteredGames);
-        setError(null);
-      } catch (err) {
-        const appError = errorHandler.handle(err, {
-          function: 'loadFilteredGames',
-          searchTerm
+        setLoadingError(null);
+        const searchFilters = { ...filters, searchTerm };
+        const fetchedGames = await fetchGames(searchFilters);
+        setGames(fetchedGames);
+      } catch (error) {
+        const appError = errorHandler.handle(error, {
+          context: 'loading games',
+          action: 'fetchGames',
+          filters: { ...filters, searchTerm }
         });
-
-        setError(errorHandler.getUserMessage(appError));
-        setGames([]);
-      } finally {
-        setIsLoadingGames(false);
+        setLoadingError(appError.message);
       }
     };
 
-    // 디바운싱: 200ms 후에 검색 실행 (더 빠른 반응성)
-    const timeoutId = setTimeout(() => {
-      loadFilteredGames();
-    }, 200);
+    loadGames();
+  }, [filters, searchTerm]);
 
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
+  const handleGameSelect = (game: Game) => {
+    console.log('🎯 게임 선택:', game.title);
 
-  const handleSelectGame = (game: Game) => {
-    setSelectedGame(game);
-    setMessages([
-      {
-        role: 'assistant',
-        content: `안녕하세요! **${game.title}** 룰 마스터입니다. 무엇이든 물어보세요.`
-      }
-    ]);
-    setCurrentPage('chat');
-  };
-
-  const handleGoBack = () => {
-    setCurrentPage('selection');
-    setSelectedGame(null);
-    setMessages([]);
-  };
-
-  const handleSendMessage = async (text: string, callbacks?: {
-    onResearchStart?: () => void;
-    onResearchProgress?: (stage: ResearchStage) => void;
-    onComplete?: () => void;
-  }) => {
-    console.log('🚀 [페이지] handleSendMessage 호출됨:', {
-      text,
-      게임: selectedGame?.title,
-      V2분석사용: useV2Analysis
-    });
-
-    if (!selectedGame) {
-      console.error("선택된 게임이 없습니다.");
+    // 중복 클릭 방지
+    if (currentPage === 'chat' || selectedGame?.id === game.id) {
+      console.log('⚠️ 이미 선택된 게임이거나 전환 중');
       return;
     }
 
-    const newUserMessage: ChatMessage = { role: 'user', content: text };
-    setMessages(prev => [...prev, newUserMessage]);
+    setSelectedGame(game);
+
+    // 환영 메시지 생성
+    const welcomeMessage: ChatMessage = {
+      role: 'assistant',
+      content: `안녕하세요! 저는 **${game.title}**의 룰 마스터입니다. 🎲📖
+
+이 게임에 대한 어떤 룰이나 질문이든 물어보세요! 
+
+• 기본 게임 방법
+• 특수 카드나 능력 효과  
+• 애매한 상황 해석
+• 게임 진행 중 궁금한 점
+
+무엇이든 도와드릴게요! 어떤 것이 궁금하신가요? 🤔`
+    };
+
+    setMessages([welcomeMessage]);
+
+    // 강제 페이지 전환 (다음 렌더 사이클에서)
+    setTimeout(() => {
+      console.log('📄 페이지 전환 실행');
+      setCurrentPage('chat');
+    }, 0);
+  };
+
+  const handleBackToSelection = () => {
+    setCurrentPage('selection');
+    setSelectedGame(null);
+    setMessages([]);
+    setResearchStage('analyzing');
+  };
+
+  const handleSendMessage = async (content: string) => {
+    if (!selectedGame) return;
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content
+    };
+
+    setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
+    setResearchStage('analyzing');
 
     try {
-      console.log('📞 [페이지] askGameQuestionWithSmartResearch 호출 시작');
-      // 스마트 리서치 기능이 포함된 AI 답변 요청 (V2 분석 옵션 포함)
-      const result = await askGameQuestionWithSmartResearch(
+      const response = await askGameQuestionWithSmartResearch(
         selectedGame.title,
-        text,
-        callbacks?.onResearchStart,
-        useV2Analysis  // V2 분석 사용 여부
+        content
       );
 
-      console.log('📥 [페이지] askGameQuestionWithSmartResearch 결과 받음:', {
-        researchUsed: result.researchUsed,
-        fromCache: result.fromCache,
-        complexity: result.complexity?.score,
-        analysisV2: result.analysisV2
-      });
-
-      // 리서치 진행 단계별 콜백 실행
-      if (result.researchUsed && callbacks?.onResearchProgress) {
-        callbacks.onResearchProgress('processing');
-        // 약간의 지연으로 사용자 경험 개선
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        callbacks.onResearchProgress('completed');
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-
-      // 메타데이터를 포함한 assistant 메시지 생성
-      const assistantMessage: ChatMessage = {
+      const aiMessage: ChatMessage = {
         role: 'assistant',
-        content: result.answer,
-        researchUsed: result.researchUsed,
-        sources: result.sources,
-        fromCache: result.fromCache,
-        complexity: result.complexity,
-        // V2 분석 결과도 포함
-        analysisV2: result.analysisV2
+        content: typeof response === 'string' ? response : response.answer
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
-
-      if (callbacks?.onComplete) {
-        callbacks.onComplete();
-      }
-
+      setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-      console.error('AI 응답 생성 실패:', error);
+      const appError = errorHandler.handle(error, {
+        context: 'asking game question',
+        action: 'askGameQuestionWithSmartResearch',
+        gameName: selectedGame.title,
+        question: content
+      });
 
       const errorMessage: ChatMessage = {
         role: 'assistant',
-        content: '죄송합니다. 답변 생성 중 오류가 발생했습니다. 다시 시도해 주세요.'
+        content: `죄송합니다. 오류가 발생했습니다: ${appError.message}`
       };
 
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      setResearchStage('completed');
     }
   };
 
-  // 에러 상태 표시
-  if (error) {
+  if (currentPage === 'debug') {
     return (
-      <main className="bg-gray-900 text-white min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-400 text-lg mb-4">❌ {error}</p>
+      <div className="min-h-screen bg-game-table-dark">
+        <div className="container mx-auto px-4 py-8">
           <button
-            onClick={() => {
-              setError(null);
-              window.location.reload();
-            }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={() => setCurrentPage('selection')}
+            className="btn-game-secondary mb-6"
           >
-            다시 시도
+            ← 메인으로 돌아가기
           </button>
+          <TranslationDebugger onGoBack={() => setCurrentPage('selection')} />
         </div>
-      </main>
+      </div>
+    );
+  }
+
+  if (currentPage === 'chat' && selectedGame) {
+    return (
+      <ChatScreen
+        game={selectedGame}
+        messages={messages}
+        isLoading={isLoading}
+        onSendMessage={handleSendMessage}
+        onGoBack={handleBackToSelection}
+      />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-        <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
-      </div>
-
-      {/* Glass morphism overlay */}
-      <div className="absolute inset-0 backdrop-blur-3xl bg-black/10"></div>
-
-      <div className="relative z-10">
-        {currentPage === 'selection' && (
-          <GameSelection
-            search={{ term: searchTerm, setTerm: setSearchTerm }}
-            ui={{ isLoading: isLoadingGames }}
-            data={{ games, onSelectGame: handleSelectGame }}
-          />
-        )}
-
-        {currentPage === 'chat' && selectedGame && (
-          <ChatScreen
-            game={selectedGame}
-            messages={messages}
-            isLoading={isLoading}
-            onGoBack={handleGoBack}
-            onSendMessage={handleSendMessage}
-          />
-        )}
-
-        {currentPage === 'debug' && (
-          <TranslationDebugger onGoBack={handleGoBack} />
-        )}
-
-        {/* 개발 환경에서만 보이는 디버그 버튼 */}
-        {process.env.NODE_ENV === 'development' && currentPage === 'selection' && (
-          <div className="fixed bottom-6 right-6 flex flex-col gap-2">
-            <button
-              onClick={() => setCurrentPage('debug')}
-              className="bg-purple-600/80 backdrop-blur-sm hover:bg-purple-700/80 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-lg"
-            >
-              번역 디버그
-            </button>
-
-            <div className="bg-gray-800/80 backdrop-blur-sm p-3 rounded-lg shadow-lg">
-              <label className="flex items-center space-x-2 text-white text-sm">
-                <input
-                  type="checkbox"
-                  checked={useV2Analysis}
-                  onChange={(e) => setUseV2Analysis(e.target.checked)}
-                  className="rounded border-gray-600 text-purple-600 focus:ring-purple-500 focus:ring-2"
-                />
-                <span>V2 분석 사용</span>
-              </label>
-            </div>
-          </div>
-        )}
-      </div>
+    <div className="min-h-screen bg-game-table-dark">
+      <GameSelection
+        search={{
+          term: searchTerm,
+          setTerm: setSearchTerm
+        }}
+        ui={{
+          isLoading: false
+        }}
+        data={{
+          games,
+          onSelectGame: handleGameSelect
+        }}
+      />
     </div>
   );
 }
