@@ -8,6 +8,18 @@ import gptTerms from '@/data/board-game-terms-gpt.json';
 import geminiTerms from '@/data/board-game-terms-gemini.json';
 import discrepancies from '@/data/term-discrepancies.json';
 
+// 🚨 NEW: 게임별 JSON 파일 import
+import arkNovaTerms from '@/data/game-terms-json/331_ArkNova.json';
+
+/**
+ * 게임 ID와 JSON 데이터 매핑
+ */
+const GAME_TERMS_DATA: { [gameId: number]: any } = {
+    331: arkNovaTerms, // 아크노바
+    // 추후 다른 게임들 추가 예정
+    // 1: sevenWondersDuelTerms,
+};
+
 /**
  * 번역 결과 인터페이스
  */
@@ -187,15 +199,53 @@ export class EnhancedTranslator {
     }
 
     /**
- * 게임별 특화 매핑 구축 (현재는 빈 상태 - 추후 별도 파일에서 로드)
- */
+     * 게임별 특화 매핑 구축
+     */
     private buildGameSpecificMappings(): void {
         console.log('🎮 게임별 특화 매핑 구축...');
 
-        // TODO: 게임별 특화 용어는 별도 파일에서 로드 예정
-        // 현재는 공통 용어만 사용
+        // 🚨 NEW: JSON 파일 기반 게임별 용어 로드
+        Object.entries(GAME_TERMS_DATA).forEach(([gameIdStr, gameData]) => {
+            const gameId = parseInt(gameIdStr);
+            const gameName = gameData.metadata?.game_name_korean || `Game_${gameId}`;
+            const gameMapping = new Map<string, TranslationResult>();
 
-        console.log(`✅ 게임별 매핑 완료: ${this.gameSpecificMappings.size}개 게임 (현재 빈 상태)`);
+            console.log(`📚 [게임별 용어 로드] ${gameName} (ID: ${gameId})`);
+
+            // 모든 카테고리의 용어 처리
+            if (gameData.game_specific_terms) {
+                Object.entries(gameData.game_specific_terms).forEach(([categoryName, categoryTerms]) => {
+                    Object.entries(categoryTerms as Record<string, any>).forEach(([korean, termData]) => {
+                        if (termData.english) {
+                            gameMapping.set(korean, {
+                                primary: termData.english,
+                                fallbacks: [],
+                                confidence: 0.95, // JSON 파일 데이터는 높은 신뢰도
+                                source: 'unified',
+                                context: `game_${gameId}_${categoryName}`
+                            });
+
+                            console.log(`  ✅ ${korean} → ${termData.english} (${categoryName})`);
+                        }
+                    });
+                });
+            }
+
+            // 게임 제목을 키로 저장 (여러 형태로)
+            const gameKeys = [
+                gameName.toLowerCase(),
+                gameData.metadata?.game_name_english?.toLowerCase(),
+                `game_${gameId}`
+            ].filter(Boolean);
+
+            gameKeys.forEach(key => {
+                this.gameSpecificMappings.set(key, gameMapping);
+            });
+
+            console.log(`✅ ${gameName} 매핑 완료: ${gameMapping.size}개 용어`);
+        });
+
+        console.log(`✅ 게임별 매핑 완료: ${Object.keys(GAME_TERMS_DATA).length}개 게임 (현재 아크노바만)`);
     }
 
     /**

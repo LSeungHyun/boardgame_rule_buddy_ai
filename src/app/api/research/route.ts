@@ -8,6 +8,7 @@ import * as cheerio from 'cheerio';
 import { QuestionAnalyzer } from '@/lib/question-analyzer';
 import { ResearchLimiter } from '@/lib/research-limiter';
 import { researchCache } from '@/lib/research-cache';
+import { enhancedTranslator } from '@/lib/enhanced-translator'; // 🚨 Enhanced Translator 사용
 import type { SearchResult } from '@/lib/research-cache';
 
 // 신뢰할 수 있는 소스 도메인 우선순위 (⚡ 개선)
@@ -40,7 +41,8 @@ const EXCLUDED_DOMAINS = [
 interface ResearchRequest {
   gameTitle: string;
   question: string;
-  priority?: 'high' | 'medium' | 'low';
+  englishKeywords?: string[]; // 🚨 BGG 영어 검색용 키워드 추가
+  priority?: 'low' | 'medium' | 'high';
   bypassCache?: boolean;
 }
 
@@ -73,12 +75,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<ResearchR
   try {
     // 1. 요청 본문 파싱
     const body: ResearchRequest = await request.json();
-    const { gameTitle, question, priority = 'medium', bypassCache = false } = body;
+    const { gameTitle, question, englishKeywords, priority = 'medium', bypassCache = false } = body;
 
     // 🚨 요청 내용 로깅  
     console.log('🚨 [요청 파라미터]', {
       게임제목: gameTitle,
       질문: question,
+      영어키워드: englishKeywords,
       우선순위: priority,
       캐시우회: bypassCache
     });
@@ -142,7 +145,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ResearchR
     }
 
     // 6. Google Custom Search API 실행
-    const searchResults = await performWebSearch(gameTitle, question);
+    const searchResults = await performWebSearch(gameTitle, question, englishKeywords);
 
     // 7. 웹페이지 콘텐츠 스크래핑
     const enrichedResults = await enrichSearchResults(searchResults);
@@ -190,7 +193,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ResearchR
 /**
  * Google Custom Search API를 이용한 웹 검색
  */
-async function performWebSearch(gameTitle: string, question: string): Promise<SearchResult[]> {
+async function performWebSearch(gameTitle: string, question: string, englishKeywords?: string[]): Promise<SearchResult[]> {
 
   // 🚨 검색 함수 호출 확인
   console.log('🚨🚨🚨 [performWebSearch 호출됨]', {
@@ -217,7 +220,7 @@ async function performWebSearch(gameTitle: string, question: string): Promise<Se
   }
 
   // ⚡ 스마트 검색 쿼리 생성 (개선된 부분)
-  const searchQueries = generateSmartSearchQueries(gameTitle, question);
+  const searchQueries = generateSmartSearchQueries(gameTitle, question, englishKeywords);
 
   // 🚨 생성된 쿼리들 확인
   console.log('🚨🚨🚨 [생성된 검색 쿼리들]', {
@@ -408,144 +411,87 @@ async function performWebSearch(gameTitle: string, question: string): Promise<Se
 /**
  * 🌟 Enhanced Translator 통합 스마트 검색 쿼리 생성
  */
-function generateSmartSearchQueries(gameTitle: string, question: string): string[] {
+function generateSmartSearchQueries(gameTitle: string, question: string, englishKeywords?: string[]): string[] {
   console.log('🔥 [Enhanced Translator 기반 검색 쿼리 생성]', {
     게임명: gameTitle,
-    질문: question.slice(0, 50) + '...'
+    질문: question.slice(0, 50) + '...',
+    JSON영어키워드: englishKeywords
   });
 
+  // 🚨 PRIORITY 1: Enhanced Translator 사용 (기존 시스템)
   try {
-    // Enhanced Translator를 사용하여 다중 검색 쿼리 생성
     const analyzer = new QuestionAnalyzer();
     const enhancedQueries = analyzer.generateBGGSearchQueries(question, gameTitle);
 
     console.log('✅ [Enhanced Translator 검색 쿼리 생성 완료]', {
       생성된쿼리수: enhancedQueries.length,
-      쿼리목록: enhancedQueries.slice(0, 3) // 처음 3개만 로그
+      쿼리목록: enhancedQueries.slice(0, 3)
     });
 
-    // 생성된 쿼리가 있으면 사용
+    // Enhanced Translator 성공 시 사용
     if (enhancedQueries.length > 0) {
       return enhancedQueries;
     }
   } catch (error) {
-    console.warn('⚠️ [Enhanced Translator 실패] 기존 로직으로 폴백:', error);
+    console.warn('⚠️ [Enhanced Translator 실패] JSON 키워드로 폴백:', error);
   }
 
-  // Fallback: 기존 로직 사용
+  // 🚨 PRIORITY 2: JSON 영어 키워드 활용 (새로 추가된 시스템)
+  if (englishKeywords && englishKeywords.length > 0) {
+    const englishTitle = getEnglishTitle(gameTitle);
+    const queries: string[] = [];
+    
+    console.log('🎯 [JSON 기반 BGG 영어 검색 활성화]', {
+      영어게임명: englishTitle,
+      영어키워드: englishKeywords,
+      검색전략: 'BGG 영어 우선'
+    });
+
+    if (englishTitle) {
+      // 최고 우선순위: 정확한 영어 용어 조합
+      if (englishKeywords.length >= 2) {
+        queries.push(`site:boardgamegeek.com "${englishTitle}" "${englishKeywords[0]}" "${englishKeywords[1]}"`);
+      }
+      
+      queries.push(`site:boardgamegeek.com "${englishTitle}" "${englishKeywords[0]}"`);
+      
+      // BGG 스레드 전용 검색
+      queries.push(`site:boardgamegeek.com/thread "${englishTitle}" "${englishKeywords[0]}"`);
+      
+      // 다중 키워드 조합
+      if (englishKeywords.length >= 3) {
+        queries.push(`"${englishTitle}" "${englishKeywords[0]}" "${englishKeywords[1]}" "${englishKeywords[2]}" site:boardgamegeek.com`);
+      }
+      
+      // FAQ/Rules 섹션 우선 검색
+      queries.push(`site:boardgamegeek.com "${englishTitle}" FAQ "${englishKeywords[0]}"`);
+      queries.push(`site:boardgamegeek.com "${englishTitle}" rules "${englishKeywords[0]}"`);
+    }
+
+    console.log('✅ [JSON 기반 영어 검색 쿼리 생성 완료]', {
+      생성된쿼리수: queries.length,
+      쿼리미리보기: queries.slice(0, 3)
+    });
+
+    return queries;
+  }
+
+  // 🚨 PRIORITY 3: 기존 Fallback 로직
+  console.log('⚠️ [모든 우선순위 시스템 실패] 기존 폴백 로직 사용');
   const queries: string[] = [];
 
   // 질문에서 핵심 키워드 추출
   const questionKeywords = extractQuestionKeywords(question);
   const englishTitle = getEnglishTitle(gameTitle);
 
-  // 🚨 새로 추가: 한글 키워드를 영문으로 번역
-  const englishKeywords = translateGameTermsToEnglish(questionKeywords, gameTitle);
-
-  console.log('🌟 [Fallback 검색 쿼리 생성]', {
-    게임명: gameTitle,
-    영문명: englishTitle,
-    한글키워드: questionKeywords,
-    영문키워드: englishKeywords,
-    생성된쿼리수: '계산중...',
-    쿼리목록: '생성중...'
-  });
-
-  // === BGG 전용 고품질 검색 쿼리들 (우선순위 높음) ===
-
-  // 🚨 1. BGG 영문 검색 (최고 우선순위) - 번역된 키워드 사용
-  if (englishTitle && englishKeywords.length >= 2) {
-    queries.push(`site:boardgamegeek.com "${englishTitle}" "${englishKeywords[0]}" "${englishKeywords[1]}"`);
-    queries.push(`site:boardgamegeek.com/thread "${englishTitle}" "${englishKeywords[0]}"`);
-  }
-
-  // 2. BGG 혼합 검색 (영문 게임명 + 한글 키워드)
+  // 기존 로직...
   if (englishTitle && questionKeywords.length >= 1) {
-    queries.push(`site:boardgamegeek.com "${englishTitle}" FAQ "${questionKeywords[0]}"`);
-    queries.push(`site:boardgamegeek.com "${englishTitle}" rules "${questionKeywords[0]}"`);
+    queries.push(`site:boardgamegeek.com "${englishTitle}" "${questionKeywords[0]}"`);
   }
-
-  // 3. BGG 기존 한글 검색 (폴백용)
-  if (questionKeywords.length >= 2) {
-    queries.push(`site:boardgamegeek.com/thread "${gameTitle}" "${questionKeywords[0]}" "${questionKeywords[1]}"`);
-    if (englishTitle) {
-      queries.push(`site:boardgamegeek.com/thread "${englishTitle}" "${questionKeywords[0]}" "${questionKeywords[1]}"`);
-    }
-  }
-
-  // 4. BGG 영문 키워드 조합 검색 (높은 우선순위)
-  if (englishTitle && englishKeywords.length >= 1) {
-    queries.push(`site:boardgamegeek.com "${englishTitle}" ${englishKeywords.slice(0, 2).join(' ')}`);
-    if (englishKeywords.length >= 2) {
-      queries.push(`"${englishTitle}" "${englishKeywords[0]}" "${englishKeywords[1]}" site:boardgamegeek.com`);
-    }
-  }
-
-  // 5. BGG FAQ/규칙 섹션 (영문 우선)
-  if (englishTitle && englishKeywords.length >= 1) {
-    queries.push(`site:boardgamegeek.com "${englishTitle}" FAQ ${englishKeywords[0]}`);
-    queries.push(`site:boardgamegeek.com "${englishTitle}" rules ${englishKeywords[0]}`);
-  }
-
-  // 6. BGG 한글 폴백 검색
-  queries.push(`site:boardgamegeek.com "${gameTitle}" FAQ ${questionKeywords.slice(0, 2).join(' ')}`);
-  queries.push(`site:boardgamegeek.com "${gameTitle}" rules ${questionKeywords.slice(0, 2).join(' ')}`);
-
-  // 7. BGG 단순 검색 (최종 폴백)
-  if (englishTitle && englishKeywords.length > 0) {
-    queries.push(`site:boardgamegeek.com "${englishTitle}" ${englishKeywords[0]}`);
-  }
+  
   queries.push(`site:boardgamegeek.com "${gameTitle}" ${questionKeywords[0] || ''}`);
-  if (englishTitle) {
-    queries.push(`site:boardgamegeek.com "${englishTitle}" ${questionKeywords[0] || ''}`);
-  }
 
-  // === 커뮤니티 검색 (중간 우선순위) ===
-
-  // 8. Reddit 보드게임 커뮤니티 (영문 우선)
-  if (englishTitle && englishKeywords.length > 0) {
-    queries.push(`site:reddit.com/r/boardgames "${englishTitle}" ${englishKeywords.slice(0, 2).join(' ')}`);
-  }
-  if (questionKeywords.length > 0) {
-    queries.push(`site:reddit.com/r/boardgames "${gameTitle}" ${questionKeywords.slice(0, 2).join(' ')}`);
-    if (englishTitle) {
-      queries.push(`site:reddit.com/r/boardgames "${englishTitle}" ${questionKeywords.slice(0, 2).join(' ')}`);
-    }
-  }
-
-  // 9. 한국 보드게임 커뮤니티들 (핵심 키워드 우선)
-  if (questionKeywords.length >= 2) {
-    queries.push(`site:boardlife.co.kr "${gameTitle}" "${questionKeywords[0]}" "${questionKeywords[1]}"`);
-    queries.push(`site:boardem.co.kr "${gameTitle}" "${questionKeywords[0]}" "${questionKeywords[1]}"`);
-  }
-  queries.push(`site:boardlife.co.kr "${gameTitle}" ${questionKeywords.slice(0, 2).join(' ')}`);
-  queries.push(`site:boardem.co.kr "${gameTitle}" ${questionKeywords.slice(0, 2).join(' ')}`);
-
-  // === 최종 폴백 검색 (낮은 우선순위) ===
-
-  // 10. 일반 웹 검색 (영문 조합 포함)
-  if (englishTitle && englishKeywords.length >= 2) {
-    queries.push(`"${englishTitle}" "${englishKeywords[0]}" "${englishKeywords[1]}" rules`);
-    queries.push(`"${englishTitle}" "${englishKeywords[0]}" FAQ`);
-  }
-  queries.push(`boardgamegeek.com "${gameTitle}" ${questionKeywords.slice(0, 2).join(' ')}`);
-
-  // 🚨 중복 제거 및 우선순위 보장
-  const uniqueQueries = [...new Set(queries)];
-
-  // 최대 검색 수 제한 (비용 절약 + 성능 향상)
-  const maxQueries = 12;
-
-  const finalQueries = uniqueQueries.slice(0, maxQueries);
-
-  console.log('🚨🚨🚨 [최종 검색 쿼리들]', {
-    전체생성수: uniqueQueries.length,
-    최종선택수: finalQueries.length,
-    우선순위쿼리: finalQueries.slice(0, 5),
-    전체쿼리목록: finalQueries
-  });
-
-  return finalQueries;
+  return queries;
 }
 
 /**
@@ -556,6 +502,9 @@ function getEnglishTitle(koreanTitle: string): string | null {
   const essentialTitleMap: { [key: string]: string } = {
     // 가장 인기있는 상위 게임들만 (하드코딩 최소화)
     '아크노바': 'Ark Nova',
+    '세븐원더스 : 듀얼': '7 Wonders Duel',
+    '세븐원더스 듀얼': '7 Wonders Duel',
+    '7 원더스 듀얼': '7 Wonders Duel',
     '글룸헤이븐': 'Gloomhaven',
     '윙스팬': 'Wingspan',
     '테라포밍 마스': 'Terraforming Mars'

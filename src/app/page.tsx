@@ -102,7 +102,13 @@ export default function Home() {
 
       const aiMessage: ChatMessage = {
         role: 'assistant',
-        content: typeof response === 'string' ? response : response.answer
+        content: typeof response === 'string' ? response : response.answer,
+        // API 응답에서 메타데이터 추출하여 포함
+        researchUsed: typeof response !== 'string' ? response.researchUsed : false,
+        sources: typeof response !== 'string' ? response.sources : undefined,
+        fromCache: typeof response !== 'string' ? response.fromCache : undefined,
+        complexity: typeof response !== 'string' ? response.complexity : undefined,
+        analysisV2: typeof response !== 'string' ? response.analysisV2 : undefined
       };
 
       setMessages(prev => [...prev, aiMessage]);

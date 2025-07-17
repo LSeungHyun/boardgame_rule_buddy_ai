@@ -86,6 +86,21 @@
                 "description": "특정 동물의 고유 능력",
                 "category": "동물 능력"
             },
+            "관철효과": {
+                "english": "Determination Effect",
+                "description": "관철 능력을 가진 동물의 특수 효과, 추가 행동이나 카드 획득과 관련",
+                "category": "동물 능력"
+            },
+            "코뿔소 관철효과": {
+                "english": "Rhinoceros Determination Effect",
+                "description": "코뿔소의 관철 능력으로 인한 특수 효과",
+                "category": "동물 능력"
+            },
+            "카드 뽑기": {
+                "english": "Card Draw",
+                "description": "카드를 뽑는 행동",
+                "category": "행동"
+            },
             "소화력": {
                 "english": "Resilience",
                 "description": "초식동물의 고유 능력",

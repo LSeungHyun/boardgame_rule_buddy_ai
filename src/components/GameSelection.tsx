@@ -150,7 +150,7 @@ export default function GameSelection({
                                             {game.difficulty}
                                         </span>
                                         <div className="text-amber-300/80 text-sm whitespace-nowrap">
-                                            {game.playtime}분
+                                            보드게임
                                         </div>
                                         <div className="text-yellow-400 group-hover:text-yellow-300 transition-colors text-xl">
                                             ⚡

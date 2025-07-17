@@ -2,7 +2,24 @@ import { systemPrompt } from './prompts';
 import { QuestionAnalyzer } from './question-analyzer';
 import { ResearchLimiter } from './research-limiter';
 import { researchCache } from './research-cache';
+import { enhancedTranslator } from './enhanced-translator'; // 🚨 Enhanced Translator 사용
 import type { QuestionAnalysisV2 } from './question-analyzer';
+
+/**
+ * 게임 제목으로부터 게임 ID를 가져오는 함수
+ */
+function getGameIdFromTitle(gameTitle: string): number | null {
+    const titleMap: { [key: string]: number } = {
+        '아크노바': 331,
+        'ark nova': 331,
+        '세븐원더스': 1,
+        '7 wonders': 1,
+        // 필요에 따라 추가
+    };
+    
+    const normalizedTitle = gameTitle.toLowerCase().trim();
+    return titleMap[normalizedTitle] || null;
+}
 
 /**
  * Gemini API를 사용한 AI 서비스
@@ -208,14 +225,36 @@ export async function askGameQuestionWithSmartResearch(
                 researchUsed = true;
                 fromCache = true;
             } else {
-                // 새로운 웹 리서치 실행
-                console.log('🌐 [웹 리서치] API 호출을 시작합니다...');
+                // 🚨 NEW: 리서치 전에 영어 키워드 추출
+                let englishKeywords: string[] = [];
+                const gameId = getGameIdFromTitle(gameTitle);
+                if (gameId) {
+                    try {
+                        // Enhanced Translator로 영어 키워드 추출
+                        const searchQuery = enhancedTranslator.generateSearchQueries(userQuestion, gameTitle);
+                        englishKeywords = searchQuery.keywords;
+                        
+                        console.log('🔍 [Enhanced Translator 영어 키워드 추출 성공]', {
+                            게임ID: gameId,
+                            원본질문: userQuestion,
+                            추출된영어키워드: englishKeywords,
+                            매칭신뢰도: searchQuery.confidence,
+                            게임특화여부: searchQuery.gameSpecific
+                        });
+                    } catch (error) {
+                        console.warn('⚠️ [영어 키워드 추출 실패]', error);
+                    }
+                }
+
+                // 새로운 웹 리서치 실행 (영어 키워드 포함)
+                console.log('🌐 [웹 리서치] 영어 키워드를 포함한 API 호출을 시작합니다...');
                 const researchResponse = await fetch('/api/research', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         gameTitle,
                         question: userQuestion,
+                        englishKeywords, // 🚨 BGG 영어 검색용 키워드 추가!
                         priority: useV2Analysis && analysisV2 ?
                             (analysisV2.type === 'strategy' ? 'high' : 'medium') :
                             'medium'
@@ -248,8 +287,53 @@ export async function askGameQuestionWithSmartResearch(
         console.log('🤖 [일반 모드] 리서치 없이 Gemini API만 사용합니다.');
     }
 
-    // 4. Gemini 프롬프트 생성 (리서치 데이터 포함) - 개편된 강화 구조
-    let enhancedPrompt = systemPrompt;
+    // 4. 게임별 용어 데이터 로드
+    let gameTermsContext = '';
+    const gameId = getGameIdFromTitle(gameTitle);
+    if (gameId) {
+        try {
+            // Enhanced Translator로 게임별 용어 검색
+            const translation = enhancedTranslator.translate('코뿔소', gameTitle);
+            const translationResult2 = enhancedTranslator.translate('관철효과', gameTitle);
+            
+            let foundTerms: Array<{korean: string, english: string, context?: string}> = [];
+            
+            // 질문에서 핵심 키워드 추출해서 번역
+            const questionKeywords = userQuestion.split(' ').filter(word => word.length > 1);
+            questionKeywords.forEach(keyword => {
+                const result = enhancedTranslator.translate(keyword, gameTitle);
+                if (result) {
+                    foundTerms.push({
+                        korean: keyword,
+                        english: result.primary,
+                        context: result.context
+                    });
+                }
+            });
+            
+            if (foundTerms.length > 0) {
+                gameTermsContext = `
+
+🎯 **${gameTitle} 게임 전용 용어 정보:**
+${foundTerms.slice(0, 10).map(term => 
+    `• **${term.korean}** (${term.english}): Enhanced Translator 매칭`
+).join('\n')}
+
+📖 **이 용어들을 참고하여 정확한 룰 설명을 제공하세요.**
+`;
+                console.log('📚 [Enhanced Translator 게임 용어 로드 성공]', {
+                    게임ID: gameId,
+                    용어수: foundTerms.length,
+                    질문키워드수: questionKeywords.length
+                });
+            }
+        } catch (error) {
+            console.warn('⚠️ [게임 용어 로드 실패]', error);
+        }
+    }
+
+    // 5. Gemini 프롬프트 생성 (리서치 데이터 + 게임 용어 포함)
+    let enhancedPrompt = systemPrompt + gameTermsContext;
 
     if (researchUsed && researchData) {
         enhancedPrompt += `
