@@ -1,0 +1,153 @@
+{
+    "game_title": "세븐원더스 : 듀얼",
+    "total_terms": 63,
+    "categories": {
+      "게임_구성요소": {
+        "description": "카드, 토큰, 보드 등 물리적 요소",
+        "terms": {
+          "게임판": "Board",
+          "1시대 카드": "Age I card",
+          "2시대 카드": "Age II card",
+          "3시대 카드": "Age III card",
+          "조합 건물 카드": "Guild card",
+          "불가사의 카드": "Wonder card",
+          "군사 토큰": "Military token",
+          "진보 토큰": "Progress token",
+          "군사 경쟁 말": "Conflict pawn",
+          "주화": "Coin",
+          "승점 기록표": "Scorepad",
+          "규칙서": "Rulebook",
+          "참조표": "Reference sheet"
+        }
+      },
+      "게임_메커니즘": {
+        "description": "게임 진행 방식, 액션 등",
+        "terms": {
+          "건물 건설": "Construct Building",
+          "카드 버리기": "Discard a card",
+          "불가사의 건설": "Construct Wonder",
+          "연계 건설": "Linked construction",
+          "연계 상징": "Linking symbol",
+          "방패 상징": "Shield symbol",
+          "과학 상징": "Scientific symbol",
+          "교역": "Trade",
+          "자원 구매": "Purchase resource",
+          "자원 생산": "Resource production",
+          "건설비용": "Construction cost",
+          "무료 건설": "Free construction",
+          "추가 차례": "Extra turn"
+        }
+      },
+      "특수_능력_카드": {
+        "description": "카드명, 능력명 등",
+        "terms": {
+          "농업": "Agriculture",
+          "건축": "Architecture",
+          "경제": "Economy",
+          "법": "Law",
+          "석공기술": "Masonry",
+          "수학": "Mathematics",
+          "철학": "Philosophy",
+          "군사 전략": "Strategy",
+          "신학": "Theology",
+          "도시화": "Urbanism"
+        }
+      },
+      "점수_계산": {
+        "description": "승점, 보너스 관련",
+        "terms": {
+          "승점": "Victory point",
+          "동점": "Tie",
+          "최종 점수": "Final score"
+        }
+      },
+      "게임_상황": {
+        "description": "게임 진행 중 발생하는 상황들",
+        "terms": {
+          "군사 승리": "Military victory",
+          "과학 승리": "Scientific victory",
+          "시민 승리": "Civilian victory",
+          "군사 경쟁": "Military conflict",
+          "수도": "Capital",
+          "버린 카드 더미": "Discard pile"
+        }
+      },
+      "테마별_용어": {
+        "description": "게임 테마 관련 특화 용어",
+        "terms": {
+          "피라미드": "The Pyramids",
+          "바빌론의 공중정원": "Hanging Gardens of Babylon",
+          "콜로서스": "Colossus of Rhodes",
+          "알렉산드리아의 등대": "Lighthouse of Alexandria",
+          "제우스 상": "Statue of Zeus",
+          "아르테미스 신전": "Temple of Artemis",
+          "할리카르나소스의 영묘": "Mausoleum of Halicarnassus",
+          "알렉산드리아의 대 도서관": "Great Library of Alexandria",
+          "스핑크스": "The Sphinx",
+          "피레우스 항": "Piraeus Harbor",
+          "아피아 가도": "Appian Way",
+          "대 원형 경기장": "Circus Maximus",
+          "나무": "Wood",
+          "돌": "Stone",
+          "벽돌": "Clay",
+          "광석": "Ore",
+          "유리": "Glass",
+          "파피루스": "Papyrus"
+        }
+      }
+    },
+    "common_confusion": [
+      {
+        "korean": "시민 승리",
+        "english": "Civilian victory",
+        "explanation": "일부 플레이어들은 '문화 승리'라고 부르지만, 공식 용어는 '시민 승리'입니다."
+      },
+      {
+        "korean": "카드 버리기(판매)",
+        "english": "Discard (sell a card)",
+        "explanation": "카드를 버릴 때 자원 비용을 지불해야 한다고 착각하는 경우가 있습니다. 실제로는 아무 비용 없이 카드를 버리고 2주화(노란 카드당 +1)를 얻는 행동입니다."
+      },
+      {
+        "korean": "군사 토큰 vs 군사 경쟁 말",
+        "english": "Military token vs Conflict pawn",
+        "explanation": "둘 다 '군사' 관련 용어지만 다릅니다. 군사 토큰은 보드의 특정 지점에 놓여 상대 주화 손실을 일으키는 토큰이고, 군사 경쟁 말은 보드 위를 이동하며 군사 우위를 표시하는 말입니다."
+      }
+    ],
+    "gameplay_examples": [
+      {
+        "situation": "상대 도시의 수도 함락 직전",
+        "korean_phrase": "내 군사 경쟁 말이 네 수도까지 들어갔어. 이제 내가 군사 승리야!",
+        "key_terms": [
+          "군사 경쟁 말",
+          "수도",
+          "군사 승리"
+        ]
+      },
+      {
+        "situation": "과학 승리 조건 달성",
+        "korean_phrase": "제가 서로 다른 과학 상징 6개를 모아서 과학 승리입니다.",
+        "key_terms": [
+          "과학 상징",
+          "과학 승리"
+        ]
+      },
+      {
+        "situation": "게임 종료 후 승점 계산",
+        "korean_phrase": "남은 주화 6개로 2점을 추가해서 최종 점수가 17점입니다.",
+        "key_terms": [
+          "주화",
+          "최종 점수",
+          "승점"
+        ]
+      }
+    ],
+    "metadata": {
+      "edition": "기본판만",
+      "rulebook_source": "한국어 공식",
+      "publisher_kr": "코리아보드게임즈",
+      "publisher_original": "Repos Production",
+      "bgg_link": "https://boardgamegeek.com/boardgame/173346",
+      "official_rules_link": "https://cdn.svc.asmodee.net/production-rprod/storage/downloads/games/7wonders-duel/kr/7du-kr01-rules-1701442944gokmV.pdf"
+    }
+  }
+  

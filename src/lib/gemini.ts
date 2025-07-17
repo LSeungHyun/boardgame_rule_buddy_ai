@@ -2,6 +2,7 @@ import { systemPrompt } from './prompts';
 import { QuestionAnalyzer } from './question-analyzer';
 import { ResearchLimiter } from './research-limiter';
 import { researchCache } from './research-cache';
+import type { QuestionAnalysisV2 } from './question-analyzer';
 
 /**
  * Gemini API를 사용한 AI 서비스
@@ -28,6 +29,8 @@ export interface ResearchEnhancedResponse {
         score: number;
         reasoning: string[];
     };
+    // V2 분석 결과 추가
+    analysisV2?: QuestionAnalysisV2;
     fromCache?: boolean;
 }
 
@@ -53,7 +56,7 @@ export async function askGameQuestion(
     userQuestion: string
 ): Promise<string> {
     console.log('⚠️ [경고] 기존 askGameQuestion 함수가 호출되었습니다! 스마트 리서치 미적용');
-    
+
     // API 키 확인
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     if (!apiKey) {
@@ -125,40 +128,61 @@ export async function askGameQuestion(
  * @param gameTitle 게임 제목
  * @param userQuestion 사용자 질문
  * @param onResearchStart 리서치 시작 시 호출되는 콜백
+ * @param useV2Analysis V2 분석 시스템 사용 여부 (기본값: false)
  * @returns 리서치 강화된 AI 답변
  */
 export async function askGameQuestionWithSmartResearch(
     gameTitle: string,
     userQuestion: string,
-    onResearchStart?: () => void
+    onResearchStart?: () => void,
+    useV2Analysis: boolean = false
 ): Promise<ResearchEnhancedResponse> {
     console.log('🎯 [Smart Research] 질문 처리 시작:', {
         게임: gameTitle,
-        질문: userQuestion.slice(0, 50) + (userQuestion.length > 50 ? '...' : '')
+        질문: userQuestion.slice(0, 50) + (userQuestion.length > 50 ? '...' : ''),
+        V2분석사용: useV2Analysis
     });
-    
+
     // 1. 질문 복잡도 분석
     const analyzer = new QuestionAnalyzer();
-    const complexityScore = analyzer.analyzeComplexity(userQuestion, gameTitle);
-    
-    console.log('📊 [복잡도 분석]', {
-        점수: complexityScore.totalScore,
-        임계값: 15,
-        리서치필요: complexityScore.shouldTriggerResearch,
-        우선순위: complexityScore.priority,
-        분석근거: complexityScore.reasoning
-    });
-    
-    const limiter = new ResearchLimiter();
-    limiter.recordQuestionAsked(); // 모든 질문 수 기록
+    let analysisV2: QuestionAnalysisV2 | undefined;
+    let shouldResearch: boolean;
 
-    // 2. 리서치 필요성 판단
-    const shouldResearch = complexityScore.shouldTriggerResearch && 
-                          limiter.canPerformResearch();
-    
+    if (useV2Analysis) {
+        // V2 분석 시스템 사용
+        console.log('🚀 [V2 분석 시스템] 새로운 분석 방식 적용');
+        analysisV2 = await analyzer.analyzeComplexityV2(userQuestion);
+
+        console.log('📊 [V2 분석 결과]', {
+            유형: analysisV2.type,
+            리서치필요: analysisV2.requiresResearch,
+            신뢰도: analysisV2.confidence,
+            설명: analysisV2.explanation
+        });
+
+        // V2에서는 requiresResearch 값을 직접 사용
+        const limiter = new ResearchLimiter();
+        limiter.recordQuestionAsked();
+        shouldResearch = analysisV2.requiresResearch && limiter.canPerformResearch();
+    } else {
+        // 기존 분석 시스템 사용
+        const complexityScore = analyzer.analyzeComplexity(userQuestion, gameTitle);
+
+        console.log('📊 [기존 복잡도 분석]', {
+            점수: complexityScore.totalScore,
+            임계값: 8,
+            리서치필요: complexityScore.shouldTriggerResearch,
+            우선순위: complexityScore.priority,
+            분석근거: complexityScore.reasoning
+        });
+
+        const limiter = new ResearchLimiter();
+        limiter.recordQuestionAsked();
+        shouldResearch = complexityScore.shouldTriggerResearch && limiter.canPerformResearch();
+    }
+
     console.log('🚦 [리서치 판단]', {
-        복잡도충족: complexityScore.shouldTriggerResearch,
-        할당량가능: limiter.canPerformResearch(),
+        분석방식: useV2Analysis ? 'V2 유형분석' : '기존 점수분석',
         최종결정: shouldResearch ? '🔍 리서치 실행' : '🤖 Gemini만 사용'
     });
 
@@ -178,74 +202,87 @@ export async function askGameQuestionWithSmartResearch(
             // 캐시 확인
             const cached = researchCache.get(gameTitle, userQuestion);
             if (cached) {
-                console.log('⚡ [캐시 히트] 저장된 리서치 결과를 사용합니다:', {
-                    타임스탬프: new Date(cached.timestamp).toLocaleString(),
-                    출처수: cached.sources.length,
-                    히트수: cached.hitCount
-                });
-                researchData = {
-                    summary: cached.summary,
-                    searchResults: cached.searchResults,
-                    sources: cached.sources
-                };
-                sources = cached.sources;
+                console.log('💾 [캐시 적중] 이전 리서치 결과를 사용합니다');
+                researchData = cached;
+                sources = cached.sources || [];
                 researchUsed = true;
                 fromCache = true;
-                limiter.recordCacheHit();
             } else {
-                console.log('🌐 [웹 검색] API 요청을 시작합니다...');
-                // 웹 리서치 API 호출
+                // 새로운 웹 리서치 실행
+                console.log('🌐 [웹 리서치] API 호출을 시작합니다...');
                 const researchResponse = await fetch('/api/research', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         gameTitle,
                         question: userQuestion,
-                        priority: complexityScore.priority
+                        priority: useV2Analysis && analysisV2 ?
+                            (analysisV2.type === 'strategy' ? 'high' : 'medium') :
+                            'medium'
                     })
                 });
 
                 if (researchResponse.ok) {
                     const researchResult = await researchResponse.json();
                     if (researchResult.success) {
-                        console.log('✅ [검색 성공] 웹 리서치가 완료되었습니다:', {
-                            검색결과수: researchResult.data.searchResults?.length || 0,
-                            출처수: researchResult.data.sources?.length || 0,
-                            캐시여부: researchResult.data.fromCache
-                        });
                         researchData = researchResult.data;
-                        sources = researchResult.data.sources || [];
+                        sources = researchData.sources || [];
                         researchUsed = true;
-                        fromCache = researchResult.data.fromCache || false;
+                        fromCache = false;
+
+                        console.log('✅ [웹 리서치 성공]', {
+                            출처수: sources.length,
+                            요약길이: researchData.summary?.length || 0
+                        });
                     } else {
-                        console.warn('❌ [검색 실패] API 응답 오류:', researchResult.error);
+                        console.warn('⚠️ [웹 리서치 실패]', researchResult.error);
                     }
                 } else {
-                    console.warn('❌ [검색 실패] HTTP 오류:', researchResponse.status);
+                    console.warn('⚠️ [웹 리서치 API 오류]', researchResponse.status);
                 }
             }
         } catch (error) {
-            console.warn('❌ [리서치 오류] 기본 답변으로 fallback:', error);
-            // 리서치 실패 시 기본 AI 답변 계속 진행
+            console.error('❌ [리서치 오류]', error);
         }
     } else {
         console.log('🤖 [일반 모드] 리서치 없이 Gemini API만 사용합니다.');
     }
 
-    // 4. Gemini 프롬프트 생성 (리서치 데이터 포함)
+    // 4. Gemini 프롬프트 생성 (리서치 데이터 포함) - 개편된 강화 구조
     let enhancedPrompt = systemPrompt;
-    
+
     if (researchUsed && researchData) {
-        enhancedPrompt += `\n\n📚 **추가 참고 자료** (웹 리서치 결과):
+        enhancedPrompt += `
+
+📚 **리서치 데이터 기반 답변 가이드라인:**
+
+다음은 웹에서 수집한 신뢰할 수 있는 정보입니다:
+---
 ${researchData.summary}
+---
 
-**참고 출처**:
-${sources.slice(0, 3).map((url, i) => `${i+1}. ${url}`).join('\n')}
+⚡ **CRITICAL 답변 원칙:**
+1. **신뢰도 우선**: 위 리서치 정보를 주요 근거로 사용하되, 불확실한 부분은 명시적으로 표현하세요
+2. **출처 기반**: 답변에 반드시 "검색된 정보에 따르면" 또는 "커뮤니티에서는" 등의 출처 표현을 포함하세요
+3. **균형적 접근**: 리서치 정보가 부족하거나 모순될 경우, 일반적인 룰 지식과 균형있게 결합하세요
+4. **불확실성 표현**: 확실하지 않은 부분은 "이 부분은 추가 확인이 필요합니다" 등으로 명시하세요
+5. **실용적 조언**: 가능한 경우 플레이어에게 도움되는 실제 게임 상황의 예시를 포함하세요
 
-위 웹 리서치 정보를 참고하여 더욱 정확하고 구체적인 답변을 제공해주세요.
-출처가 있는 정보는 해당 출처를 명시해주세요.`;
+📝 **답변 구조 권장 포맷:**
+- **결론**: 검색된 정보를 바탕으로 한 명확한 답변
+- **근거**: 찾은 정보의 핵심 내용 요약
+- **추가 고려사항**: 예외 상황이나 주의점
+- **확인 방법**: 확실하지 않을 때 추가로 확인할 수 있는 방법
+
+**참고한 정보 출처:**
+${sources.slice(0, 3).map((url, i) => `${i + 1}. ${url}`).join('\n')}`;
+    } else {
+        enhancedPrompt += `
+
+⚠️ **일반 답변 모드**: 웹 리서치 정보 없이 답변합니다.
+- 확실한 룰 지식만 제공하세요
+- 불확실한 경우 명시적으로 표현하세요  
+- 가능한 경우 공식 룰북 확인을 권장하세요`;
     }
 
     enhancedPrompt += `\n\n게임 제목: ${gameTitle}\n사용자 질문: ${userQuestion}`;
@@ -254,46 +291,44 @@ ${sources.slice(0, 3).map((url, i) => `${i+1}. ${url}`).join('\n')}
     try {
         console.log('🤖 [Gemini API] 답변 생성을 시작합니다...', {
             리서치데이터포함: researchUsed,
-            프롬프트길이: enhancedPrompt.length
+            프롬프트길이: enhancedPrompt.length,
+            리서치요약길이: researchUsed ? researchData?.summary?.length : 0
         });
-        
+
         const aiAnswer = await callGeminiAPI(enhancedPrompt);
-        
+
         console.log('✅ [완료] 최종 답변이 생성되었습니다:', {
             리서치사용: researchUsed,
             캐시사용: fromCache,
-            복잡도점수: complexityScore.totalScore,
+            V2분석: useV2Analysis,
             출처수: sources.length,
             답변길이: aiAnswer.length
         });
-        
+
         // 6. 결과 반환
-        return {
+        const response: ResearchEnhancedResponse = {
             answer: aiAnswer,
             researchUsed,
             sources: researchUsed ? sources : undefined,
-            complexity: {
-                score: complexityScore.totalScore,
-                reasoning: complexityScore.reasoning
-            },
             fromCache: researchUsed ? fromCache : undefined
         };
 
-    } catch (error) {
-        // Gemini API 실패 시에도 리서치 정보 제공
-        if (researchUsed && researchData) {
-            return {
-                answer: `AI 답변 생성에 실패했지만, 다음 웹 리서치 결과를 참고하세요:\n\n${researchData.summary}`,
-                researchUsed: true,
-                sources,
-                complexity: {
-                    score: complexityScore.totalScore,
-                    reasoning: complexityScore.reasoning
-                },
-                fromCache
+        // V2 분석 사용 시 해당 결과도 포함
+        if (useV2Analysis && analysisV2) {
+            response.analysisV2 = analysisV2;
+        } else {
+            // 기존 시스템용 복잡도 정보
+            const complexityScore = analyzer.analyzeComplexity(userQuestion, gameTitle);
+            response.complexity = {
+                score: complexityScore.totalScore,
+                reasoning: complexityScore.reasoning
             };
         }
-        
+
+        return response;
+
+    } catch (error) {
+        console.error('❌ [Gemini API 오류]', error);
         throw error;
     }
 }

@@ -3,13 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import GameSelection from '@/components/GameSelection';
 import ChatScreen from '@/components/ChatScreen';
-import { Game, ChatMessage } from '@/types/game';
+import TranslationDebugger from '@/components/TranslationDebugger';
+import { Game, ChatMessage, ResearchStage } from '@/types/game';
 import { fetchGames, GameFilters } from '@/features/games/api';
 import { errorHandler, AppError } from '@/lib/error-handler';
 import { askGameQuestionWithSmartResearch } from '@/lib/gemini';
 
 export default function Home() {
-  const [currentPage, setCurrentPage] = useState<'selection' | 'chat'>('selection');
+  const [currentPage, setCurrentPage] = useState<'selection' | 'chat' | 'debug'>('selection');
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +20,9 @@ export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
   const [isLoadingGames, setIsLoadingGames] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 개발 환경에서 V2 분석 테스트용 토글
+  const [useV2Analysis, setUseV2Analysis] = useState(false);
 
   // 검색어가 있을 때만 게임 목록 로드
   useEffect(() => {
@@ -81,11 +85,15 @@ export default function Home() {
 
   const handleSendMessage = async (text: string, callbacks?: {
     onResearchStart?: () => void;
-    onResearchProgress?: (stage: string) => void;
+    onResearchProgress?: (stage: ResearchStage) => void;
     onComplete?: () => void;
   }) => {
-    console.log('🚀 [페이지] handleSendMessage 호출됨:', { text, 게임: selectedGame?.title });
-    
+    console.log('🚀 [페이지] handleSendMessage 호출됨:', {
+      text,
+      게임: selectedGame?.title,
+      V2분석사용: useV2Analysis
+    });
+
     if (!selectedGame) {
       console.error("선택된 게임이 없습니다.");
       return;
@@ -97,16 +105,19 @@ export default function Home() {
 
     try {
       console.log('📞 [페이지] askGameQuestionWithSmartResearch 호출 시작');
-      // 스마트 리서치 기능이 포함된 AI 답변 요청
+      // 스마트 리서치 기능이 포함된 AI 답변 요청 (V2 분석 옵션 포함)
       const result = await askGameQuestionWithSmartResearch(
-        selectedGame.title, 
+        selectedGame.title,
         text,
-        callbacks?.onResearchStart
+        callbacks?.onResearchStart,
+        useV2Analysis  // V2 분석 사용 여부
       );
+
       console.log('📥 [페이지] askGameQuestionWithSmartResearch 결과 받음:', {
         researchUsed: result.researchUsed,
         fromCache: result.fromCache,
-        complexity: result.complexity?.score
+        complexity: result.complexity?.score,
+        analysisV2: result.analysisV2
       });
 
       // 리서치 진행 단계별 콜백 실행
@@ -125,23 +136,28 @@ export default function Home() {
         researchUsed: result.researchUsed,
         sources: result.sources,
         fromCache: result.fromCache,
-        complexity: result.complexity
+        complexity: result.complexity,
+        // V2 분석 결과도 포함
+        analysisV2: result.analysisV2
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-      
-    } catch (err) {
-      console.error("AI 답변 생성 오류:", err);
-      const errorMessage = err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다";
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: `오류가 발생했습니다: ${errorMessage}. 잠시 후 다시 시도해주세요.`
-      }]);
-    } finally {
-      setIsLoading(false);
+
       if (callbacks?.onComplete) {
         callbacks.onComplete();
       }
+
+    } catch (error) {
+      console.error('AI 응답 생성 실패:', error);
+
+      const errorMessage: ChatMessage = {
+        role: 'assistant',
+        content: '죄송합니다. 답변 생성 중 오류가 발생했습니다. 다시 시도해 주세요.'
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -166,30 +182,64 @@ export default function Home() {
   }
 
   return (
-    <main className="bg-gray-900 text-white min-h-screen">
-      {currentPage === 'chat' && selectedGame ? (
-        <ChatScreen
-          game={selectedGame}
-          onGoBack={handleGoBack}
-          messages={messages}
-          onSendMessage={handleSendMessage}
-          isLoading={isLoading}
-        />
-      ) : (
-        <GameSelection
-          search={{
-            term: searchTerm,
-            setTerm: setSearchTerm
-          }}
-          ui={{
-            isLoading: isLoadingGames
-          }}
-          data={{
-            games,
-            onSelectGame: handleSelectGame
-          }}
-        />
-      )}
-    </main>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+        <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
+      </div>
+
+      {/* Glass morphism overlay */}
+      <div className="absolute inset-0 backdrop-blur-3xl bg-black/10"></div>
+
+      <div className="relative z-10">
+        {currentPage === 'selection' && (
+          <GameSelection
+            search={{ term: searchTerm, setTerm: setSearchTerm }}
+            ui={{ isLoading: isLoadingGames }}
+            data={{ games, onSelectGame: handleSelectGame }}
+          />
+        )}
+
+        {currentPage === 'chat' && selectedGame && (
+          <ChatScreen
+            game={selectedGame}
+            messages={messages}
+            isLoading={isLoading}
+            onGoBack={handleGoBack}
+            onSendMessage={handleSendMessage}
+          />
+        )}
+
+        {currentPage === 'debug' && (
+          <TranslationDebugger onGoBack={handleGoBack} />
+        )}
+
+        {/* 개발 환경에서만 보이는 디버그 버튼 */}
+        {process.env.NODE_ENV === 'development' && currentPage === 'selection' && (
+          <div className="fixed bottom-6 right-6 flex flex-col gap-2">
+            <button
+              onClick={() => setCurrentPage('debug')}
+              className="bg-purple-600/80 backdrop-blur-sm hover:bg-purple-700/80 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-lg"
+            >
+              번역 디버그
+            </button>
+
+            <div className="bg-gray-800/80 backdrop-blur-sm p-3 rounded-lg shadow-lg">
+              <label className="flex items-center space-x-2 text-white text-sm">
+                <input
+                  type="checkbox"
+                  checked={useV2Analysis}
+                  onChange={(e) => setUseV2Analysis(e.target.checked)}
+                  className="rounded border-gray-600 text-purple-600 focus:ring-purple-500 focus:ring-2"
+                />
+                <span>V2 분석 사용</span>
+              </label>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

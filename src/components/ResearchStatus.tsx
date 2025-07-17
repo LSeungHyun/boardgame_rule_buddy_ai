@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
+import { ResearchStage } from '@/types/game';
 
 interface ResearchStatusProps {
-  stage: 'analyzing' | 'searching' | 'processing' | 'completed';
+  stage: ResearchStage;
   isVisible: boolean;
 }
 
@@ -37,25 +38,25 @@ export default function ResearchStatus({ stage, isVisible }: ResearchStatusProps
 
   return (
     <div className="flex justify-start mb-4 animate-fadeIn">
-      <div className="bg-gradient-to-r from-blue-900/70 to-indigo-900/70 border border-blue-500/50 text-blue-100 rounded-xl px-5 py-4 flex items-center space-x-3 max-w-lg shadow-lg shadow-blue-500/20">
+      <div className="glass-card bg-gradient-to-r from-amber-900/50 to-yellow-900/50 border border-amber-500/50 text-amber-100 rounded-xl px-5 py-4 flex items-center space-x-3 max-w-lg shadow-lg shadow-amber-500/20">
         <div className="text-2xl animate-bounce">
           {currentStage.emoji}
         </div>
         <div className="flex-1">
           <div className="font-bold text-base flex items-center">
             {currentStage.text}
-            <span className="ml-2 text-blue-300 text-xs bg-blue-800/50 px-2 py-1 rounded-full">
+            <span className="ml-2 text-amber-300 text-xs bg-amber-800/50 px-2 py-1 rounded-full border border-amber-400/30">
               SMART RESEARCH
             </span>
           </div>
-          <div className="text-sm text-blue-200 mt-1">
+          <div className="text-sm text-amber-200 mt-1">
             {currentStage.description}
           </div>
         </div>
         <div className="flex space-x-1">
-          <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
-          <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
-          <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+          <div className="w-3 h-3 bg-amber-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
+          <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
+          <div className="w-3 h-3 bg-amber-500 rounded-full animate-pulse"></div>
         </div>
       </div>
     </div>

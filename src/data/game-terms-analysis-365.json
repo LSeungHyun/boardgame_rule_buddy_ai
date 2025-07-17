@@ -1,0 +1,1792 @@
+{
+    "metadata": {
+        "analysis_date": "2025-01-23",
+        "description": "365개 게임 중 GPT 특화용어 리서치 완료/미완료 분석",
+        "total_games_in_db": 365,
+        "total_researched_games": 88,
+        "total_unresearched_games": 277,
+        "research_completion_rate": "24.1%"
+    },
+    "researched_games": [
+        {
+            "id": 1,
+            "title": "세븐원더스 : 듀얼",
+            "gpt_key": "7_wonders_duel"
+        },
+        {
+            "id": 5,
+            "title": "노땡스",
+            "gpt_key": "no_thanks"
+        },
+        {
+            "id": 9,
+            "title": "더게임",
+            "gpt_key": "the_game"
+        },
+        {
+            "id": 10,
+            "title": "데드오브윈터",
+            "gpt_key": "dead_of_winter_a_crossroads_game"
+        },
+        {
+            "id": 16,
+            "title": "러시아워",
+            "gpt_key": "rush_hour"
+        },
+        {
+            "id": 17,
+            "title": "러시아워쉬프트",
+            "gpt_key": "rush_hour_shift"
+        },
+        {
+            "id": 18,
+            "title": "시퀀스",
+            "gpt_key": "sequence"
+        },
+        {
+            "id": 19,
+            "title": "레지스탕스 아발론",
+            "gpt_key": "resistance_avalon"
+        },
+        {
+            "id": 20,
+            "title": "레지스탕스:쿠",
+            "gpt_key": "coup"
+        },
+        {
+            "id": 21,
+            "title": "렉시오",
+            "gpt_key": "lexio"
+        },
+        {
+            "id": 23,
+            "title": "루미큐브",
+            "gpt_key": "rummikub"
+        },
+        {
+            "id": 24,
+            "title": "루핑루이",
+            "gpt_key": "loopin_louie"
+        },
+        {
+            "id": 27,
+            "title": "마법의미로",
+            "gpt_key": "magic_labyrinth"
+        },
+        {
+            "id": 40,
+            "title": "바퀴벌레 샐러드",
+            "gpt_key": "kakerlaken_salat"
+        },
+        {
+            "id": 41,
+            "title": "바퀴벌레포커",
+            "gpt_key": "kakerlaken_poker"
+        },
+        {
+            "id": 48,
+            "title": "보난자",
+            "gpt_key": "bohnanza"
+        },
+        {
+            "id": 50,
+            "title": "블로커스",
+            "gpt_key": "blokus"
+        },
+        {
+            "id": 52,
+            "title": "사무라이",
+            "gpt_key": "samurai"
+        },
+        {
+            "id": 54,
+            "title": "석기시대",
+            "gpt_key": "stone_age"
+        },
+        {
+            "id": 55,
+            "title": "선물입니다",
+            "gpt_key": "present"
+        },
+        {
+            "id": 56,
+            "title": "세트",
+            "gpt_key": "set"
+        },
+        {
+            "id": 57,
+            "title": "셜록13",
+            "gpt_key": "sherlock_13"
+        },
+        {
+            "id": 58,
+            "title": "쇼텐토텐",
+            "gpt_key": "schotten_totten"
+        },
+        {
+            "id": 61,
+            "title": "스크래블",
+            "gpt_key": "scrabble"
+        },
+        {
+            "id": 62,
+            "title": "스트라테고",
+            "gpt_key": "stratego"
+        },
+        {
+            "id": 63,
+            "title": "스트림스",
+            "gpt_key": "streams"
+        },
+        {
+            "id": 65,
+            "title": "스파이폴",
+            "gpt_key": "spyfall"
+        },
+        {
+            "id": 66,
+            "title": "스플렌더",
+            "gpt_key": "splendor"
+        },
+        {
+            "id": 67,
+            "title": "신의한수",
+            "gpt_key": "gods_move"
+        },
+        {
+            "id": 69,
+            "title": "아브라카왓",
+            "gpt_key": "abraca_what"
+        },
+        {
+            "id": 72,
+            "title": "우노",
+            "gpt_key": "uno"
+        },
+        {
+            "id": 73,
+            "title": "위너스서클",
+            "gpt_key": "winner_s_circle"
+        },
+        {
+            "id": 75,
+            "title": "장기",
+            "gpt_key": "janggi"
+        },
+        {
+            "id": 78,
+            "title": "젠가",
+            "gpt_key": "jenga"
+        },
+        {
+            "id": 77,
+            "title": "젝스님트",
+            "gpt_key": "6_nimmt"
+        },
+        {
+            "id": 81,
+            "title": "차이나타운",
+            "gpt_key": "chinatown"
+        },
+        {
+            "id": 83,
+            "title": "체스 앤 체커스",
+            "gpt_key": "chess_and_checkers"
+        },
+        {
+            "id": 84,
+            "title": "카르카손",
+            "gpt_key": "carcassonne"
+        },
+        {
+            "id": 85,
+            "title": "카탄:도시와기사",
+            "gpt_key": "catan_cities_knights"
+        },
+        {
+            "id": 86,
+            "title": "카탄:항해사",
+            "gpt_key": "catan_seafarers"
+        },
+        {
+            "id": 87,
+            "title": "카탄:5-6인확장",
+            "gpt_key": "catan_5_6_player_extension"
+        },
+        {
+            "id": 88,
+            "title": "컬러레또",
+            "gpt_key": "coloretto"
+        },
+        {
+            "id": 91,
+            "title": "티켓투라이드 : 유럽",
+            "gpt_key": "ticket_to_ride_europe"
+        },
+        {
+            "id": 93,
+            "title": "코코너츠",
+            "gpt_key": "coconuts"
+        },
+        {
+            "id": 94,
+            "title": "티켓투라이드 : 노르딕컨트리",
+            "gpt_key": "ticket_to_ride_nordic_countries"
+        },
+        {
+            "id": 95,
+            "title": "쿼클",
+            "gpt_key": "qwirkle"
+        },
+        {
+            "id": 98,
+            "title": "클루",
+            "gpt_key": "clue"
+        },
+        {
+            "id": 99,
+            "title": "타르기",
+            "gpt_key": "targi"
+        },
+        {
+            "id": 102,
+            "title": "타임라인",
+            "gpt_key": "timeline"
+        },
+        {
+            "id": 101,
+            "title": "타임라인:한국사",
+            "gpt_key": "timeline_korea"
+        },
+        {
+            "id": 104,
+            "title": "텀블링다이스",
+            "gpt_key": "tumbling_dice"
+        },
+        {
+            "id": 105,
+            "title": "텀블링몽키",
+            "gpt_key": "tumbling_monkeys"
+        },
+        {
+            "id": 108,
+            "title": "티켓투라이드",
+            "gpt_key": "ticket_to_ride"
+        },
+        {
+            "id": 109,
+            "title": "티키토플",
+            "gpt_key": "tiki_topple"
+        },
+        {
+            "id": 111,
+            "title": "팬데믹",
+            "gpt_key": "pandemic"
+        },
+        {
+            "id": 112,
+            "title": "퍼레이드",
+            "gpt_key": "parade"
+        },
+        {
+            "id": 113,
+            "title": "링코",
+            "gpt_key": "linko"
+        },
+        {
+            "id": 117,
+            "title": "디셉션 : 홍콩 살인 사건",
+            "gpt_key": "deception_murder_in_hong_kong"
+        },
+        {
+            "id": 118,
+            "title": "한밤의 늑대인간 : 기본캐릭터",
+            "gpt_key": "one_night_ultimate_werewolf"
+        },
+        {
+            "id": 119,
+            "title": "할리갈리",
+            "gpt_key": "halli_galli"
+        },
+        {
+            "id": 120,
+            "title": "할리갈리 익스트림",
+            "gpt_key": "halli_galli_extreme"
+        },
+        {
+            "id": 121,
+            "title": "할리갈리 컵스",
+            "gpt_key": "halli_galli_cups"
+        },
+        {
+            "id": 125,
+            "title": "코드네임 픽쳐스",
+            "gpt_key": "codenames_pictures"
+        },
+        {
+            "id": 132,
+            "title": "루미큐브 한글",
+            "gpt_key": "rummikub_hangul"
+        },
+        {
+            "id": 133,
+            "title": "임호텝",
+            "gpt_key": "imhotep"
+        },
+        {
+            "id": 134,
+            "title": "세븐원더스",
+            "gpt_key": "7_wonders"
+        },
+        {
+            "id": 135,
+            "title": "마스크맨",
+            "gpt_key": "maskmen"
+        },
+        {
+            "id": 137,
+            "title": "인디언포커",
+            "gpt_key": "indian_poker"
+        },
+        {
+            "id": 139,
+            "title": "엘드리치호러",
+            "gpt_key": "eldritch_horror"
+        },
+        {
+            "id": 140,
+            "title": "스플렌더 : 찬란한도시",
+            "gpt_key": "splendor_cities_of_splendor"
+        },
+        {
+            "id": 141,
+            "title": "스탁파일",
+            "gpt_key": "stockpile"
+        },
+        {
+            "id": 142,
+            "title": "마피아 데 쿠바",
+            "gpt_key": "mafia_de_cuba"
+        },
+        {
+            "id": 143,
+            "title": "셀레스티아",
+            "gpt_key": "celestia"
+        },
+        {
+            "id": 144,
+            "title": "라온 조각",
+            "gpt_key": "raon"
+        },
+        {
+            "id": 145,
+            "title": "쿠키런 러브레터",
+            "gpt_key": "love_letter"
+        },
+        {
+            "id": 147,
+            "title": "인코그니토",
+            "gpt_key": "incognito"
+        },
+        {
+            "id": 148,
+            "title": "윙스팬 : 아시아",
+            "gpt_key": "wingspan_asia"
+        },
+        {
+            "id": 152,
+            "title": "워터게이트",
+            "gpt_key": "watergate"
+        },
+        {
+            "id": 154,
+            "title": "프로젝트L",
+            "gpt_key": "project_l"
+        },
+        {
+            "id": 155,
+            "title": "생쥐만세 (비바토포)",
+            "gpt_key": "viva_topo"
+        },
+        {
+            "id": 157,
+            "title": "샤크",
+            "gpt_key": "shark"
+        },
+        {
+            "id": 158,
+            "title": "스파이폴2",
+            "gpt_key": "spyfall_2"
+        },
+        {
+            "id": 160,
+            "title": "스컬킹",
+            "gpt_key": "skull_king"
+        },
+        {
+            "id": 162,
+            "title": "슬루스",
+            "gpt_key": "sleuth"
+        },
+        {
+            "id": 164,
+            "title": "커피러시",
+            "gpt_key": "coffee_rush"
+        },
+        {
+            "id": 170,
+            "title": "큐윅스",
+            "gpt_key": "ganz_schon_clever"
+        },
+        {
+            "id": 171,
+            "title": "데드 맨스 드로우",
+            "gpt_key": "dead_mans_draw"
+        },
+        {
+            "id": 173,
+            "title": "도망자",
+            "gpt_key": "fugitive"
+        },
+        {
+            "id": 176,
+            "title": "킹도미노",
+            "gpt_key": "kingdomino"
+        },
+        {
+            "id": 177,
+            "title": "테라포밍마스",
+            "gpt_key": "terraforming_mars"
+        },
+        {
+            "id": 179,
+            "title": "사그라다",
+            "gpt_key": "sagrada"
+        },
+        {
+            "id": 181,
+            "title": "아줄",
+            "gpt_key": "azul"
+        },
+        {
+            "id": 183,
+            "title": "5분 미스터리",
+            "gpt_key": "5_minute_mystery"
+        },
+        {
+            "id": 184,
+            "title": "가짜예술가 뉴욕에가다",
+            "gpt_key": "a_fake_artist_goes_to_new_york"
+        },
+        {
+            "id": 186,
+            "title": "기즈모",
+            "gpt_key": "gizmos"
+        },
+        {
+            "id": 187,
+            "title": "영리한 여우",
+            "gpt_key": "outfoxed"
+        },
+        {
+            "id": 188,
+            "title": "더마인드",
+            "gpt_key": "the_mind"
+        },
+        {
+            "id": 191,
+            "title": "듀플릭",
+            "gpt_key": "duplik"
+        },
+        {
+            "id": 192,
+            "title": "산토리니",
+            "gpt_key": "santorini"
+        },
+        {
+            "id": 193,
+            "title": "요기",
+            "gpt_key": "yogi"
+        },
+        {
+            "id": 194,
+            "title": "코드네임",
+            "gpt_key": "codenames"
+        },
+        {
+            "id": 195,
+            "title": "로스트시티",
+            "gpt_key": "lost_cities"
+        },
+        {
+            "id": 196,
+            "title": "도미니언",
+            "gpt_key": "dominion"
+        },
+        {
+            "id": 197,
+            "title": "랩터",
+            "gpt_key": "raptor"
+        },
+        {
+            "id": 201,
+            "title": "티츄 딜럭스",
+            "gpt_key": "tichu_deluxe"
+        },
+        {
+            "id": 204,
+            "title": "잉카의 황금",
+            "gpt_key": "inca_gold"
+        },
+        {
+            "id": 212,
+            "title": "저스트원",
+            "gpt_key": "just_one"
+        },
+        {
+            "id": 213,
+            "title": "타코 캣 고트 치즈 피자",
+            "gpt_key": "taco_cat_goat_cheese_pizza"
+        },
+        {
+            "id": 215,
+            "title": "뱀파이어퀸",
+            "gpt_key": "vampire_queen"
+        },
+        {
+            "id": 216,
+            "title": "카탄",
+            "gpt_key": "catan"
+        },
+        {
+            "id": 217,
+            "title": "우봉고3D",
+            "gpt_key": "ubongo_3d"
+        },
+        {
+            "id": 219,
+            "title": "지도제작자들",
+            "gpt_key": "cartographers"
+        },
+        {
+            "id": 221,
+            "title": "5초준다",
+            "gpt_key": "5_second_rule"
+        },
+        {
+            "id": 223,
+            "title": "빛의 도시 파리",
+            "gpt_key": "paris_la_cite_de_la_lumiere"
+        },
+        {
+            "id": 224,
+            "title": "5분마블",
+            "gpt_key": "5_minute_marvel"
+        },
+        {
+            "id": 227,
+            "title": "사운드퀴즈쇼",
+            "gpt_key": "sound_quiz_show"
+        },
+        {
+            "id": 230,
+            "title": "요트다이스",
+            "gpt_key": "yacht_dice"
+        },
+        {
+            "id": 236,
+            "title": "스페이스크루",
+            "gpt_key": "the_crew"
+        },
+        {
+            "id": 237,
+            "title": "바퀴벌레포커 로얄",
+            "gpt_key": "kakerlaken_poker"
+        },
+        {
+            "id": 242,
+            "title": "포션폭발",
+            "gpt_key": "potion_explosion"
+        },
+        {
+            "id": 246,
+            "title": "디크립토",
+            "gpt_key": "decrypto"
+        },
+        {
+            "id": 247,
+            "title": "퍼스트콘택트",
+            "gpt_key": "first_contact"
+        },
+        {
+            "id": 251,
+            "title": "듄 : 임페리움",
+            "gpt_key": "dune_imperium"
+        },
+        {
+            "id": 252,
+            "title": "딕싯",
+            "gpt_key": "dixit"
+        },
+        {
+            "id": 253,
+            "title": "파라노말 디텍티브",
+            "gpt_key": "paranormal_detectives"
+        },
+        {
+            "id": 258,
+            "title": "서스펙트게임",
+            "gpt_key": "suspects"
+        },
+        {
+            "id": 259,
+            "title": "포커",
+            "gpt_key": "fake_poker"
+        },
+        {
+            "id": 260,
+            "title": "고스톱",
+            "gpt_key": "go_stop"
+        },
+        {
+            "id": 265,
+            "title": "쇼텐토텐2",
+            "gpt_key": "schotten_totten_2"
+        },
+        {
+            "id": 266,
+            "title": "시크릿 히틀러",
+            "gpt_key": "secret_hitler"
+        },
+        {
+            "id": 269,
+            "title": "바방크",
+            "gpt_key": "vabanque"
+        },
+        {
+            "id": 270,
+            "title": "부루마불 대한독립",
+            "gpt_key": "korean_monopoly"
+        },
+        {
+            "id": 271,
+            "title": "광기의 저택",
+            "gpt_key": "mansions_of_madness"
+        },
+        {
+            "id": 272,
+            "title": "큐비토스",
+            "gpt_key": "cubitos"
+        },
+        {
+            "id": 273,
+            "title": "페이퍼사파리 : 피카츄와 친구들",
+            "gpt_key": "paper_safari_pikachu_and_friends"
+        },
+        {
+            "id": 275,
+            "title": "러브레터",
+            "gpt_key": "love_letter"
+        },
+        {
+            "id": 276,
+            "title": "코드네임 듀엣",
+            "gpt_key": "codenames_duet"
+        },
+        {
+            "id": 277,
+            "title": "스파이시",
+            "gpt_key": "spicy"
+        },
+        {
+            "id": 279,
+            "title": "시타델",
+            "gpt_key": "citadels"
+        },
+        {
+            "id": 280,
+            "title": "스플렌더 대결",
+            "gpt_key": "splendor_duel"
+        },
+        {
+            "id": 282,
+            "title": "노팅엄의 지방관",
+            "gpt_key": "sheriff_of_nottingham"
+        },
+        {
+            "id": 284,
+            "title": "이스탄불",
+            "gpt_key": "istanbul"
+        },
+        {
+            "id": 286,
+            "title": "워드캡처 티키타카",
+            "gpt_key": "word_captor_tikitaka"
+        },
+        {
+            "id": 287,
+            "title": "익스플로딩 키튼",
+            "gpt_key": "exploding_kittens"
+        },
+        {
+            "id": 291,
+            "title": "스트라이크",
+            "gpt_key": "strike"
+        },
+        {
+            "id": 294,
+            "title": "아그리콜라(개정판)",
+            "gpt_key": "agricola_revised_edition"
+        },
+        {
+            "id": 295,
+            "title": "우노어택",
+            "gpt_key": "uno_attack"
+        },
+        {
+            "id": 296,
+            "title": "우봉고",
+            "gpt_key": "ubongo"
+        },
+        {
+            "id": 297,
+            "title": "윙스팬",
+            "gpt_key": "wingspan"
+        },
+        {
+            "id": 298,
+            "title": "옛날옛적에",
+            "gpt_key": "once_upon_a_time"
+        },
+        {
+            "id": 299,
+            "title": "인쉬",
+            "gpt_key": "inis"
+        },
+        {
+            "id": 302,
+            "title": "치킨차차",
+            "gpt_key": "chicken_cha_cha_cha"
+        },
+        {
+            "id": 309,
+            "title": "팀3",
+            "gpt_key": "team3"
+        },
+        {
+            "id": 310,
+            "title": "콰르토",
+            "gpt_key": "quarto"
+        },
+        {
+            "id": 311,
+            "title": "쿼리도",
+            "gpt_key": "quoridor"
+        },
+        {
+            "id": 313,
+            "title": "패치워크",
+            "gpt_key": "patchwork"
+        },
+        {
+            "id": 314,
+            "title": "펭귄파티",
+            "gpt_key": "penguin_party"
+        },
+        {
+            "id": 315,
+            "title": "하나비",
+            "gpt_key": "hanabi"
+        },
+        {
+            "id": 316,
+            "title": "하이소사이어티",
+            "gpt_key": "high_society"
+        },
+        {
+            "id": 317,
+            "title": "타기론",
+            "gpt_key": "tagiron"
+        },
+        {
+            "id": 319,
+            "title": "아르낙의 잊혀진 유적",
+            "gpt_key": "lost_ruins_of_arnak"
+        },
+        {
+            "id": 320,
+            "title": "크로키놀",
+            "gpt_key": "crokinole"
+        },
+        {
+            "id": 322,
+            "title": "버건디의 성",
+            "gpt_key": "castles_of_burgundy"
+        },
+        {
+            "id": 324,
+            "title": "스플렌더 : 포켓몬",
+            "gpt_key": "splendor_pokemon"
+        },
+        {
+            "id": 326,
+            "title": "카트라이더 레이싱게임",
+            "gpt_key": "kart_rider_racing_game"
+        },
+        {
+            "id": 327,
+            "title": "미니빌 2",
+            "gpt_key": "machi_koro_2"
+        },
+        {
+            "id": 330,
+            "title": "겟패킹",
+            "gpt_key": "get_packing"
+        },
+        {
+            "id": 331,
+            "title": "아크노바",
+            "gpt_key": "ark_nova"
+        },
+        {
+            "id": 335,
+            "title": "워드캡처",
+            "gpt_key": "word_captor"
+        },
+        {
+            "id": 336,
+            "title": "푸에르토리코 1897",
+            "gpt_key": "puerto_rico_1897"
+        },
+        {
+            "id": 337,
+            "title": "푸에블로",
+            "gpt_key": "pueblo"
+        },
+        {
+            "id": 338,
+            "title": "카멜레온",
+            "gpt_key": "the_chameleon"
+        },
+        {
+            "id": 345,
+            "title": "에버델",
+            "gpt_key": "everdell"
+        },
+        {
+            "id": 349,
+            "title": "자이푸르",
+            "gpt_key": "jaipur"
+        },
+        {
+            "id": 354,
+            "title": "어콰이어",
+            "gpt_key": "acquire"
+        },
+        {
+            "id": 361,
+            "title": "반지의 제왕 가운데 땅에서의 대결",
+            "gpt_key": "lord_of_the_rings_battle_in_middle_earth"
+        }
+    ],
+    "unresearched_games": [
+        {
+            "id": 2,
+            "title": "피아이"
+        },
+        {
+            "id": 3,
+            "title": "개조심"
+        },
+        {
+            "id": 4,
+            "title": "고스트"
+        },
+        {
+            "id": 6,
+            "title": "다빈치코드"
+        },
+        {
+            "id": 7,
+            "title": "닥터유레카"
+        },
+        {
+            "id": 8,
+            "title": "달무티"
+        },
+        {
+            "id": 11,
+            "title": "도블"
+        },
+        {
+            "id": 12,
+            "title": "드렉사우"
+        },
+        {
+            "id": 13,
+            "title": "라비린스"
+        },
+        {
+            "id": 14,
+            "title": "라스베가스"
+        },
+        {
+            "id": 15,
+            "title": "라온"
+        },
+        {
+            "id": 22,
+            "title": "로보77"
+        },
+        {
+            "id": 25,
+            "title": "마닐라"
+        },
+        {
+            "id": 26,
+            "title": "마라케시"
+        },
+        {
+            "id": 28,
+            "title": "서바이브"
+        },
+        {
+            "id": 29,
+            "title": "마헤"
+        },
+        {
+            "id": 30,
+            "title": "맨해튼"
+        },
+        {
+            "id": 31,
+            "title": "나방속이기 (장난꾸러기 나방)"
+        },
+        {
+            "id": 32,
+            "title": "모노폴리"
+        },
+        {
+            "id": 33,
+            "title": "모던아트"
+        },
+        {
+            "id": 34,
+            "title": "미니빌"
+        },
+        {
+            "id": 35,
+            "title": "미니빌:그린밸리"
+        },
+        {
+            "id": 36,
+            "title": "미니빌:항구"
+        },
+        {
+            "id": 37,
+            "title": "미스터잭"
+        },
+        {
+            "id": 38,
+            "title": "미스터잭 포켓"
+        },
+        {
+            "id": 39,
+            "title": "바운스오프"
+        },
+        {
+            "id": 42,
+            "title": "배틀쉽"
+        },
+        {
+            "id": 43,
+            "title": "뱅"
+        },
+        {
+            "id": 44,
+            "title": "텔레스트레이션"
+        },
+        {
+            "id": 45,
+            "title": "뱅:다이스"
+        },
+        {
+            "id": 46,
+            "title": "뱅:닷지시티"
+        },
+        {
+            "id": 47,
+            "title": "웰컴백 투더 던전"
+        },
+        {
+            "id": 49,
+            "title": "부루마불"
+        },
+        {
+            "id": 51,
+            "title": "블리츠"
+        },
+        {
+            "id": 53,
+            "title": "사보타지"
+        },
+        {
+            "id": 59,
+            "title": "숲속의음악대"
+        },
+        {
+            "id": 60,
+            "title": "슈퍼라이노"
+        },
+        {
+            "id": 64,
+            "title": "스티키스틱스"
+        },
+        {
+            "id": 68,
+            "title": "아발론"
+        },
+        {
+            "id": 70,
+            "title": "아임더보스"
+        },
+        {
+            "id": 71,
+            "title": "와이어트어프"
+        },
+        {
+            "id": 74,
+            "title": "이매진"
+        },
+        {
+            "id": 76,
+            "title": "스타워즈 : 덱빌딩 게임"
+        },
+        {
+            "id": 79,
+            "title": "젬블로"
+        },
+        {
+            "id": 80,
+            "title": "마법사와 움직이는 탑"
+        },
+        {
+            "id": 82,
+            "title": "챠오챠오"
+        },
+        {
+            "id": 89,
+            "title": "컴팩트컬링"
+        },
+        {
+            "id": 90,
+            "title": "컴플레또"
+        },
+        {
+            "id": 92,
+            "title": "코드777"
+        },
+        {
+            "id": 96,
+            "title": "퀵소"
+        },
+        {
+            "id": 97,
+            "title": "클라스크"
+        },
+        {
+            "id": 100,
+            "title": "타뷸라의늑대"
+        },
+        {
+            "id": 103,
+            "title": "터틀블럭"
+        },
+        {
+            "id": 106,
+            "title": "꼬꼬미노"
+        },
+        {
+            "id": 107,
+            "title": "톡톡우드맨"
+        },
+        {
+            "id": 110,
+            "title": "파라오코드"
+        },
+        {
+            "id": 114,
+            "title": "펭귄팡팡 (펭귄트랩)"
+        },
+        {
+            "id": 115,
+            "title": "포세일"
+        },
+        {
+            "id": 116,
+            "title": "피치카"
+        },
+        {
+            "id": 122,
+            "title": "해적룰렛"
+        },
+        {
+            "id": 123,
+            "title": "흔들흔들해적선"
+        },
+        {
+            "id": 124,
+            "title": "텀플"
+        },
+        {
+            "id": 126,
+            "title": "폴드잇"
+        },
+        {
+            "id": 127,
+            "title": "도블 동물원"
+        },
+        {
+            "id": 128,
+            "title": "센추리 : 향신료의 길"
+        },
+        {
+            "id": 129,
+            "title": "벼룩서커스"
+        },
+        {
+            "id": 130,
+            "title": "토스트통통"
+        },
+        {
+            "id": 131,
+            "title": "미스터잭 인 뉴욕"
+        },
+        {
+            "id": 136,
+            "title": "타란툴라탱고"
+        },
+        {
+            "id": 138,
+            "title": "유령대소동"
+        },
+        {
+            "id": 146,
+            "title": "스텔라"
+        },
+        {
+            "id": 149,
+            "title": "뒤죽박죽 서커스"
+        },
+        {
+            "id": 150,
+            "title": "세트업"
+        },
+        {
+            "id": 151,
+            "title": "달러투도넛"
+        },
+        {
+            "id": 153,
+            "title": "오트리오"
+        },
+        {
+            "id": 156,
+            "title": "쇼킹룰렛"
+        },
+        {
+            "id": 159,
+            "title": "라쿠카라차"
+        },
+        {
+            "id": 161,
+            "title": "졸리앤로저"
+        },
+        {
+            "id": 163,
+            "title": "방방 날아라 돼지"
+        },
+        {
+            "id": 165,
+            "title": "오뚜기 윷놀이"
+        },
+        {
+            "id": 166,
+            "title": "탑텐TV"
+        },
+        {
+            "id": 167,
+            "title": "초밥왕"
+        },
+        {
+            "id": 168,
+            "title": "악어룰렛"
+        },
+        {
+            "id": 169,
+            "title": "애니모크레이지"
+        },
+        {
+            "id": 172,
+            "title": "스킵피티"
+        },
+        {
+            "id": 174,
+            "title": "탤리호 (할랄리)"
+        },
+        {
+            "id": 175,
+            "title": "아키올로지"
+        },
+        {
+            "id": 178,
+            "title": "윌유메리미 (데어이쎄스)"
+        },
+        {
+            "id": 180,
+            "title": "크라임호텔"
+        },
+        {
+            "id": 182,
+            "title": "센추리 : 동방의 바다"
+        },
+        {
+            "id": 185,
+            "title": "꿈의 대화"
+        },
+        {
+            "id": 189,
+            "title": "넘버9"
+        },
+        {
+            "id": 190,
+            "title": "용의자들"
+        },
+        {
+            "id": 198,
+            "title": "데칼코"
+        },
+        {
+            "id": 199,
+            "title": "상어 아일랜드"
+        },
+        {
+            "id": 200,
+            "title": "상어를 조심해"
+        },
+        {
+            "id": 202,
+            "title": "공기놀이"
+        },
+        {
+            "id": 203,
+            "title": "너도나도파티"
+        },
+        {
+            "id": 205,
+            "title": "센추리 : 신대륙의 개척자"
+        },
+        {
+            "id": 206,
+            "title": "의자쌓기"
+        },
+        {
+            "id": 207,
+            "title": "고읭고읭"
+        },
+        {
+            "id": 208,
+            "title": "테이블톡 베이직"
+        },
+        {
+            "id": 209,
+            "title": "테이블톡 커플"
+        },
+        {
+            "id": 210,
+            "title": "테이블톡 패밀리"
+        },
+        {
+            "id": 211,
+            "title": "노터치 크라켄 디럭스 (크툴루를 건드리지마)"
+        },
+        {
+            "id": 214,
+            "title": "부두프린스"
+        },
+        {
+            "id": 218,
+            "title": "꼬치의 달인"
+        },
+        {
+            "id": 220,
+            "title": "화이트홀"
+        },
+        {
+            "id": 222,
+            "title": "거짓말탐지기"
+        },
+        {
+            "id": 225,
+            "title": "블랙햇츠"
+        },
+        {
+            "id": 226,
+            "title": "13클루"
+        },
+        {
+            "id": 228,
+            "title": "밸런스게임"
+        },
+        {
+            "id": 229,
+            "title": "내 마음의 주파수"
+        },
+        {
+            "id": 231,
+            "title": "사이먼에어"
+        },
+        {
+            "id": 232,
+            "title": "다이아몬드 게임"
+        },
+        {
+            "id": 233,
+            "title": "구룡투"
+        },
+        {
+            "id": 234,
+            "title": "다잉메시지 : 소설가의 마지막 문장"
+        },
+        {
+            "id": 235,
+            "title": "돌팔이 약장수"
+        },
+        {
+            "id": 238,
+            "title": "루빅스레이스"
+        },
+        {
+            "id": 239,
+            "title": "언락2"
+        },
+        {
+            "id": 240,
+            "title": "언락3"
+        },
+        {
+            "id": 241,
+            "title": "도둑잡기"
+        },
+        {
+            "id": 243,
+            "title": "더치블리츠"
+        },
+        {
+            "id": 244,
+            "title": "인더스트리아"
+        },
+        {
+            "id": 245,
+            "title": "만약카드 이심전심"
+        },
+        {
+            "id": 248,
+            "title": "카멜업 2판"
+        },
+        {
+            "id": 249,
+            "title": "스크리블 타임"
+        },
+        {
+            "id": 250,
+            "title": "로꼬라마"
+        },
+        {
+            "id": 254,
+            "title": "왓츠 잇 투야"
+        },
+        {
+            "id": 255,
+            "title": "블리츠 한글자"
+        },
+        {
+            "id": 256,
+            "title": "지킬대하이드"
+        },
+        {
+            "id": 257,
+            "title": "언락4"
+        },
+        {
+            "id": 261,
+            "title": "캐스캐디아"
+        },
+        {
+            "id": 262,
+            "title": "블랙햇츠2"
+        },
+        {
+            "id": 263,
+            "title": "언락1"
+        },
+        {
+            "id": 264,
+            "title": "독수리 눈치싸움"
+        },
+        {
+            "id": 267,
+            "title": "진라면"
+        },
+        {
+            "id": 268,
+            "title": "다잉메시지 확장판 : 공범의 그림자"
+        },
+        {
+            "id": 274,
+            "title": "포인트샐러드 : 이브이에디션"
+        },
+        {
+            "id": 278,
+            "title": "머핀타임"
+        },
+        {
+            "id": 281,
+            "title": "새벽의 뱀파이어"
+        },
+        {
+            "id": 283,
+            "title": "인생게임"
+        },
+        {
+            "id": 285,
+            "title": "재치와 눈치"
+        },
+        {
+            "id": 288,
+            "title": "강아지똥 웰시코기"
+        },
+        {
+            "id": 289,
+            "title": "벌룬컵"
+        },
+        {
+            "id": 290,
+            "title": "디스크커버"
+        },
+        {
+            "id": 292,
+            "title": "한밤의 수수께끼"
+        },
+        {
+            "id": 293,
+            "title": "슬리핑 퀸즈"
+        },
+        {
+            "id": 300,
+            "title": "장미전쟁"
+        },
+        {
+            "id": 301,
+            "title": "폴짝폴짝 개구리 사탕먹기"
+        },
+        {
+            "id": 303,
+            "title": "언락5"
+        },
+        {
+            "id": 304,
+            "title": "언락6"
+        },
+        {
+            "id": 305,
+            "title": "카후나"
+        },
+        {
+            "id": 306,
+            "title": "캔트스탑"
+        },
+        {
+            "id": 307,
+            "title": "폭탄돌리기"
+        },
+        {
+            "id": 308,
+            "title": "퍼니버니"
+        },
+        {
+            "id": 312,
+            "title": "파워그리드"
+        },
+        {
+            "id": 318,
+            "title": "후엠아이"
+        },
+        {
+            "id": 321,
+            "title": "알려줘 너의 TMI"
+        },
+        {
+            "id": 323,
+            "title": "햄버거타이쿤"
+        },
+        {
+            "id": 325,
+            "title": "배럴다이스"
+        },
+        {
+            "id": 328,
+            "title": "페루도"
+        },
+        {
+            "id": 329,
+            "title": "방금 떠올린 프로포즈의 말을 너에게 바칠게"
+        },
+        {
+            "id": 332,
+            "title": "라이헌트 시크릿 텔러"
+        },
+        {
+            "id": 333,
+            "title": "다빈치코드 플러스"
+        },
+        {
+            "id": 334,
+            "title": "돌VS인간"
+        },
+        {
+            "id": 339,
+            "title": "콰왈레"
+        },
+        {
+            "id": 340,
+            "title": "잠만보 다이스게임"
+        },
+        {
+            "id": 341,
+            "title": "이스탄불 주사위게임"
+        },
+        {
+            "id": 342,
+            "title": "금지어 게임"
+        },
+        {
+            "id": 343,
+            "title": "스위스 사는 스미스씨"
+        },
+        {
+            "id": 344,
+            "title": "심술쟁이 고양이"
+        },
+        {
+            "id": 346,
+            "title": "맘마미아"
+        },
+        {
+            "id": 347,
+            "title": "아슬아슬 피자"
+        },
+        {
+            "id": 348,
+            "title": "다이브"
+        },
+        {
+            "id": 350,
+            "title": "하모니즈"
+        },
+        {
+            "id": 351,
+            "title": "알리바이"
+        },
+        {
+            "id": 352,
+            "title": "전지적 추리시점"
+        },
+        {
+            "id": 353,
+            "title": "클러스터"
+        },
+        {
+            "id": 355,
+            "title": "뒤죽박죽 서커스 산리오"
+        },
+        {
+            "id": 356,
+            "title": "왓더벅"
+        },
+        {
+            "id": 357,
+            "title": "피트"
+        },
+        {
+            "id": 358,
+            "title": "갈팡질팡"
+        },
+        {
+            "id": 359,
+            "title": "놉놉테이블"
+        },
+        {
+            "id": 360,
+            "title": "스카이팀"
+        },
+        {
+            "id": 362,
+            "title": "캣츠런"
+        },
+        {
+            "id": 363,
+            "title": "라이헌트 미스터리 아티스트"
+        },
+        {
+            "id": 364,
+            "title": "풍기"
+        },
+        {
+            "id": 365,
+            "title": "나의 최애 명대사"
+        }
+    ],
+    "priority_unresearched_games": [
+        {
+            "id": 11,
+            "title": "도블",
+            "reason": "관찰력 게임 - 특화 용어 많음"
+        },
+        {
+            "id": 32,
+            "title": "모노폴리",
+            "reason": "클래식 게임 - 필수 용어 정리 필요"
+        },
+        {
+            "id": 34,
+            "title": "미니빌",
+            "reason": "인기 일본 게임 - 건물/시설 특화 용어"
+        },
+        {
+            "id": 43,
+            "title": "뱅",
+            "reason": "인기 서부 테마 게임 - 역할/총격 용어"
+        },
+        {
+            "id": 44,
+            "title": "텔레스트레이션",
+            "reason": "파티 게임 - 그림/추측 용어"
+        },
+        {
+            "id": 47,
+            "title": "웰컴백 투더 던전",
+            "reason": "던전 탐험 - 몬스터/장비 용어"
+        },
+        {
+            "id": 76,
+            "title": "스타워즈 : 덱빌딩 게임",
+            "reason": "스타워즈 테마 - 포스/캐릭터 용어"
+        },
+        {
+            "id": 92,
+            "title": "코드777",
+            "reason": "추리 게임 - 숫자/색깔 추론 용어"
+        },
+        {
+            "id": 106,
+            "title": "꼬꼬미노",
+            "reason": "도미노 변형 - 닭/깃털 테마 용어"
+        },
+        {
+            "id": 128,
+            "title": "센추리 : 향신료의 길",
+            "reason": "인기 엔진빌딩 - 향신료/무역 용어"
+        },
+        {
+            "id": 165,
+            "title": "오뚜기 윷놀이",
+            "reason": "한국 전통 게임 - 윷/말 용어"
+        },
+        {
+            "id": 182,
+            "title": "센추리 : 동방의 바다",
+            "reason": "센추리 시리즈 - 해상 무역 용어"
+        },
+        {
+            "id": 205,
+            "title": "센추리 : 신대륙의 개척자",
+            "reason": "센추리 시리즈 - 신대륙 탐험 용어"
+        },
+        {
+            "id": 234,
+            "title": "다잉메시지 : 소설가의 마지막 문장",
+            "reason": "추리 게임 - 단서/추론 용어"
+        },
+        {
+            "id": 248,
+            "title": "카멜업 2판",
+            "reason": "인기 레이싱 게임 - 낙타/베팅 용어"
+        },
+        {
+            "id": 261,
+            "title": "캐스캐디아",
+            "reason": "2021년 인기작 - 서식지/동물 용어"
+        },
+        {
+            "id": 312,
+            "title": "파워그리드",
+            "reason": "클래식 전략 게임 - 전력/경매 용어"
+        },
+        {
+            "id": 360,
+            "title": "스카이팀",
+            "reason": "협력 게임 - 항공/조종 용어"
+        }
+    ],
+    "statistics": {
+        "researched_by_category": {
+            "전략게임": 32,
+            "파티게임": 28,
+            "추리게임": 12,
+            "덱빌딩게임": 8,
+            "협력게임": 4,
+            "타일배치게임": 4
+        },
+        "unresearched_by_category": {
+            "파티게임": 89,
+            "전략게임": 76,
+            "퍼즐게임": 45,
+            "추리게임": 32,
+            "한국게임": 15,
+            "기타": 20
+        },
+        "popular_games_status": {
+            "researched": [
+                "윙스팬",
+                "아크노바",
+                "테라포밍마스",
+                "카탄",
+                "스플렌더",
+                "팬데믹",
+                "도미니언",
+                "아줄",
+                "코드네임"
+            ],
+            "unresearched": [
+                "티켓투라이드"
+            ]
+        }
+    },
+    "recommendations": {
+        "next_research_batch": [
+            "도블",
+            "모노폴리",
+            "미니빌",
+            "뱅",
+            "텔레스트레이션",
+            "센추리 : 향신료의 길",
+            "코드777",
+            "파워그리드",
+            "캐스캐디아",
+            "스카이팀"
+        ],
+        "research_methodology": "인기도, 복잡도, 특화 용어 밀도를 기준으로 우선순위 선정",
+        "estimated_completion": "월 20개 게임씩 리서치 시 약 14개월 소요"
+    }
+}

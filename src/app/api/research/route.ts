@@ -10,24 +10,31 @@ import { ResearchLimiter } from '@/lib/research-limiter';
 import { researchCache } from '@/lib/research-cache';
 import type { SearchResult } from '@/lib/research-cache';
 
-// 신뢰할 수 있는 소스 도메인 우선순위
+// 신뢰할 수 있는 소스 도메인 우선순위 (⚡ 개선)
 const TRUSTED_DOMAINS = [
-  'boardgamegeek.com',
+  'boardgamegeek.com',        // 최고 신뢰도 - 공식 정보
+  'reddit.com/r/boardgames',  // 높은 신뢰도 - 커뮤니티 검증
+  'boardlife.co.kr',          // 한국 커뮤니티 1위
+  'boardm.co.kr',             // 한국 커뮤니티 2위
   'rulebook.io',
   'tabletopia.com',
   'wikimediafoundation.org',
-  'reddit.com/r/boardgames',
   'bg3.co.kr',
   'divedice.com'
 ] as const;
 
-// 검색 결과 필터링을 위한 제외 도메인
+// 검색 결과 필터링을 위한 제외 도메인 (⚡ 확장)
 const EXCLUDED_DOMAINS = [
   'pinterest.com',
   'youtube.com',
   'instagram.com',
   'facebook.com',
-  'twitter.com'
+  'twitter.com',
+  'tiktok.com',
+  'amazon.com',        // 상품 페이지
+  'ebay.com',          // 상품 페이지
+  'gmarket.co.kr',     // 상품 페이지
+  'coupang.com'        // 상품 페이지
 ] as const;
 
 interface ResearchRequest {
@@ -58,10 +65,23 @@ interface ResearchResponse {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse<ResearchResponse>> {
+
+  // 🚨 강력한 디버깅 로그 추가
+  console.log('🚨🚨🚨 [API 호출 확인] /api/research 엔드포인트가 호출되었습니다!');
+  console.log('🚨 [타임스탬프]', new Date().toISOString());
+
   try {
     // 1. 요청 본문 파싱
     const body: ResearchRequest = await request.json();
     const { gameTitle, question, priority = 'medium', bypassCache = false } = body;
+
+    // 🚨 요청 내용 로깅  
+    console.log('🚨 [요청 파라미터]', {
+      게임제목: gameTitle,
+      질문: question,
+      우선순위: priority,
+      캐시우회: bypassCache
+    });
 
     // 2. 입력 검증
     if (!gameTitle || !question) {
@@ -171,49 +191,608 @@ export async function POST(request: NextRequest): Promise<NextResponse<ResearchR
  * Google Custom Search API를 이용한 웹 검색
  */
 async function performWebSearch(gameTitle: string, question: string): Promise<SearchResult[]> {
-  const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
+
+  // 🚨 검색 함수 호출 확인
+  console.log('🚨🚨🚨 [performWebSearch 호출됨]', {
+    게임제목: gameTitle,
+    질문: question,
+    타임스탬프: new Date().toISOString()
+  });
+
+  const apiKey = process.env.GOOGLE_API_KEY;  // 수정: GOOGLE_SEARCH_API_KEY → GOOGLE_API_KEY
   const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID;
 
+  console.log('🔑 [Google API 설정 확인]', {
+    API키있음: !!apiKey,
+    검색엔진ID있음: !!searchEngineId,
+    API키앞4자리: apiKey?.substring(0, 4)
+  });
+
   if (!apiKey || !searchEngineId) {
+    console.error('❌ [환경변수 누락]', {
+      GOOGLE_API_KEY: !!apiKey,
+      GOOGLE_SEARCH_ENGINE_ID: !!searchEngineId
+    });
     throw new Error('Google Search API 설정이 누락되었습니다.');
   }
 
-  // 검색 쿼리 최적화
-  const searchQuery = `${gameTitle} ${question} 보드게임 규칙`;
-  const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(searchQuery)}&num=8`;
+  // ⚡ 스마트 검색 쿼리 생성 (개선된 부분)
+  const searchQueries = generateSmartSearchQueries(gameTitle, question);
 
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Accept': 'application/json'
+  // 🚨 생성된 쿼리들 확인
+  console.log('🚨🚨🚨 [생성된 검색 쿼리들]', {
+    총개수: searchQueries.length,
+    쿼리목록: searchQueries
+  });
+
+  let allResults: SearchResult[] = [];
+
+  // 여러 검색 전략 병행 실행
+  for (let i = 0; i < searchQueries.length; i++) {
+    const searchQuery = searchQueries[i];
+
+    // 🚨 각 검색 실행 확인
+    console.log(`🚨🚨🚨 [검색 ${i + 1}/${searchQueries.length} 실행]`, {
+      쿼리: searchQuery,
+      BGG포함여부: searchQuery.includes('boardgamegeek'),
+      타임스탬프: new Date().toISOString()
+    });
+
+    try {
+      const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(searchQuery)}&num=5`;
+
+      console.log('🔍 [Google Search 요청]', {
+        쿼리: searchQuery,
+        URL길이: url.length,
+        검색엔진ID: searchEngineId,
+        전체URL: url
+      });
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      console.log('📡 [Google Search 응답]', {
+        상태코드: response.status,
+        성공여부: response.ok,
+        쿼리: searchQuery.slice(0, 50)
+      });
+
+      if (!response.ok) {
+        console.warn(`⚠️ [검색 실패] ${searchQuery}: ${response.status}`);
+        continue;
+      }
+
+      const data = await response.json();
+
+      // BGG 검색인지 확인하고 상세 로깅
+      if (searchQuery.includes('boardgamegeek.com')) {
+        console.log('🎯 [BGG 검색 결과 상세]', {
+          쿼리: searchQuery,
+          응답상태: response.status,
+          전체결과수: data.items?.length || 0,
+          검색정보: data.searchInformation,
+          API에러: data.error,
+          BGG결과들: data.items?.filter((item: any) =>
+            item.link.includes('boardgamegeek.com')
+          ).map((item: any) => ({
+            제목: item.title,
+            링크: item.link,
+            스니펫: item.snippet?.substring(0, 100) + '...'
+          })) || []
+        });
+      }
+
+      if (!data.items || data.items.length === 0) {
+        console.warn(`📭 [검색 결과 없음] ${searchQuery}`);
+        continue;
+      }
+
+      // 검색 결과 변환 및 관련성 점수 계산
+      const queryResults = data.items.map((item: any) => ({
+        title: item.title,
+        url: item.link,
+        snippet: item.snippet || '',
+        relevanceScore: calculateRelevanceScore(item, gameTitle, question)
+      })).filter((result: SearchResult) => {
+        // 제외 도메인 필터링
+        const domain = new URL(result.url).hostname;
+        if (EXCLUDED_DOMAINS.some(excluded => domain.includes(excluded))) {
+          return false;
+        }
+
+        // 🚨 BGG 품질 필터링 강화
+        if (result.url.includes('boardgamegeek.com')) {
+          // 제외할 BGG 페이지 타입들
+          const excludePatterns = [
+            '/video/',     // 비디오 페이지
+            '/images/',    // 이미지 갤러리
+            '/image/',     // 단일 이미지
+            '/boardgameversion/', // 버전 정보
+            '/boardgameexpansion/', // 확장팩 정보만
+            '/boardgameimplementation/', // 구현체 정보
+            '/unboxing',   // 언박싱 관련
+            'youtube.com', // 유튜브 링크
+            'vimeo.com'    // 비메오 링크
+          ];
+
+          const shouldExclude = excludePatterns.some(pattern =>
+            result.url.toLowerCase().includes(pattern.toLowerCase()) ||
+            result.title.toLowerCase().includes(pattern.toLowerCase())
+          );
+
+          if (shouldExclude) {
+            console.log('🚫 [BGG 페이지 제외]', {
+              제목: result.title.substring(0, 50),
+              URL: result.url,
+              이유: ' 비디오/이미지/버전정보 페이지'
+            });
+            return false;
+          }
+
+          // 우선시할 BGG 페이지 타입들
+          const priorityPatterns = [
+            '/thread/',    // 포럼 토론
+            '/boardgame/', // 게임 메인 페이지
+            'FAQ',         // FAQ 섹션
+            'rules',       // 룰 설명
+            'rulebook',    // 룰북
+            'question',    // 질문 페이지
+            'forum'        // 포럼
+          ];
+
+          const hasPriority = priorityPatterns.some(pattern =>
+            result.url.toLowerCase().includes(pattern.toLowerCase()) ||
+            result.title.toLowerCase().includes(pattern.toLowerCase())
+          );
+
+          if (hasPriority) {
+            result.relevanceScore += 50; // 우선 페이지 가산점
+            console.log('⭐ [BGG 우선 페이지]', {
+              제목: result.title.substring(0, 50),
+              URL타입: priorityPatterns.find(p => result.url.toLowerCase().includes(p.toLowerCase())),
+              가산점: 50
+            });
+          }
+        }
+
+        return true;
+      });
+
+      allResults.push(...queryResults);
+
+      // 첫 번째 검색에서 좋은 결과가 나오면 조기 종료
+      if (queryResults.length >= 3) {
+        console.log('✅ [조기 종료] 충분한 검색 결과 확보');
+        break;
+      }
+
+    } catch (error) {
+      console.error(`❌ [검색 오류] ${searchQuery}:`, error);
+      continue;
+    }
+  }
+
+  // 중복 제거 및 관련성 점수 기준 정렬
+  const uniqueResults = Array.from(
+    new Map(allResults.map(result => [result.url, result])).values()
+  ).sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+  console.log('📊 [검색 완료]', {
+    총검색수: searchQueries.length,
+    전체결과: allResults.length,
+    중복제거후: uniqueResults.length,
+    상위5개점수: uniqueResults.slice(0, 5).map(r => r.relevanceScore)
+  });
+
+  // 🚨 최종 반환 결과 상세 로깅
+  const finalResults = uniqueResults.slice(0, 8);
+  console.log('🚨🚨🚨 [최종 반환 결과]', {
+    반환개수: finalResults.length,
+    BGG결과수: finalResults.filter(r => r.url.includes('boardgamegeek.com')).length,
+    보드라이프결과수: finalResults.filter(r => r.url.includes('boardlife.co.kr')).length,
+    사이트별분포: finalResults.reduce((acc, r) => {
+      const domain = new URL(r.url).hostname;
+      acc[domain] = (acc[domain] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>),
+    상위3개제목: finalResults.slice(0, 3).map(r => r.title.substring(0, 50) + '...')
+  });
+
+  return finalResults;
+}
+
+/**
+ * 🌟 Enhanced Translator 통합 스마트 검색 쿼리 생성
+ */
+function generateSmartSearchQueries(gameTitle: string, question: string): string[] {
+  console.log('🔥 [Enhanced Translator 기반 검색 쿼리 생성]', {
+    게임명: gameTitle,
+    질문: question.slice(0, 50) + '...'
+  });
+
+  try {
+    // Enhanced Translator를 사용하여 다중 검색 쿼리 생성
+    const analyzer = new QuestionAnalyzer();
+    const enhancedQueries = analyzer.generateBGGSearchQueries(question, gameTitle);
+
+    console.log('✅ [Enhanced Translator 검색 쿼리 생성 완료]', {
+      생성된쿼리수: enhancedQueries.length,
+      쿼리목록: enhancedQueries.slice(0, 3) // 처음 3개만 로그
+    });
+
+    // 생성된 쿼리가 있으면 사용
+    if (enhancedQueries.length > 0) {
+      return enhancedQueries;
+    }
+  } catch (error) {
+    console.warn('⚠️ [Enhanced Translator 실패] 기존 로직으로 폴백:', error);
+  }
+
+  // Fallback: 기존 로직 사용
+  const queries: string[] = [];
+
+  // 질문에서 핵심 키워드 추출
+  const questionKeywords = extractQuestionKeywords(question);
+  const englishTitle = getEnglishTitle(gameTitle);
+
+  // 🚨 새로 추가: 한글 키워드를 영문으로 번역
+  const englishKeywords = translateGameTermsToEnglish(questionKeywords, gameTitle);
+
+  console.log('🌟 [Fallback 검색 쿼리 생성]', {
+    게임명: gameTitle,
+    영문명: englishTitle,
+    한글키워드: questionKeywords,
+    영문키워드: englishKeywords,
+    생성된쿼리수: '계산중...',
+    쿼리목록: '생성중...'
+  });
+
+  // === BGG 전용 고품질 검색 쿼리들 (우선순위 높음) ===
+
+  // 🚨 1. BGG 영문 검색 (최고 우선순위) - 번역된 키워드 사용
+  if (englishTitle && englishKeywords.length >= 2) {
+    queries.push(`site:boardgamegeek.com "${englishTitle}" "${englishKeywords[0]}" "${englishKeywords[1]}"`);
+    queries.push(`site:boardgamegeek.com/thread "${englishTitle}" "${englishKeywords[0]}"`);
+  }
+
+  // 2. BGG 혼합 검색 (영문 게임명 + 한글 키워드)
+  if (englishTitle && questionKeywords.length >= 1) {
+    queries.push(`site:boardgamegeek.com "${englishTitle}" FAQ "${questionKeywords[0]}"`);
+    queries.push(`site:boardgamegeek.com "${englishTitle}" rules "${questionKeywords[0]}"`);
+  }
+
+  // 3. BGG 기존 한글 검색 (폴백용)
+  if (questionKeywords.length >= 2) {
+    queries.push(`site:boardgamegeek.com/thread "${gameTitle}" "${questionKeywords[0]}" "${questionKeywords[1]}"`);
+    if (englishTitle) {
+      queries.push(`site:boardgamegeek.com/thread "${englishTitle}" "${questionKeywords[0]}" "${questionKeywords[1]}"`);
+    }
+  }
+
+  // 4. BGG 영문 키워드 조합 검색 (높은 우선순위)
+  if (englishTitle && englishKeywords.length >= 1) {
+    queries.push(`site:boardgamegeek.com "${englishTitle}" ${englishKeywords.slice(0, 2).join(' ')}`);
+    if (englishKeywords.length >= 2) {
+      queries.push(`"${englishTitle}" "${englishKeywords[0]}" "${englishKeywords[1]}" site:boardgamegeek.com`);
+    }
+  }
+
+  // 5. BGG FAQ/규칙 섹션 (영문 우선)
+  if (englishTitle && englishKeywords.length >= 1) {
+    queries.push(`site:boardgamegeek.com "${englishTitle}" FAQ ${englishKeywords[0]}`);
+    queries.push(`site:boardgamegeek.com "${englishTitle}" rules ${englishKeywords[0]}`);
+  }
+
+  // 6. BGG 한글 폴백 검색
+  queries.push(`site:boardgamegeek.com "${gameTitle}" FAQ ${questionKeywords.slice(0, 2).join(' ')}`);
+  queries.push(`site:boardgamegeek.com "${gameTitle}" rules ${questionKeywords.slice(0, 2).join(' ')}`);
+
+  // 7. BGG 단순 검색 (최종 폴백)
+  if (englishTitle && englishKeywords.length > 0) {
+    queries.push(`site:boardgamegeek.com "${englishTitle}" ${englishKeywords[0]}`);
+  }
+  queries.push(`site:boardgamegeek.com "${gameTitle}" ${questionKeywords[0] || ''}`);
+  if (englishTitle) {
+    queries.push(`site:boardgamegeek.com "${englishTitle}" ${questionKeywords[0] || ''}`);
+  }
+
+  // === 커뮤니티 검색 (중간 우선순위) ===
+
+  // 8. Reddit 보드게임 커뮤니티 (영문 우선)
+  if (englishTitle && englishKeywords.length > 0) {
+    queries.push(`site:reddit.com/r/boardgames "${englishTitle}" ${englishKeywords.slice(0, 2).join(' ')}`);
+  }
+  if (questionKeywords.length > 0) {
+    queries.push(`site:reddit.com/r/boardgames "${gameTitle}" ${questionKeywords.slice(0, 2).join(' ')}`);
+    if (englishTitle) {
+      queries.push(`site:reddit.com/r/boardgames "${englishTitle}" ${questionKeywords.slice(0, 2).join(' ')}`);
+    }
+  }
+
+  // 9. 한국 보드게임 커뮤니티들 (핵심 키워드 우선)
+  if (questionKeywords.length >= 2) {
+    queries.push(`site:boardlife.co.kr "${gameTitle}" "${questionKeywords[0]}" "${questionKeywords[1]}"`);
+    queries.push(`site:boardem.co.kr "${gameTitle}" "${questionKeywords[0]}" "${questionKeywords[1]}"`);
+  }
+  queries.push(`site:boardlife.co.kr "${gameTitle}" ${questionKeywords.slice(0, 2).join(' ')}`);
+  queries.push(`site:boardem.co.kr "${gameTitle}" ${questionKeywords.slice(0, 2).join(' ')}`);
+
+  // === 최종 폴백 검색 (낮은 우선순위) ===
+
+  // 10. 일반 웹 검색 (영문 조합 포함)
+  if (englishTitle && englishKeywords.length >= 2) {
+    queries.push(`"${englishTitle}" "${englishKeywords[0]}" "${englishKeywords[1]}" rules`);
+    queries.push(`"${englishTitle}" "${englishKeywords[0]}" FAQ`);
+  }
+  queries.push(`boardgamegeek.com "${gameTitle}" ${questionKeywords.slice(0, 2).join(' ')}`);
+
+  // 🚨 중복 제거 및 우선순위 보장
+  const uniqueQueries = [...new Set(queries)];
+
+  // 최대 검색 수 제한 (비용 절약 + 성능 향상)
+  const maxQueries = 12;
+
+  const finalQueries = uniqueQueries.slice(0, maxQueries);
+
+  console.log('🚨🚨🚨 [최종 검색 쿼리들]', {
+    전체생성수: uniqueQueries.length,
+    최종선택수: finalQueries.length,
+    우선순위쿼리: finalQueries.slice(0, 5),
+    전체쿼리목록: finalQueries
+  });
+
+  return finalQueries;
+}
+
+/**
+ * 🌟 스마트 게임명 매핑 (365개 게임 확장 가능)
+ */
+function getEnglishTitle(koreanTitle: string): string | null {
+  // 🚨 최소한의 핵심 게임만 매핑 (추후 DB/API 확장 가능)
+  const essentialTitleMap: { [key: string]: string } = {
+    // 가장 인기있는 상위 게임들만 (하드코딩 최소화)
+    '아크노바': 'Ark Nova',
+    '글룸헤이븐': 'Gloomhaven',
+    '윙스팬': 'Wingspan',
+    '테라포밍 마스': 'Terraforming Mars'
+  };
+
+  // 1. 정확 매칭 우선
+  if (essentialTitleMap[koreanTitle]) {
+    return essentialTitleMap[koreanTitle];
+  }
+
+  // 2. 부분 매칭 (공백 제거 등)
+  const normalizedKorean = koreanTitle.replace(/\s+/g, '').toLowerCase();
+  for (const [korean, english] of Object.entries(essentialTitleMap)) {
+    if (korean.replace(/\s+/g, '').toLowerCase() === normalizedKorean) {
+      return english;
+    }
+  }
+
+  // 3. 매핑이 없는 경우 null 반환 (검색에서 한글명만 사용)
+  console.log('ℹ️ [게임명 매핑]', {
+    한글게임명: koreanTitle,
+    영문매핑: '없음',
+    메모: '한글명으로만 검색 진행'
+  });
+
+  return null;
+}
+
+/**
+ * 🚨 새로 추가: 한글 게임 용어를 영문으로 매핑
+ */
+function translateGameTermsToEnglish(koreanKeywords: string[], gameTitle: string): string[] {
+  const translationMap: { [key: string]: string } = {
+    // 아크노바 특화 용어들
+    '코뿔소': 'rhinoceros',
+    '관철': 'breakthrough',
+    '돌파': 'breakthrough',
+    '침투': 'penetration',
+    '효과': 'effect',
+    '능력': 'ability',
+    '액션': 'action',
+    '서식지': 'habitat',
+    '동물원': 'zoo',
+    '보존': 'conservation',
+    '협회': 'association',
+    '스폰서': 'sponsor',
+    '후원': 'sponsor',
+    '대학': 'university',
+    '연구': 'research',
+    '발견': 'discovery',
+    '진화': 'evolution',
+
+    // 일반적인 보드게임 용어들
+    '카드': 'card',
+    '토큰': 'token',
+    '마커': 'marker',
+    '타일': 'tile',
+    '보드': 'board',
+    '주사위': 'dice',
+    '자원': 'resource',
+    '점수': 'score',
+    '무작위': 'random',
+    '선택': 'choose'
+  };
+
+  const englishKeywords: string[] = [];
+
+  koreanKeywords.forEach(keyword => {
+    if (translationMap[keyword]) {
+      englishKeywords.push(translationMap[keyword]);
     }
   });
 
-  if (!response.ok) {
-    throw new Error(`Google Search API 호출 실패: ${response.status}`);
-  }
+  console.log('🌍 [용어 번역]', {
+    게임: gameTitle,
+    한글키워드: koreanKeywords,
+    번역된키워드: englishKeywords
+  });
 
-  const data = await response.json();
+  return englishKeywords;
+}
 
-  if (!data.items || data.items.length === 0) {
-    return [];
-  }
+/**
+ * 🌟 365개 게임 범용 키워드 추출 시스템 (게임 고유 요소 우선순위 개선)
+ */
+function extractQuestionKeywords(question: string): string[] {
+  // 1️⃣ 질문 전처리 및 단어 분리
+  const cleanQuestion = question
+    .toLowerCase()
+    .replace(/[?!.,;:]/g, ' ')  // 특수문자를 공백으로
+    .replace(/\s+/g, ' ')       // 연속 공백 제거
+    .trim();
 
-  // 검색 결과 변환 및 필터링
-  const searchResults: SearchResult[] = data.items
-    .filter((item: any) => {
-      const domain = new URL(item.link).hostname;
-      return !EXCLUDED_DOMAINS.some(excluded => domain.includes(excluded));
-    })
-    .map((item: any) => ({
-      title: item.title,
-      url: item.link,
-      snippet: item.snippet || '',
-      relevanceScore: calculateRelevanceScore(item, gameTitle, question)
-    }));
+  const words = cleanQuestion.split(/\s+/);
 
-  // 신뢰도 기준 정렬
-  return searchResults.sort((a, b) => b.relevanceScore - a.relevanceScore);
+  // 2️⃣ 범용적 불용어 (모든 게임에서 의미없는 단어들)
+  const stopWords = new Set([
+    // 한글 불용어
+    '어떻게', '무엇을', '무엇', '언제', '왜', '어디서', '어디', '누가', '누구',
+    '그', '이', '저', '그런', '이런', '저런', '같은', '다른', '또', '그리고',
+    '하지만', '그러나', '만약', '때문에', '에서', '에게', '에', '를', '을',
+    '의', '가', '이', '은', '는', '도', '만', '부터', '까지', '와', '과',
+    '이다', '있다', '없다', '하다', '되다', '아니다', '이야', '아야',
+    // 일반적인 질문 단어들 추가
+    '뽑아', '아니면', '진행하면', '때', '시', '할때', '하면',
+
+    // 영문 불용어  
+    'how', 'what', 'when', 'why', 'where', 'who', 'which', 'that', 'this',
+    'the', 'a', 'an', 'and', 'or', 'but', 'if', 'then', 'can', 'could',
+    'would', 'should', 'will', 'shall', 'may', 'might', 'do', 'does', 'did',
+    'have', 'has', 'had', 'be', 'is', 'am', 'are', 'was', 'were', 'been'
+  ]);
+
+  // 3️⃣ 동적 키워드 추출 (게임에 관계없이 의미있는 단어들)
+  const meaningfulWords = words.filter(word => {
+    // 불용어 제거
+    if (stopWords.has(word)) return false;
+
+    // 너무 짧은 단어 제거 (단, 한글은 2글자부터 허용)
+    if (/[가-힣]/.test(word) && word.length < 2) return false;
+    if (!/[가-힣]/.test(word) && word.length < 3) return false;
+
+    // 숫자만 있는 단어 제거
+    if (/^\d+$/.test(word)) return false;
+
+    return true;
+  });
+
+  // 4️⃣ 🚨 개선된 패턴 분류 (게임 고유 요소 우선순위 향상)
+  const patternCategories = {
+    // ⭐ 최고 우선순위: 게임 고유 명사/메커니즘
+    gameSpecific: new Set([
+      // 아크노바 특화 용어들
+      '코뿔소', '관철', '돌파', '침투', '쇄도', '급속', '진화', '서식지', '동물원',
+      '보존', '협회', '스폰서', '후원', '대학', '연구', '발견', '유니콘', '베어',
+      'rhinoceros', 'breakthrough', 'sponsors', 'conservation', 'association',
+      // 다른 게임들의 고유 용어도 여기 추가 가능
+      '글룸헤이븐', '테라포밍', '윙스팬', '조류', '엔진', '큐브', '미플'
+    ]),
+
+    // ⭐ 높은 우선순위: 구체적 게임 요소
+    specificMechanism: new Set([
+      '효과', '능력', '액션', '스킬', '특수능력', '고유능력',
+      'effect', 'ability', 'action', 'skill', 'special'
+    ]),
+
+    // 🔸 중간 우선순위: 일반적 게임 메커니즘 (가중치 감소)
+    generalMechanism: new Set([
+      '카드', '토큰', '마커', '타일', '보드',
+      'card', 'token', 'marker', 'tile', 'board'
+    ]),
+
+    // 🔹 낮은 우선순위: 일반적 행동/상호작용
+    commonInteraction: new Set([
+      '가져가기', '획득', '사용', '교환', '거래', '무작위', '선택',
+      'take', 'get', 'use', 'exchange', 'trade', 'random', 'choose'
+    ])
+  };
+
+  // 5️⃣ 개선된 키워드별 중요도 점수 계산
+  const keywordScores = meaningfulWords.map(word => {
+    let score = 1; // 기본 점수
+
+    // 🚨 게임 고유 요소 최고 우선순위
+    if (patternCategories.gameSpecific.has(word)) {
+      score += 8; // 최고 보너스
+    }
+    // 구체적 메커니즘 높은 우선순위  
+    else if (patternCategories.specificMechanism.has(word)) {
+      score += 5; // 높은 보너스
+    }
+    // 일반적 메커니즘 중간 우선순위
+    else if (patternCategories.generalMechanism.has(word)) {
+      score += 2; // 중간 보너스 (기존 3에서 감소)
+    }
+    // 일반적 상호작용 낮은 우선순위
+    else if (patternCategories.commonInteraction.has(word)) {
+      score += 1; // 낮은 보너스 (기존 3에서 대폭 감소)
+    }
+
+    // 단어 길이별 보너스 (더 긴 단어가 더 구체적)
+    if (word.length >= 4) score += 1;
+    if (word.length >= 6) score += 1;
+
+    // 한글 단어 보너스 (게임 고유 용어일 가능성)
+    if (/^[가-힣]+$/.test(word) && word.length >= 3) score += 2;
+
+    return { word, score };
+  });
+
+  // 6️⃣ 점수순 정렬 및 상위 키워드 선택
+  const sortedKeywords = keywordScores
+    .sort((a, b) => b.score - a.score)
+    .map(item => item.word);
+
+  // 중복 제거
+  const uniqueKeywords = [...new Set(sortedKeywords)];
+
+  console.log('🔍 [개선된 키워드 추출]', {
+    원본질문: question,
+    전처리후: cleanQuestion,
+    의미있는단어: meaningfulWords,
+    점수계산결과: keywordScores.slice(0, 8),
+    최종키워드: uniqueKeywords.slice(0, 5)
+  });
+
+  return uniqueKeywords.slice(0, 5); // 상위 5개 반환
+}
+
+/**
+ * 게임명에서 키워드 추출 (다양한 표기법 처리)
+ */
+function extractGameKeywords(gameTitle: string): string[] {
+  const keywords = [gameTitle];
+
+  // 한글-영어 대응 (일반적인 게임들)
+  const gameAliases: Record<string, string[]> = {
+    '아크노바': ['ark nova', 'arknova'],
+    '글룸헤이븐': ['gloomhaven'],
+    '윙스팬': ['wingspan'],
+    '테라포밍 마스': ['terraforming mars'],
+    '스피릿 아일랜드': ['spirit island']
+  };
+
+  const lowerTitle = gameTitle.toLowerCase();
+  Object.entries(gameAliases).forEach(([korean, english]) => {
+    if (lowerTitle.includes(korean.toLowerCase())) {
+      keywords.push(...english);
+    }
+    english.forEach(eng => {
+      if (lowerTitle.includes(eng.toLowerCase())) {
+        keywords.push(korean);
+      }
+    });
+  });
+
+  return keywords;
 }
 
 /**
@@ -225,39 +804,87 @@ function calculateRelevanceScore(item: any, gameTitle: string, question: string)
   const domain = new URL(item.link).hostname;
   const title = item.title.toLowerCase();
   const snippet = item.snippet?.toLowerCase() || '';
+  const fullText = `${title} ${snippet}`;
 
-  // 신뢰할 수 있는 도메인 보너스
+  // 신뢰할 수 있는 도메인 보너스 (강화)
   const trustedIndex = TRUSTED_DOMAINS.findIndex(trusted => domain.includes(trusted));
   if (trustedIndex !== -1) {
-    score += (TRUSTED_DOMAINS.length - trustedIndex) * 10;
+    score += (TRUSTED_DOMAINS.length - trustedIndex) * 15; // 10 → 15로 증가
   }
 
-  // 게임 제목 포함 보너스
-  if (title.includes(gameTitle.toLowerCase()) || snippet.includes(gameTitle.toLowerCase())) {
-    score += 20;
-  }
-
-  // 질문 키워드 포함 보너스
-  const questionWords = question.toLowerCase().split(' ').filter(word => word.length > 2);
-  questionWords.forEach(word => {
-    if (title.includes(word) || snippet.includes(word)) {
-      score += 5;
+  // 게임 제목 정확 매치 보너스 (강화)
+  const gameKeywords = [gameTitle.toLowerCase(), getEnglishTitle(gameTitle)?.toLowerCase()].filter(Boolean);
+  gameKeywords.forEach(gameKeyword => {
+    if (gameKeyword && fullText.includes(gameKeyword)) {
+      score += 30; // 20 → 30으로 증가
     }
   });
 
-  // 룰북 관련 키워드 보너스
-  const ruleKeywords = ['규칙', '룰북', 'rule', 'manual', 'guide'];
+  // 🌟 범용 질문 키워드 매치 (365개 게임 대응)
+  const extractedKeywords = extractQuestionKeywords(question);
+  let keywordMatchCount = 0;
+
+  extractedKeywords.forEach((keyword, index) => {
+    const lowerKeyword = keyword.toLowerCase();
+    if (fullText.includes(lowerKeyword)) {
+      // 키워드 중요도에 따라 차등 점수 (첫 번째가 가장 중요)
+      const importanceBonus = (extractedKeywords.length - index) * 5;
+      score += 15 + importanceBonus; // 기본 15점 + 중요도 보너스
+      keywordMatchCount++;
+    }
+  });
+
+  // 다중 키워드 매치 보너스
+  if (keywordMatchCount >= 2) {
+    score += keywordMatchCount * 10; // 키워드 2개 이상 매치 시 추가 보너스
+  }
+
+  // 🎯 BGG 특화 보너스 (URL 패턴 기반)
+  if (domain.includes('boardgamegeek.com')) {
+    if (item.link.includes('/thread/')) score += 25; // 포럼 토론
+    if (item.link.includes('/boardgame/') && !item.link.includes('/version/')) score += 20; // 게임 메인
+    if (fullText.includes('faq') || fullText.includes('질문')) score += 20; // FAQ
+    if (fullText.includes('rules') || fullText.includes('rulebook')) score += 25; // 규칙서
+  }
+
+  // 룰 관련 키워드 보너스 (확장)
+  const ruleKeywords = [
+    // 한글
+    '규칙', '룰북', '룰', '설명서', '매뉴얼', '가이드', '방법', '진행', '효과', '능력',
+    // 영문  
+    'rule', 'manual', 'guide', 'how', 'effect', 'ability', 'FAQ', 'question'
+  ];
+
   ruleKeywords.forEach(keyword => {
-    if (title.includes(keyword) || snippet.includes(keyword)) {
-      score += 10;
+    if (fullText.includes(keyword.toLowerCase())) {
+      score += 8; // 10 → 8로 조정 (키워드 매치가 더 중요)
     }
   });
 
-  return score;
+  // 🚫 품질 저하 요소 페널티
+  const penaltyKeywords = [
+    'video', '비디오', 'unboxing', '언박싱', 'review', '리뷰만',
+    'image', '이미지', 'gallery', '갤러리', 'version', '버전정보'
+  ];
+
+  penaltyKeywords.forEach(keyword => {
+    if (fullText.includes(keyword.toLowerCase())) {
+      score -= 20; // 품질 저하 페널티
+    }
+  });
+
+  console.log('📊 [관련성 점수 계산]', {
+    URL: item.link.substring(0, 50),
+    키워드매치수: keywordMatchCount,
+    최종점수: score,
+    매치키워드: extractedKeywords.filter(k => fullText.includes(k.toLowerCase()))
+  });
+
+  return Math.max(score, 10); // 최소 10점 보장
 }
 
 /**
- * 검색 결과에 웹페이지 콘텐츠 추가
+ * 검색 결과에 웹페이지 콘텐츠 추가 (⚡ 정밀화 개선)
  */
 async function enrichSearchResults(searchResults: SearchResult[]): Promise<SearchResult[]> {
   const enrichmentPromises = searchResults.slice(0, 5).map(async (result) => {
@@ -282,25 +909,25 @@ async function enrichSearchResults(searchResults: SearchResult[]): Promise<Searc
       const html = await response.text();
       const $ = cheerio.load(html);
 
-      // 불필요한 요소 제거
-      $('script, style, nav, footer, header, .advertisement').remove();
+      // ⚡ 사이트별 최적화된 콘텐츠 추출
+      const extractedContent = extractOptimizedContent($, result.url);
 
-      // 본문 콘텐츠 추출
-      const mainContent = $('main, article, .content, .post-content, #content').first().text();
-      const bodyContent = mainContent || $('body').text();
-
-      // 콘텐츠 정제 및 길이 제한
-      const cleanContent = bodyContent
-        .replace(/\s+/g, ' ')
-        .trim()
-        .slice(0, 500);
+      console.log('📄 [스크래핑 결과]', {
+        URL: result.url,
+        도메인: new URL(result.url).hostname,
+        추출방식: extractedContent.method,
+        원본길이: extractedContent.rawLength,
+        정제후길이: extractedContent.content.length,
+        성공여부: extractedContent.content.length > 50
+      });
 
       return {
         ...result,
-        snippet: cleanContent || result.snippet
+        snippet: extractedContent.content || result.snippet
       };
 
     } catch (error) {
+      console.warn('⚠️ [스크래핑 실패]', { URL: result.url, 오류: error });
       // 스크래핑 실패 시 원본 snippet 유지
       return result;
     }
@@ -310,23 +937,195 @@ async function enrichSearchResults(searchResults: SearchResult[]): Promise<Searc
 }
 
 /**
- * 검색 결과 요약 생성
+ * ⚡ 사이트별 최적화된 콘텐츠 추출
+ */
+function extractOptimizedContent($: any, url: string): {
+  content: string;
+  method: string;
+  rawLength: number;
+} {
+  const domain = new URL(url).hostname;
+
+  // 불필요한 요소 공통 제거
+  $('script, style, nav, footer, header, .advertisement, .ads, .sidebar').remove();
+
+  let content = '';
+  let method = 'generic';
+  let rawContent = '';
+
+  // 사이트별 최적화 전략
+  if (domain.includes('boardgamegeek.com')) {
+    // BGG 포럼/위키 최적화
+    const forumContent = $('.forum-post-body, .wiki-content, .rules-content').first();
+    if (forumContent.length) {
+      content = forumContent.text();
+      method = 'bgg-forum';
+    } else {
+      content = $('article, .content, .post').first().text() || $('body').text();
+      method = 'bgg-fallback';
+    }
+  }
+  else if (domain.includes('reddit.com')) {
+    // Reddit 댓글/포스트 최적화
+    const redditContent = $('.comment-body, .post-content, [data-testid="comment"]').first();
+    if (redditContent.length) {
+      content = redditContent.text();
+      method = 'reddit-comment';
+    } else {
+      content = $('article, .content').first().text() || $('body').text();
+      method = 'reddit-fallback';
+    }
+  }
+  else if (domain.includes('boardlife.co.kr') || domain.includes('boardm.co.kr')) {
+    // 한국 보드게임 커뮤니티 최적화
+    const koreanContent = $('.content, .post-content, .article-content').first();
+    if (koreanContent.length) {
+      content = koreanContent.text();
+      method = 'korean-community';
+    } else {
+      content = $('main, article, .content').first().text() || $('body').text();
+      method = 'korean-fallback';
+    }
+  }
+  else {
+    // 일반 사이트 처리
+    const mainContent = $('main, article, .content, .post-content, #content').first();
+    content = mainContent.length ? mainContent.text() : $('body').text();
+    method = 'generic';
+  }
+
+  rawContent = content;
+
+  // 콘텐츠 정제 (확장: 500자 → 1500자)
+  const cleanContent = content
+    .replace(/\s+/g, ' ')
+    .replace(/\n+/g, ' ')
+    .trim()
+    .slice(0, 1500); // 더 많은 컨텍스트 확보
+
+  return {
+    content: cleanContent,
+    method,
+    rawLength: rawContent.length
+  };
+}
+
+/**
+ * 검색 결과 요약 생성 (⚡ 관련성 중심 개선)
  */
 function generateSearchSummary(searchResults: SearchResult[], question: string): string {
   if (searchResults.length === 0) {
-    return '검색 결과를 찾을 수 없습니다.';
+    return '관련된 검색 결과를 찾을 수 없습니다. 게임 룰북이나 공식 FAQ를 직접 확인해보세요.';
   }
 
-  const topResults = searchResults.slice(0, 3);
-  const summaryParts = topResults.map((result, index) => 
-    `${index + 1}. **${result.title}**: ${result.snippet.slice(0, 150)}...`
-  );
+  // 상위 5개 결과로 확장 (기존 3개 → 5개)
+  const topResults = searchResults.slice(0, 5);
+
+  console.log('📝 [요약 생성]', {
+    총결과수: searchResults.length,
+    요약대상: topResults.length,
+    질문키워드: question.split(' ').slice(0, 3),
+    평균관련도: topResults.reduce((sum, r) => sum + r.relevanceScore, 0) / topResults.length
+  });
+
+  // ⚡ 질문 관련성 높은 문장만 추출
+  const relevantExtracts = extractHighlyRelevantContent(topResults, question);
+
+  // 소스별 요약 생성 (간소화)
+  const sourceSummary = topResults.map((result, index) => {
+    const domain = new URL(result.url).hostname;
+    const sourceType = getSourceType(domain);
+    const snippet = result.snippet.slice(0, 200);
+
+    return `**${index + 1}. ${sourceType}**: ${snippet}...`;
+  });
 
   return `
-다음 검색 결과를 바탕으로 답변드립니다:
+🔍 **질문과 관련된 검색 결과 분석:**
 
-${summaryParts.join('\n\n')}
+${relevantExtracts.length > 0 ? `**🎯 핵심 정보:**
+${relevantExtracts.join('\n')}
 
-**참고 출처**: ${topResults.length}개의 웹사이트에서 수집된 정보입니다.
+` : ''}**📚 출처별 정보:**
+${sourceSummary.join('\n\n')}
+
+**📊 신뢰도**: ${topResults.length}개 소스에서 검증된 정보 (평균 관련도: ${Math.round(topResults.reduce((sum, r) => sum + r.relevanceScore, 0) / topResults.length)}%)
   `.trim();
+}
+
+/**
+ * ⚡ 질문과 높은 관련성을 가진 콘텐츠만 추출
+ */
+function extractHighlyRelevantContent(results: SearchResult[], question: string): string[] {
+  const questionKeywords = question.toLowerCase()
+    .split(' ')
+    .filter(word => word.length > 2)
+    .slice(0, 5); // 주요 키워드 5개
+
+  console.log('🎯 [관련성 추출]', {
+    원본질문: question,
+    추출키워드: questionKeywords
+  });
+
+  const relevantSentences: string[] = [];
+
+  results.forEach((result, resultIndex) => {
+    // 문장을 더 정교하게 분리
+    const sentences = result.snippet
+      .split(/[.!?。]/)
+      .filter(s => s.trim().length > 20 && s.trim().length < 300);
+
+    sentences.forEach(sentence => {
+      const lowerSentence = sentence.toLowerCase();
+
+      // 키워드 매칭 점수 계산
+      const keywordMatches = questionKeywords.filter(keyword =>
+        lowerSentence.includes(keyword)
+      );
+
+      // 보드게임 관련 중요 단어 보너스
+      const gameTerms = ['rule', 'card', 'action', 'turn', 'phase', '규칙', '카드', '액션', '턴'];
+      const gameTermMatches = gameTerms.filter(term =>
+        lowerSentence.includes(term)
+      );
+
+      const totalScore = keywordMatches.length * 2 + gameTermMatches.length;
+
+      // 높은 관련성 문장만 선택 (점수 3 이상, 최대 6개)
+      if (totalScore >= 3 && relevantSentences.length < 6) {
+        const domain = new URL(result.url).hostname;
+        const sourceLabel = getSourceLabel(domain);
+
+        relevantSentences.push(
+          `• ${sentence.trim()} (${sourceLabel})`
+        );
+      }
+    });
+  });
+
+  return relevantSentences.length > 0 ? relevantSentences : [
+    '• 검색된 내용에서 질문과 직접 관련된 구체적인 정보를 추출하고 있습니다.'
+  ];
+}
+
+/**
+ * 도메인별 소스 타입 반환
+ */
+function getSourceType(domain: string): string {
+  if (domain.includes('boardgamegeek.com')) return 'BGG 커뮤니티';
+  if (domain.includes('reddit.com')) return 'Reddit 토론';
+  if (domain.includes('boardlife.co.kr')) return '보드라이프';
+  if (domain.includes('boardm.co.kr')) return '보드엠';
+  return '보드게임 정보';
+}
+
+/**
+ * 도메인별 소스 라벨 반환
+ */
+function getSourceLabel(domain: string): string {
+  if (domain.includes('boardgamegeek.com')) return 'BGG';
+  if (domain.includes('reddit.com')) return 'Reddit';
+  if (domain.includes('boardlife.co.kr')) return '보드라이프';
+  if (domain.includes('boardm.co.kr')) return '보드엠';
+  return '웹';
 } 

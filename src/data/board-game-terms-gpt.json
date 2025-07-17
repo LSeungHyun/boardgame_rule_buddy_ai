@@ -1,0 +1,227 @@
+{
+    "metadata": {
+        "source": "GPT Research",
+        "date": "2025-01-17",
+        "description": "Comprehensive Korean-English Board Game Terms Database from GPT research - Common terms only",
+        "coverage": "Universal terms, game mechanisms, actions, timing, and genre-specific terms",
+        "note": "Game-specific terms removed - will be handled separately"
+    },
+    "universal_terms": {
+        "components": {
+            "카드": "card",
+            "덱": "deck",
+            "카드 더미": "deck",
+            "주사위": "dice",
+            "토큰": "token",
+            "말": "pawn",
+            "피스": "piece",
+            "마커": "marker",
+            "미플": "meeple",
+            "큐브": "cube",
+            "타일": "tile",
+            "게임판": "game board",
+            "보드": "board",
+            "개인보드": "player board"
+        },
+        "scoring": {
+            "승점": "victory points",
+            "점수": "score",
+            "자원": "resource"
+        },
+        "game_materials": {
+            "룰북": "rulebook",
+            "확장판": "expansion"
+        }
+    },
+    "game_mechanisms": {
+        "worker_placement": {
+            "korean_name": "일꾼 놓기",
+            "english_name": "Worker Placement",
+            "terms": {
+                "일꾼": "worker",
+                "액션 공간": "action space",
+                "액션 칸": "action space",
+                "선점": "blocking",
+                "차단": "blocking",
+                "독점": "blocking"
+            }
+        },
+        "deck_building": {
+            "korean_name": "덱 빌딩",
+            "english_name": "Deck Building",
+            "terms": {
+                "덱": "deck",
+                "손패": "hand",
+                "드로우": "draw",
+                "버림패 더미": "discard pile",
+                "셔플": "shuffle",
+                "핸드 제한": "hand limit",
+                "트래시": "trash",
+                "파기": "trash",
+                "공용 공급처": "supply"
+            }
+        },
+        "engine_building": {
+            "korean_name": "엔진 빌딩",
+            "english_name": "Engine Building",
+            "terms": {
+                "엔진": "engine",
+                "콤보": "combo",
+                "업그레이드": "upgrade"
+            }
+        },
+        "resource_management": {
+            "korean_name": "자원 관리",
+            "english_name": "Resource Management",
+            "terms": {
+                "자원": "resource",
+                "생산": "production",
+                "유지비": "maintenance cost"
+            }
+        },
+        "set_collection": {
+            "korean_name": "세트 컬렉션",
+            "english_name": "Set Collection",
+            "terms": {
+                "세트": "set",
+                "컬렉션": "collection"
+            }
+        },
+        "area_control": {
+            "korean_name": "영역 장악",
+            "english_name": "Area Control",
+            "terms": {
+                "영역": "area",
+                "지역": "region",
+                "영향력": "influence",
+                "다수 지배": "majority",
+                "영역 컨트롤": "area control"
+            }
+        },
+        "cooperative": {
+            "korean_name": "협력 게임",
+            "english_name": "Cooperative Play",
+            "terms": {
+                "협력": "cooperative",
+                "알파 플레이어": "alpha player",
+                "시나리오": "scenario"
+            }
+        },
+        "auction": {
+            "korean_name": "경매",
+            "english_name": "Auction",
+            "terms": {
+                "경매": "auction",
+                "입찰": "bid"
+            }
+        },
+        "other_mechanisms": {
+            "블러핑": "bluffing",
+            "블러프": "bluff",
+            "정체 숨기기": "hidden identity",
+            "액션 포인트": "action points",
+            "고유 능력": "unique ability",
+            "프로그래밍": "programming",
+            "명령 카드": "command card",
+            "경로 구축": "route building",
+            "노선": "route",
+            "연결": "connection",
+            "노드": "node",
+            "트릭 테이킹": "trick taking",
+            "트릭": "trick",
+            "문양": "suit",
+            "슈트": "suit",
+            "으뜸패": "trump"
+        }
+    },
+    "game_actions": {
+        "card_actions": {
+            "드로우": "draw",
+            "뽑다": "draw",
+            "디스카드": "discard",
+            "버리다": "discard",
+            "플레이": "play"
+        },
+        "board_actions": {
+            "배치하다": "place",
+            "놓다": "place",
+            "두다": "place",
+            "이동하다": "move",
+            "제거하다": "remove"
+        },
+        "resource_actions": {
+            "획득하다": "gain",
+            "잃다": "lose",
+            "교환하다": "trade",
+            "거래하다": "exchange"
+        },
+        "dice_actions": {
+            "굴리다": "roll"
+        },
+        "card_manipulation": {
+            "뒤집다": "flip",
+            "공개하다": "reveal"
+        },
+        "effect_actions": {
+            "활성화": "activate",
+            "트리거": "trigger",
+            "발동시키다": "trigger",
+            "해결하다": "resolve",
+            "처리하다": "resolve"
+        },
+        "turn_actions": {
+            "패스": "pass",
+            "턴 종료": "end turn",
+            "게임 종료": "end game"
+        }
+    },
+    "game_timing": {
+        "basic_timing": {
+            "턴": "turn",
+            "차례": "turn",
+            "라운드": "round",
+            "페이즈": "phase"
+        },
+        "phase_types": {
+            "준비 단계": "setup phase",
+            "액션 단계": "action phase",
+            "정리 단계": "cleanup phase",
+            "업킵": "upkeep",
+            "유지 단계": "upkeep"
+        },
+        "turn_order": {
+            "시작 플레이어": "start player",
+            "선 플레이어": "start player",
+            "선플레이어마커": "first player token",
+            "턴 순서": "turn order",
+            "동시 진행": "simultaneous play",
+            "제한 시간": "time limit"
+        }
+    },
+    "game_genres": {
+        "strategy_games": {
+            "승점": "victory points",
+            "영역 컨트롤": "area control",
+            "자원 관리": "resource management"
+        },
+        "game_styles": {
+            "추상 전략": "abstract strategy",
+            "아메리트래쉬": "ameritrash",
+            "유로게임": "eurogame",
+            "파티게임": "party game"
+        }
+    },
+    "translation_patterns": {
+        "suffixes": {
+            "을/를": "",
+            "이/가": "",
+            "하다": "",
+            "되다": ""
+        },
+        "common_transformations": {
+            "카드를": "card",
+            "토큰을": "token",
+            "효과를": "effect"
+        }
+    }
+}

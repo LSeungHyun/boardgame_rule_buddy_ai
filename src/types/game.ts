@@ -24,6 +24,13 @@ export interface ChatMessage {
         score: number;
         reasoning: string[];
     };
+    // V2 분석 결과 추가
+    analysisV2?: {
+        type: 'rule' | 'strategy' | 'exception';
+        requiresResearch: boolean;
+        confidence: number;
+        explanation?: string;
+    };
 }
 
 // 검색 관련 상태와 핸들러를 그룹화

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Noto_Sans_KR } from 'next/font/google';
 import './globals.css';
 import Providers from './providers';
+import { StagewiseToolbar } from '@stagewise/toolbar-next';
 
 const notoSansKR = Noto_Sans_KR({
   subsets: ['latin'],
@@ -23,6 +24,11 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <body className={`${notoSansKR.className} antialiased`}>
         <Providers>{children}</Providers>
+        <StagewiseToolbar
+          config={{
+            plugins: [],
+          }}
+        />
       </body>
     </html>
   );

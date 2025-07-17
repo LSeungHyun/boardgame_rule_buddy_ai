@@ -1,0 +1,358 @@
+{
+    "metadata": {
+        "source": "Cross-validation between GPT and GEMINI research",
+        "date": "2025-01-17",
+        "description": "Korean-English term mapping discrepancies found during database comparison",
+        "total_discrepancies": 36,
+        "analysis_summary": {
+            "same_korean_diff_english": 11,
+            "same_english_diff_korean": 25
+        }
+    },
+    "same_korean_different_english": [
+        {
+            "korean": "승점",
+            "gpt_english": "victory points",
+            "gemini_english": "victory",
+            "category": "scoring_terms",
+            "context": {
+                "gpt_location": "universal_terms.scoring",
+                "gemini_location": "dominion_specific_terms"
+            },
+            "analysis_priority": "high",
+            "bgg_test_needed": true,
+            "recommendation": "victory points is more comprehensive and widely used"
+        },
+        {
+            "korean": "일꾼",
+            "gpt_english": "worker",
+            "gemini_english": "person",
+            "category": "worker_placement",
+            "context": {
+                "gpt_location": "worker_placement.terms",
+                "gemini_location": "agricola_specific_terms"
+            },
+            "analysis_priority": "high",
+            "bgg_test_needed": true,
+            "recommendation": "context-dependent: worker (general) vs person (Agricola-specific)"
+        },
+        {
+            "korean": "입찰",
+            "gpt_english": "bid",
+            "gemini_english": "bidding",
+            "category": "auction_mechanisms",
+            "context": {
+                "gpt_location": "auction.terms",
+                "gemini_location": "economic_resource"
+            },
+            "analysis_priority": "medium",
+            "bgg_test_needed": true,
+            "recommendation": "bid (noun) vs bidding (gerund) - test BGG search effectiveness"
+        },
+        {
+            "korean": "노선",
+            "gpt_english": "route",
+            "gemini_english": "network and route building",
+            "category": "spatial_mechanisms",
+            "context": {
+                "gpt_location": "other_mechanisms",
+                "gemini_location": "spatial_area"
+            },
+            "analysis_priority": "medium",
+            "bgg_test_needed": true,
+            "recommendation": "route is more concise for search queries"
+        },
+        {
+            "korean": "트릭 테이킹",
+            "gpt_english": "trick taking",
+            "gemini_english": "trick-taking",
+            "category": "card_mechanisms",
+            "context": {
+                "gpt_location": "other_mechanisms",
+                "gemini_location": "card_based"
+            },
+            "analysis_priority": "low",
+            "bgg_test_needed": true,
+            "recommendation": "hyphenated version may be more standardized"
+        },
+        {
+            "korean": "플레이",
+            "gpt_english": "play",
+            "gemini_english": "playthrough",
+            "category": "game_actions",
+            "context": {
+                "gpt_location": "card_actions",
+                "gemini_location": "core_gameplay"
+            },
+            "analysis_priority": "medium",
+            "bgg_test_needed": true,
+            "recommendation": "context-dependent: play (action) vs playthrough (session)"
+        },
+        {
+            "korean": "제거하다",
+            "gpt_english": "remove",
+            "gemini_english": "remove from game",
+            "category": "game_actions",
+            "context": {
+                "gpt_location": "board_actions",
+                "gemini_location": "information_and_deck"
+            },
+            "analysis_priority": "medium",
+            "bgg_test_needed": true,
+            "recommendation": "remove is more concise for search"
+        },
+        {
+            "korean": "교환하다",
+            "gpt_english": "trade",
+            "gemini_english": "exchange",
+            "category": "resource_actions",
+            "context": {
+                "gpt_location": "resource_actions",
+                "gemini_location": "resource_management"
+            },
+            "analysis_priority": "medium",
+            "bgg_test_needed": true,
+            "recommendation": "both valid - test which performs better in BGG"
+        },
+        {
+            "korean": "게임 종료",
+            "gpt_english": "end game",
+            "gemini_english": "game end",
+            "category": "game_timing",
+            "context": {
+                "gpt_location": "turn_actions",
+                "gemini_location": "core_gameplay"
+            },
+            "analysis_priority": "low",
+            "bgg_test_needed": false,
+            "recommendation": "both equivalent - use shorter form"
+        },
+        {
+            "korean": "시작 플레이어",
+            "gpt_english": "start player",
+            "gemini_english": "starting player",
+            "category": "game_timing",
+            "context": {
+                "gpt_location": "turn_order",
+                "gemini_location": "player_structure"
+            },
+            "analysis_priority": "low",
+            "bgg_test_needed": false,
+            "recommendation": "starting player is more grammatically correct"
+        },
+        {
+            "korean": "관철",
+            "gpt_english": "breakthrough",
+            "gemini_english": "assertion",
+            "category": "ark_nova_specific",
+            "context": {
+                "gpt_location": "ark_nova.specific_terms",
+                "gemini_location": "ark_nova.terms"
+            },
+            "analysis_priority": "critical",
+            "bgg_test_needed": true,
+            "recommendation": "CRITICAL - test both terms in actual Ark Nova BGG searches"
+        }
+    ],
+    "same_english_different_korean": [
+        {
+            "english": "pawn",
+            "gpt_korean": "말",
+            "gemini_korean": "폰",
+            "category": "game_components",
+            "context": {
+                "gpt_location": "universal_terms.components",
+                "gemini_location": "tokens_markers_meeples"
+            },
+            "analysis_priority": "medium",
+            "bgg_test_needed": true,
+            "recommendation": "말 is more natural Korean, 폰 is transliteration"
+        },
+        {
+            "english": "game board",
+            "gpt_korean": "게임판",
+            "gemini_korean": "게임 보드",
+            "category": "game_components",
+            "context": {
+                "gpt_location": "universal_terms.components",
+                "gemini_location": "boards_and_tiles"
+            },
+            "analysis_priority": "low",
+            "bgg_test_needed": false,
+            "recommendation": "게임판 is more natural Korean"
+        },
+        {
+            "english": "rulebook",
+            "gpt_korean": "룰북",
+            "gemini_korean": "규칙서",
+            "category": "game_materials",
+            "context": {
+                "gpt_location": "universal_terms.game_materials",
+                "gemini_location": "basic_components"
+            },
+            "analysis_priority": "medium",
+            "bgg_test_needed": true,
+            "recommendation": "룰북 is common gaming term, 규칙서 is formal Korean"
+        },
+        {
+            "english": "expansion",
+            "gpt_korean": "확장판",
+            "gemini_korean": "확장",
+            "category": "game_materials",
+            "context": {
+                "gpt_location": "universal_terms.game_materials",
+                "gemini_location": "core_gameplay"
+            },
+            "analysis_priority": "medium",
+            "bgg_test_needed": true,
+            "recommendation": "확장판 is more specific and commonly used"
+        },
+        {
+            "english": "hand",
+            "gpt_korean": "손패",
+            "gemini_korean": "핸드",
+            "category": "card_components",
+            "context": {
+                "gpt_location": "deck_building.terms",
+                "gemini_location": "cards_and_decks"
+            },
+            "analysis_priority": "medium",
+            "bgg_test_needed": true,
+            "recommendation": "손패 is traditional term, 핸드 is modern gaming term"
+        },
+        {
+            "english": "draw",
+            "gpt_korean": "드로우",
+            "gemini_korean": "뽑다",
+            "category": "card_actions",
+            "context": {
+                "gpt_location": "deck_building.terms + card_actions",
+                "gemini_location": "information_and_deck"
+            },
+            "analysis_priority": "high",
+            "bgg_test_needed": true,
+            "recommendation": "context-dependent: 드로우 (gaming term) vs 뽑다 (natural Korean)"
+        },
+        {
+            "english": "discard pile",
+            "gpt_korean": "버림패 더미",
+            "gemini_korean": "버리는 더미",
+            "category": "card_components",
+            "context": {
+                "gpt_location": "deck_building.terms",
+                "gemini_location": "cards_and_decks"
+            },
+            "analysis_priority": "low",
+            "bgg_test_needed": false,
+            "recommendation": "버림패 더미 is more specific"
+        },
+        {
+            "english": "shuffle",
+            "gpt_korean": "셔플",
+            "gemini_korean": "섞다",
+            "category": "card_actions",
+            "context": {
+                "gpt_location": "deck_building.terms",
+                "gemini_location": "information_and_deck"
+            },
+            "analysis_priority": "medium",
+            "bgg_test_needed": true,
+            "recommendation": "셔플 is established gaming term"
+        },
+        {
+            "english": "trash",
+            "gpt_korean": "트래시",
+            "gemini_korean": "폐기하다",
+            "category": "card_actions",
+            "context": {
+                "gpt_location": "deck_building.terms",
+                "gemini_location": "information_and_deck + dominion.terms"
+            },
+            "analysis_priority": "medium",
+            "bgg_test_needed": true,
+            "recommendation": "트래시 is specific Dominion term, 폐기하다 is general Korean"
+        }
+    ],
+    "verb_noun_pattern_discrepancies": [
+        {
+            "base_term": "upgrade",
+            "gpt_korean": "업그레이드",
+            "gemini_korean": "업그레이드하다",
+            "pattern": "noun vs verb form",
+            "search_recommendation": "use noun form for better BGG search results"
+        },
+        {
+            "base_term": "auction",
+            "gpt_korean": "경매",
+            "gemini_korean": "경매하다",
+            "pattern": "noun vs verb form",
+            "search_recommendation": "use noun form for better BGG search results"
+        },
+        {
+            "base_term": "bid",
+            "gpt_korean": "입찰",
+            "gemini_korean": "입찰하다",
+            "pattern": "noun vs verb form",
+            "search_recommendation": "use noun form for better BGG search results"
+        },
+        {
+            "base_term": "activate",
+            "gpt_korean": "활성화",
+            "gemini_korean": "활성화하다",
+            "pattern": "noun vs verb form",
+            "search_recommendation": "use noun form for better BGG search results"
+        },
+        {
+            "base_term": "trigger",
+            "gpt_korean": "트리거",
+            "gemini_korean": "발동시키다",
+            "pattern": "transliteration vs native Korean verb",
+            "search_recommendation": "test both - 트리거 may be more effective for BGG"
+        }
+    ],
+    "critical_validation_needed": [
+        {
+            "korean": "관철",
+            "reason": "Ark Nova core mechanism - critical for accurate search results",
+            "test_queries": [
+                "\"Ark Nova\" \"breakthrough\"",
+                "\"Ark Nova\" \"assertion\"",
+                "\"아크노바\" \"관철\""
+            ],
+            "priority": "immediate"
+        },
+        {
+            "korean": "일꾼",
+            "reason": "Worker placement fundamental term - context dependent",
+            "test_queries": [
+                "\"worker placement\" \"worker\"",
+                "\"Agricola\" \"person\"",
+                "\"일꾼 놓기\""
+            ],
+            "priority": "high"
+        },
+        {
+            "korean": "승점",
+            "reason": "Victory points vs victory - search effectiveness",
+            "test_queries": [
+                "\"victory points\"",
+                "\"victory\"",
+                "\"승점\""
+            ],
+            "priority": "high"
+        }
+    ],
+    "integration_strategy": {
+        "primary_approach": "Use GPT terms as primary, GEMINI terms as fallback",
+        "exceptions": [
+            "Use GEMINI terms when more academically precise",
+            "Use game-specific terms from GEMINI for specialized contexts",
+            "Prefer noun forms over verb forms for search queries"
+        ],
+        "testing_protocol": [
+            "BGG search effectiveness test for critical terms",
+            "Community usage frequency analysis",
+            "Context-dependent selection based on game type"
+        ]
+    }
+}

@@ -256,11 +256,11 @@ export class ResearchLimiter {
    * 현재 시간의 할당량 조회
    */
   private getHourlyLimit(hour: number): number {
-    if (HOURLY_RESEARCH_LIMITS.PEAK_HOURS.hours.includes(hour)) {
+    if (HOURLY_RESEARCH_LIMITS.PEAK_HOURS.hours.includes(hour as any)) {
       return HOURLY_RESEARCH_LIMITS.PEAK_HOURS.limit;
     }
     
-    if (HOURLY_RESEARCH_LIMITS.NORMAL_HOURS.hours.includes(hour)) {
+    if (HOURLY_RESEARCH_LIMITS.NORMAL_HOURS.hours.includes(hour as any)) {
       return HOURLY_RESEARCH_LIMITS.NORMAL_HOURS.limit;
     }
     
@@ -271,8 +271,8 @@ export class ResearchLimiter {
    * 시간대 구분 조회
    */
   private getTimeSlot(hour: number): 'peak' | 'normal' | 'off' {
-    if (HOURLY_RESEARCH_LIMITS.PEAK_HOURS.hours.includes(hour)) return 'peak';
-    if (HOURLY_RESEARCH_LIMITS.NORMAL_HOURS.hours.includes(hour)) return 'normal';
+    if (HOURLY_RESEARCH_LIMITS.PEAK_HOURS.hours.includes(hour as any)) return 'peak';
+    if (HOURLY_RESEARCH_LIMITS.NORMAL_HOURS.hours.includes(hour as any)) return 'normal';
     return 'off';
   }
 
