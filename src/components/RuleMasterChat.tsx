@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Send, Bot, User, Lightbulb, BookOpen } from 'lucide-react';
+import { Send, Bot, User, Lightbulb, BookOpen, ThumbsUp, ThumbsDown, HelpCircle, MessageSquare } from 'lucide-react';
 import { ruleMasterService } from '@/lib/rule-master-service';
 import { gameTermsService } from '@/lib/game-terms-service';
 import { RuleMasterResponse, TermSearchResult } from '@/types/game-terms';
@@ -18,6 +18,21 @@ interface Message {
     content: string;
     timestamp: Date;
     response?: RuleMasterResponse;
+    feedback?: UserFeedback;
+}
+
+interface UserFeedback {
+    type: 'accurate' | 'inaccurate' | 'need_more';
+    timestamp: Date;
+    comment?: string;
+}
+
+interface FeedbackStats {
+    totalFeedbacks: number;
+    accurateCount: number;
+    inaccurateCount: number;
+    needMoreCount: number;
+    averageConfidence: number;
 }
 
 interface AvailableGame {
@@ -31,10 +46,19 @@ export default function RuleMasterChat() {
     const [selectedGame, setSelectedGame] = useState<number | null>(null);
     const [availableGames, setAvailableGames] = useState<AvailableGame[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [feedbackStats, setFeedbackStats] = useState<FeedbackStats>({
+        totalFeedbacks: 0,
+        accurateCount: 0,
+        inaccurateCount: 0,
+        needMoreCount: 0,
+        averageConfidence: 0
+    });
 
     useEffect(() => {
         // 초기화
         initializeChat();
+        // 피드백 통계 로드
+        loadFeedbackStats();
     }, []);
 
     const initializeChat = async () => {
@@ -45,22 +69,58 @@ export default function RuleMasterChat() {
         setMessages([{
             id: '1',
             type: 'bot',
-            content: '안녕하세요! 저는 보드게임 룰 마스터입니다. 게임을 선택하고 룰에 대해 질문해보세요! 🎲',
+            content: '안녕하세요! 저는 보드게임 룰 마스터입니다. 게임을 선택하고 룰에 대해 질문해보세요! 🎲\n\n💡 **새로운 기능**: 이제 답변의 도움 정도를 피드백으로 알려주시면 더 나은 서비스를 제공할 수 있습니다!',
             timestamp: new Date()
         }]);
     };
 
     const loadAvailableGames = async () => {
-        // 아크노바 데이터 먼저 로딩
-        await gameTermsService.loadGameTerms(331);
-
-        // 임시로 사용 가능한 게임 목록 (확장 시 동적 로딩)
+        // 게임 목록만 설정 (데이터는 선택시 로드)
         const games: AvailableGame[] = [
             { id: 331, name: '아크노바' },
             { id: 1, name: '세븐원더스 듀얼' }
         ];
 
         setAvailableGames(games);
+        console.log('✅ [게임 목록 로드] 게임 목록만 로드 완료 (데이터는 선택시 로드)');
+    };
+
+    /**
+     * 게임별 데이터를 필요시에만 로드
+     */
+    const loadGameDataIfNeeded = async (gameId: number) => {
+        try {
+            console.log(`🎮 [게임 데이터 로드] ${gameId}번 게임 (${availableGames.find(g => g.id === gameId)?.name}) 데이터 로딩 시작`);
+            await gameTermsService.loadGameTerms(gameId);
+            console.log(`✅ [게임 데이터 로드] ${gameId}번 게임 데이터 로딩 완료`);
+        } catch (error) {
+            console.warn(`⚠️ [게임 데이터 로드 실패] ${gameId}번 게임:`, error);
+        }
+    };
+
+    /**
+     * 게임 선택 처리 (데이터 로드 포함)
+     */
+    const handleGameSelection = async (gameId: number | null) => {
+        setSelectedGame(gameId);
+        
+        // 게임이 선택되고 해당 게임의 데이터가 필요한 경우 로드
+        if (gameId && (gameId === 331 || gameId === 1)) {
+            await loadGameDataIfNeeded(gameId);
+        }
+    };
+
+    const loadFeedbackStats = () => {
+        // localStorage에서 피드백 통계 로드
+        const savedStats = localStorage.getItem('rule-master-feedback-stats');
+        if (savedStats) {
+            setFeedbackStats(JSON.parse(savedStats));
+        }
+    };
+
+    const saveFeedbackStats = (newStats: FeedbackStats) => {
+        localStorage.setItem('rule-master-feedback-stats', JSON.stringify(newStats));
+        setFeedbackStats(newStats);
     };
 
     const handleSendMessage = async () => {
@@ -110,6 +170,82 @@ export default function RuleMasterChat() {
         }
     };
 
+    const handleFeedback = (messageId: string, feedbackType: UserFeedback['type'], comment?: string) => {
+        const feedback: UserFeedback = {
+            type: feedbackType,
+            timestamp: new Date(),
+            comment
+        };
+
+        // 메시지에 피드백 추가
+        setMessages(prev => prev.map(msg => 
+            msg.id === messageId 
+                ? { ...msg, feedback }
+                : msg
+        ));
+
+        // 피드백 통계 업데이트
+        const message = messages.find(m => m.id === messageId);
+        if (message?.response) {
+            updateFeedbackStats(feedbackType, message.response.confidence);
+        }
+
+        // 피드백 데이터 로깅 (분석용)
+        logFeedbackData(messageId, feedbackType, comment, message?.response?.confidence || 0);
+
+        console.log('📊 [사용자 피드백 수집]', {
+            메시지ID: messageId,
+            피드백타입: feedbackType,
+            신뢰도: message?.response?.confidence,
+            코멘트: comment
+        });
+    };
+
+    const updateFeedbackStats = (feedbackType: UserFeedback['type'], confidence: number) => {
+        const newStats = { ...feedbackStats };
+        newStats.totalFeedbacks += 1;
+        
+        switch (feedbackType) {
+            case 'accurate':
+                newStats.accurateCount += 1;
+                break;
+            case 'inaccurate':
+                newStats.inaccurateCount += 1;
+                break;
+            case 'need_more':
+                newStats.needMoreCount += 1;
+                break;
+        }
+
+        // 평균 신뢰도 업데이트
+        newStats.averageConfidence = (
+            (newStats.averageConfidence * (newStats.totalFeedbacks - 1) + confidence) / 
+            newStats.totalFeedbacks
+        );
+
+        saveFeedbackStats(newStats);
+    };
+
+    const logFeedbackData = (messageId: string, feedbackType: string, comment?: string, confidence: number = 0) => {
+        // 실제 운영에서는 분석 서비스로 전송
+        const feedbackLog = {
+            messageId,
+            feedbackType,
+            comment,
+            confidence,
+            gameId: selectedGame,
+            timestamp: new Date().toISOString(),
+            sessionId: 'session_' + Date.now(), // 실제로는 고유 세션 ID 사용
+        };
+
+        // 개발 환경에서는 localStorage에 저장
+        const existingLogs = JSON.parse(localStorage.getItem('rule-master-feedback-logs') || '[]');
+        existingLogs.push(feedbackLog);
+        localStorage.setItem('rule-master-feedback-logs', JSON.stringify(existingLogs));
+
+        console.log('📈 [피드백 로그]', feedbackLog);
+    };
+
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -132,11 +268,16 @@ export default function RuleMasterChat() {
                     <CardTitle className="flex items-center gap-2">
                         <Bot className="w-5 h-5" />
                         보드게임 룰 마스터
+                        {feedbackStats.totalFeedbacks > 0 && (
+                            <Badge variant="secondary" className="ml-2">
+                                만족도: {Math.round((feedbackStats.accurateCount / feedbackStats.totalFeedbacks) * 100)}%
+                            </Badge>
+                        )}
                     </CardTitle>
                     <div className="flex items-center gap-4">
                         <Select
                             value={selectedGame?.toString() || ""}
-                            onValueChange={(value) => setSelectedGame(value ? parseInt(value) : null)}
+                            onValueChange={(value) => handleGameSelection(value ? parseInt(value) : null)}
                         >
                             <SelectTrigger className="w-64">
                                 <SelectValue placeholder="게임을 선택하세요" />
@@ -165,7 +306,12 @@ export default function RuleMasterChat() {
                     <div key={message.id} className="space-y-2">
                         <MessageBubble message={message} />
                         {message.response && (
-                            <ResponseDetails response={message.response} />
+                            <ResponseDetails 
+                                response={message.response} 
+                                messageId={message.id}
+                                feedback={message.feedback}
+                                onFeedback={handleFeedback}
+                            />
                         )}
                     </div>
                 ))}
@@ -238,20 +384,72 @@ function MessageBubble({ message }: { message: Message }) {
     );
 }
 
-function ResponseDetails({ response }: { response: RuleMasterResponse }) {
+function ResponseDetails({ 
+    response, 
+    messageId, 
+    feedback, 
+    onFeedback 
+}: { 
+    response: RuleMasterResponse;
+    messageId: string;
+    feedback?: UserFeedback;
+    onFeedback: (messageId: string, feedbackType: UserFeedback['type'], comment?: string) => void;
+}) {
     return (
         <div className="ml-11 space-y-3">
-            {/* 신뢰도 */}
-            <div className="flex items-center gap-2">
-                <Badge variant={response.confidence > 70 ? 'default' : 'secondary'}>
-                    신뢰도: {response.confidence}%
-                </Badge>
-                {response.sources.map((source, idx) => (
-                    <Badge key={idx} variant="outline" className="text-xs">
-                        <BookOpen className="w-3 h-3 mr-1" />
-                        {source}
+            {/* 신뢰도 및 피드백 버튼 */}
+            <div className="flex items-center gap-2 justify-between">
+                <div className="flex items-center gap-2">
+                    <Badge variant={response.confidence > 70 ? 'default' : 'secondary'}>
+                        신뢰도: {response.confidence}%
                     </Badge>
-                ))}
+                    {response.sources.map((source, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs">
+                            <BookOpen className="w-3 h-3 mr-1" />
+                            {source}
+                        </Badge>
+                    ))}
+                </div>
+
+                {/* 피드백 버튼 */}
+                {!feedback ? (
+                    <div className="flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground mr-2">도움이 되었나요?</span>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onFeedback(messageId, 'accurate')}
+                            className="h-8 px-2"
+                        >
+                            <ThumbsUp className="w-4 h-4 text-green-600" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onFeedback(messageId, 'inaccurate')}
+                            className="h-8 px-2"
+                        >
+                            <ThumbsDown className="w-4 h-4 text-red-600" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onFeedback(messageId, 'need_more')}
+                            className="h-8 px-2"
+                        >
+                            <HelpCircle className="w-4 h-4 text-blue-600" />
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                            {feedback.type === 'accurate' && '👍 도움됨'}
+                            {feedback.type === 'inaccurate' && '👎 부정확'}
+                            {feedback.type === 'need_more' && '❓ 더 필요'}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">피드백 감사합니다!</span>
+                    </div>
+                )}
             </div>
 
             {/* 관련 용어 */}

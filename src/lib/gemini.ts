@@ -14,11 +14,33 @@ function getGameIdFromTitle(gameTitle: string): number | null {
         'ark nova': 331,
         '세븐원더스': 1,
         '7 wonders': 1,
+        // 🚨 윙스팬 게임 매핑 추가
+        '윙스팬': 297,
+        'wingspan': 297,
+        '윙스팬 : 아시아': 148,
+        '윙스팬: 아시아': 148,  // 콜론 공백 변형 지원
+        '윙스팬아시아': 148,      // 공백 없는 변형
+        'wingspan asia': 148,
+        'wingspan: asia': 148,
         // 필요에 따라 추가
     };
     
-    const normalizedTitle = gameTitle.toLowerCase().trim();
+    const normalizedTitle = gameTitle.toLowerCase().trim()
+        .replace(/\s*:\s*/g, ' : ')  // 콜론 주변 공백 정규화
+        .replace(/\s+/g, ' ');       // 다중 공백 정리
+    
     return titleMap[normalizedTitle] || null;
+}
+
+/**
+ * 범용적인 게임 컨텍스트 제공 함수 - 하드코딩 제거
+ */
+function getGameContext(gameTitle: string): string {
+    if (!gameTitle || gameTitle.trim() === '') {
+        return '\n📚 **일반 보드게임 질문** - 포괄적 지식으로 답변합니다.\n';
+    }
+    
+    return `\n🎮 **${gameTitle} 관련 질문** - 이 게임에 특화된 정확한 답변을 제공하겠습니다.\n`;
 }
 
 /**
@@ -89,9 +111,18 @@ export async function askGameQuestion(
         console.log("게임 제목:", gameTitle);
     }
 
-    // API 요청 구성
+    // API 요청 구성 - 최적화된 파라미터 적용
     const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-    const payload = { contents: chatHistory };
+    const payload = { 
+        contents: chatHistory,
+        generationConfig: {
+            temperature: 0.1,        // 정확하고 일관된 답변
+            topK: 40,               // 적절한 토큰 다양성
+            topP: 0.95,             // 고품질 토큰 선택
+            maxOutputTokens: 2048,  // 충분한 답변 길이
+            candidateCount: 1,      // 일관성 확보
+        }
+    };
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     try {
@@ -113,19 +144,32 @@ export async function askGameQuestion(
         // 응답 파싱
         const result: GeminiResponse = await response.json();
 
+        // 디버깅을 위한 응답 구조 로깅
+        console.log('📋 [기존 함수 API 응답 구조]', {
+            candidates: result.candidates?.length || 0,
+            firstCandidate: result.candidates?.[0] ? 'exists' : 'missing',
+            content: result.candidates?.[0]?.content ? 'exists' : 'missing', 
+            parts: result.candidates?.[0]?.content?.parts?.length || 0,
+            promptFeedback: result.promptFeedback || 'none'
+        });
+
         // 답변 추출
         if (result.candidates && result.candidates.length > 0 &&
             result.candidates[0].content && result.candidates[0].content.parts &&
             result.candidates[0].content.parts.length > 0) {
-            return result.candidates[0].content.parts[0].text || "답변을 생성할 수 없습니다.";
+            const responseText = result.candidates[0].content.parts[0].text;
+            console.log('✅ [기존 함수 API 응답 성공]', { 응답길이: responseText?.length || 0 });
+            return responseText || "답변을 생성할 수 없습니다.";
         }
 
         // 차단된 경우
         if (result.promptFeedback && result.promptFeedback.blockReason) {
+            console.warn('⚠️ [기존 함수 API 응답 차단]', result.promptFeedback.blockReason);
             return `답변 생성에 실패했습니다. (사유: ${result.promptFeedback.blockReason})`;
         }
 
         // 예상치 못한 응답 구조
+        console.error('❌ [기존 함수 예상치 못한 API 응답]', JSON.stringify(result, null, 2));
         return "죄송합니다. 답변을 생성하는 데 문제가 발생했습니다.";
 
     } catch (error) {
@@ -287,19 +331,21 @@ export async function askGameQuestionWithSmartResearch(
         console.log('🤖 [일반 모드] 리서치 없이 Gemini API만 사용합니다.');
     }
 
-    // 4. 게임별 용어 데이터 로드
+    // 4. 게임별 용어 데이터 로드 (최적화된 버전)
     let gameTermsContext = '';
     const gameId = getGameIdFromTitle(gameTitle);
-    if (gameId) {
+    
+    if (gameId === 331) {
+        // 아크노바인 경우에만 특화 용어 검색 실행
         try {
-            // Enhanced Translator로 게임별 용어 검색
-            const translation = enhancedTranslator.translate('코뿔소', gameTitle);
-            const translationResult2 = enhancedTranslator.translate('관철효과', gameTitle);
+            console.log('🎯 [아크노바 용어 검색] 아크노바 전용 용어 매핑 시작');
             
             let foundTerms: Array<{korean: string, english: string, context?: string}> = [];
             
             // 질문에서 핵심 키워드 추출해서 번역
             const questionKeywords = userQuestion.split(' ').filter(word => word.length > 1);
+            let translatedCount = 0;
+            
             questionKeywords.forEach(keyword => {
                 const result = enhancedTranslator.translate(keyword, gameTitle);
                 if (result) {
@@ -308,28 +354,46 @@ export async function askGameQuestionWithSmartResearch(
                         english: result.primary,
                         context: result.context
                     });
+                    translatedCount++;
                 }
             });
             
             if (foundTerms.length > 0) {
                 gameTermsContext = `
 
-🎯 **${gameTitle} 게임 전용 용어 정보:**
+🎯 **아크노바 게임 전용 용어 정보:**
 ${foundTerms.slice(0, 10).map(term => 
-    `• **${term.korean}** (${term.english}): Enhanced Translator 매칭`
+    `• **${term.korean}** → **${term.english}** (특화 매핑)`
 ).join('\n')}
 
-📖 **이 용어들을 참고하여 정확한 룰 설명을 제공하세요.**
+📖 **이 용어들을 참고하여 정확한 아크노바 룰 설명을 제공하세요.**
 `;
-                console.log('📚 [Enhanced Translator 게임 용어 로드 성공]', {
-                    게임ID: gameId,
-                    용어수: foundTerms.length,
-                    질문키워드수: questionKeywords.length
+                console.log('✅ [아크노바 용어 검색 성공]', {
+                    질문키워드수: questionKeywords.length,
+                    번역성공수: translatedCount,
+                    최종용어수: foundTerms.length
                 });
+            } else {
+                console.log('ℹ️ [아크노바 용어 검색] 매칭되는 전용 용어 없음');
+                gameTermsContext = '\n🎮 **아크노바** 게임 선택됨 (일반 룰 지식 활용)\n';
             }
         } catch (error) {
-            console.warn('⚠️ [게임 용어 로드 실패]', error);
+            console.warn('⚠️ [아크노바 용어 검색 실패]', error);
+            gameTermsContext = '\n🎮 **아크노바** 게임 선택됨 (용어 검색 실패)\n';
         }
+    } else if (gameId) {
+        // 다른 게임들 (세븐원더스 등)
+        const gameNames: Record<number, string> = {
+            331: '아크노바',
+            1: '세븐원더스 듀얼'
+        };
+        const gameName = gameNames[gameId] || '선택된 게임';
+        gameTermsContext = `\n🎮 **${gameName}** 게임 선택됨 (일반 보드게임 지식 활용)\n`;
+        console.log(`🎮 [게임 선택] ${gameName} - 일반 처리 모드`);
+    } else {
+        // 게임이 선택되지 않은 일반 질문
+        gameTermsContext = '\n📚 **일반 보드게임 질문** - 포괄적 룰 지식 활용\n';
+        console.log('📚 [일반 질문] 게임 미선택 - 일반 보드게임 지식으로 처리');
     }
 
     // 5. Gemini 프롬프트 생성 (리서치 데이터 + 게임 용어 포함)
@@ -361,12 +425,20 @@ ${researchData.summary}
 **참고한 정보 출처:**
 ${sources.slice(0, 3).map((url, i) => `${i + 1}. ${url}`).join('\n')}`;
     } else {
+        // 범용적인 게임 컨텍스트 제공
+        const gameContext = getGameContext(gameTitle);
+        
         enhancedPrompt += `
 
-⚠️ **일반 답변 모드**: 웹 리서치 정보 없이 답변합니다.
-- 확실한 룰 지식만 제공하세요
-- 불확실한 경우 명시적으로 표현하세요  
-- 가능한 경우 공식 룰북 확인을 권장하세요`;
+⚠️ **일반 답변 모드**: 웹 리서치 정보 없이 Gemini의 보드게임 전문 지식으로 답변합니다.
+
+${gameContext}
+
+**답변 지침:**
+- 보드게임 전문가로서 정확하고 포괄적인 답변을 제공하세요
+- 게임의 메커니즘, 전략, 규칙을 구체적으로 설명하세요
+- 실제 플레이 상황의 예시를 포함하세요
+- 애매한 부분은 일반적인 해석과 함께 공식 확인을 제안하세요`;
     }
 
     enhancedPrompt += `\n\n게임 제목: ${gameTitle}\n사용자 질문: ${userQuestion}`;
@@ -418,7 +490,7 @@ ${sources.slice(0, 3).map((url, i) => `${i + 1}. ${url}`).join('\n')}`;
 }
 
 /**
- * Gemini API 호출 헬퍼 함수
+ * Gemini API 호출 헬퍼 함수 - 웹사이트 품질 매칭을 위한 최적화된 파라미터
  */
 async function callGeminiAPI(prompt: string): Promise<string> {
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -427,7 +499,19 @@ async function callGeminiAPI(prompt: string): Promise<string> {
     }
 
     const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-    const payload = { contents: chatHistory };
+    
+    // 웹사이트 수준의 답변 품질을 위한 최적화된 설정
+    const payload = { 
+        contents: chatHistory,
+        generationConfig: {
+            temperature: 0.1,        // 정확하고 일관된 답변을 위한 낮은 온도
+            topK: 40,               // 적절한 토큰 다양성
+            topP: 0.95,             // 고품질 토큰 선택
+            maxOutputTokens: 2048,  // 충분한 답변 길이 허용
+            candidateCount: 1,      // 단일 후보로 일관성 확보
+        }
+    };
+    
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(apiUrl, {
@@ -446,15 +530,29 @@ async function callGeminiAPI(prompt: string): Promise<string> {
 
     const result: GeminiResponse = await response.json();
 
+    // 디버깅을 위한 응답 구조 로깅
+    console.log('📋 [API 응답 구조 확인]', {
+        candidates: result.candidates?.length || 0,
+        firstCandidate: result.candidates?.[0] ? 'exists' : 'missing',
+        content: result.candidates?.[0]?.content ? 'exists' : 'missing',
+        parts: result.candidates?.[0]?.content?.parts?.length || 0,
+        promptFeedback: result.promptFeedback || 'none'
+    });
+
     if (result.candidates && result.candidates.length > 0 &&
         result.candidates[0].content && result.candidates[0].content.parts &&
         result.candidates[0].content.parts.length > 0) {
-        return result.candidates[0].content.parts[0].text || "답변을 생성할 수 없습니다.";
+        const responseText = result.candidates[0].content.parts[0].text;
+        console.log('✅ [API 응답 성공]', { 응답길이: responseText?.length || 0 });
+        return responseText || "답변을 생성할 수 없습니다.";
     }
 
     if (result.promptFeedback && result.promptFeedback.blockReason) {
+        console.warn('⚠️ [API 응답 차단]', result.promptFeedback.blockReason);
         return `답변 생성에 실패했습니다. (사유: ${result.promptFeedback.blockReason})`;
     }
 
+    // 예상치 못한 응답 구조인 경우 전체 응답을 로깅
+    console.error('❌ [예상치 못한 API 응답 구조]', JSON.stringify(result, null, 2));
     return "죄송합니다. 답변을 생성하는 데 문제가 발생했습니다.";
 } 
