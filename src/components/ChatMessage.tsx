@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import { marked } from 'marked';
 import { ChatMessageProps } from '@/types/game';
+import FeedbackButtons from './FeedbackButtons';
 
 export default function ChatMessage({ message }: ChatMessageProps) {
     const isUser = message.role === 'user';
     const [showSources, setShowSources] = useState(false);
-    const [feedback, setFeedback] = useState<'helpful' | 'unhelpful' | null>(null);
 
     // 사용자와 AI 메시지 스타일 구분
     const bubbleClass = isUser
@@ -20,14 +20,8 @@ export default function ChatMessage({ message }: ChatMessageProps) {
     const isWelcomeMessage = message.role === 'assistant' &&
         (message.content.includes('룰 마스터입니다') || message.content.includes('무엇이든 물어보세요'));
 
-    const handleFeedback = (type: 'helpful' | 'unhelpful') => {
-        setFeedback(type);
-        console.log(`💾 피드백: ${type}`, {
-            messagePreview: message.content.substring(0, 50),
-            researchUsed: message.researchUsed,
-            timestamp: new Date().toISOString()
-        });
-    };
+    // 메시지 ID 생성 (실제 구현에서는 고유한 ID를 사용해야 함)
+    const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     return (
         <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
@@ -93,34 +87,12 @@ export default function ChatMessage({ message }: ChatMessageProps) {
 
                 {/* 피드백 버튼 (실질적인 답변에만) */}
                 {message.role === 'assistant' && !isWelcomeMessage && (
-                    <div className="mt-3 pt-2 border-t border-amber-400/20">
-                        {feedback === null ? (
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs text-amber-200/80">이 답변이 도움이 되었나요?</span>
-                                <div className="flex gap-1">
-                                    <button
-                                        onClick={() => handleFeedback('helpful')}
-                                        className="p-1.5 hover:bg-emerald-500/20 rounded-lg transition-all duration-200 hover:scale-110 border border-transparent hover:border-emerald-400/30 group"
-                                        title="도움됨"
-                                    >
-                                        <span className="text-sm group-hover:scale-110 transition-transform">👍</span>
-                                    </button>
-                                    <button
-                                        onClick={() => handleFeedback('unhelpful')}
-                                        className="p-1.5 hover:bg-red-500/20 rounded-lg transition-all duration-200 hover:scale-110 border border-transparent hover:border-red-400/30 group"
-                                        title="도움 안됨"
-                                    >
-                                        <span className="text-sm group-hover:scale-110 transition-transform">👎</span>
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="text-xs text-emerald-300 flex items-center gap-1">
-                                <span>✨</span>
-                                <span>피드백 감사합니다!</span>
-                            </div>
-                        )}
-                    </div>
+                    <FeedbackButtons
+                        messageId={messageId}
+                        gameId="current-game-id" // 실제 구현에서는 현재 게임 ID를 전달해야 함
+                        question="사용자 질문" // 실제 구현에서는 실제 질문을 전달해야 함
+                        answer={message.content}
+                    />
                 )}
             </div>
         </div>
