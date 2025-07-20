@@ -3,6 +3,8 @@
  * 사용자 피드백 데이터를 수집, 분석하여 AI 성능 개선에 활용
  */
 
+import { GameMappingService } from './game-mapping-service';
+
 export interface FeedbackData {
   messageId: string;
   feedbackType: 'accurate' | 'inaccurate' | 'need_more';
@@ -44,8 +46,11 @@ export interface PerformanceMetrics {
 
 class AnalyticsService {
   private static instance: AnalyticsService;
+  private gameMappingService: GameMappingService;
 
-  private constructor() {}
+  private constructor() {
+    this.gameMappingService = GameMappingService.getInstance();
+  }
 
   public static getInstance(): AnalyticsService {
     if (!AnalyticsService.instance) {
@@ -81,7 +86,7 @@ class AnalyticsService {
   /**
    * 성능 지표 계산
    */
-  public calculatePerformanceMetrics(): PerformanceMetrics {
+  public async calculatePerformanceMetrics(): Promise<PerformanceMetrics> {
     const feedbacks = this.getAllFeedbacks();
     
     if (feedbacks.length === 0) {
@@ -120,14 +125,16 @@ class AnalyticsService {
     const gameGroups = this.groupFeedbacksByGame(feedbacks);
     const gameSpecificAccuracy: Record<number, any> = {};
     
-    Object.entries(gameGroups).forEach(([gameId, gameFeedbacks]) => {
-      const accuracy = this.calculateAccuracyForGroup(gameFeedbacks);
-      gameSpecificAccuracy[parseInt(gameId)] = {
-        gameName: this.getGameName(parseInt(gameId)),
-        accuracy,
-        totalQuestions: gameFeedbacks.length
-      };
-    });
+    await Promise.all(
+      Object.entries(gameGroups).map(async ([gameId, gameFeedbacks]) => {
+        const accuracy = this.calculateAccuracyForGroup(gameFeedbacks);
+        gameSpecificAccuracy[parseInt(gameId)] = {
+          gameName: await this.getGameName(parseInt(gameId)),
+          accuracy,
+          totalQuestions: gameFeedbacks.length
+        };
+      })
+    );
 
     // 개선 영역 식별
     const improvementAreas = this.identifyImprovementAreas(feedbacks, confidenceVsAccuracy);
@@ -146,8 +153,8 @@ class AnalyticsService {
   /**
    * 인사이트 생성
    */
-  public generateInsights(): AnalyticsInsight[] {
-    const metrics = this.calculatePerformanceMetrics();
+  public async generateInsights(): Promise<AnalyticsInsight[]> {
+    const metrics = await this.calculatePerformanceMetrics();
     const feedbacks = this.getAllFeedbacks();
     const insights: AnalyticsInsight[] = [];
 
@@ -253,13 +260,25 @@ class AnalyticsService {
     return groups;
   }
 
-  private getGameName(gameId: number): string {
-    const gameNames: Record<number, string> = {
-      331: '아크노바',
-      1: '세븐원더스 듀얼',
-      0: '일반 질문'
-    };
-    return gameNames[gameId] || `게임 ${gameId}`;
+  private async getGameName(gameId: number): Promise<string> {
+    // 특수 케이스: 일반 질문
+    if (gameId === 0) {
+      return '일반 질문';
+    }
+
+    try {
+      // GameMappingService 초기화 확인
+      if (!this.gameMappingService.isInitialized()) {
+        await this.gameMappingService.initialize();
+      }
+
+      const gameInfo = this.gameMappingService.getGameById(gameId);
+      return gameInfo?.titleKorean || `게임 ${gameId}`;
+      
+    } catch (error) {
+      console.error(`[AnalyticsService] 게임명 조회 실패: ${gameId}`, error);
+      return `게임 ${gameId}`;
+    }
   }
 
   private identifyImprovementAreas(

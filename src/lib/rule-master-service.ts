@@ -5,11 +5,15 @@ import { RuleMasterQuery, RuleMasterResponse, TermSearchResult } from '@/types/g
 import { askGameQuestionWithSmartResearch } from './gemini';
 import { confidenceTemplates, gracefulLimitationTemplate } from './prompts';
 import { gameQuestionValidator, GameValidationResult } from './game-question-validator';
+import { GameMappingService } from './game-mapping-service';
 
 class RuleMasterService {
     private static instance: RuleMasterService;
+    private gameMappingService: GameMappingService;
 
-    private constructor() { }
+    private constructor() { 
+        this.gameMappingService = GameMappingService.getInstance();
+    }
 
     public static getInstance(): RuleMasterService {
         if (!RuleMasterService.instance) {
@@ -23,6 +27,11 @@ class RuleMasterService {
      */
     public async generateAnswer(query: RuleMasterQuery): Promise<RuleMasterResponse> {
         try {
+            // 게임 매핑 서비스 초기화 확인
+            if (!this.gameMappingService.isInitialized()) {
+                await this.gameMappingService.initialize();
+            }
+
             // 0. 게임-질문 일치도 검증 (API 낭비 방지)
             const validation = gameQuestionValidator.validateGameQuestion(query.gameId, query.question);
             if (!validation.isValid) {
@@ -276,18 +285,12 @@ ${termsContext}
      * 게임 ID를 게임 제목으로 변환
      */
     private getGameTitleById(gameId: number | null): string {
-        const gameMap: Record<number, string> = {
-            331: '아크노바',
-            1: '세븐원더스 듀얼',
-            297: '윙스팬',
-            148: '윙스팬: 아시아'
-        };
-
-        if (gameId && gameMap[gameId]) {
-            return gameMap[gameId];
+        if (!gameId) {
+            return '일반 보드게임';
         }
 
-        return gameId ? '더게임' : '일반 보드게임';
+        const gameInfo = this.gameMappingService.getGameById(gameId);
+        return gameInfo?.titleKorean || '더게임';
     }
 
     /**

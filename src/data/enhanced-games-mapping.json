@@ -1,0 +1,241 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2025-01-23T10:00:00.000Z",
+    "totalGames": 365,
+    "description": "통합 게임 매핑 데이터 - games-list-365.json 기반 + 기존 하드코딩 별칭 통합"
+  },
+  "games": [
+    {
+      "id": 1,
+      "titleKorean": "세븐원더스 : 듀얼",
+      "titleEnglish": "7 Wonders Duel",
+      "aliases": [
+        "세븐원더스듀얼",
+        "세븐원더스 듀얼",
+        "7 wonders duel",
+        "7원더스듀얼",
+        "seven wonders duel"
+      ],
+      "hasTermsData": true,
+      "category": "strategy",
+      "complexity": "medium"
+    },
+    {
+      "id": 331,
+      "titleKorean": "아크노바",
+      "titleEnglish": "Ark Nova",
+      "aliases": [
+        "ark nova",
+        "아크 노바",
+        "arknovas",
+        "arkNova"
+      ],
+      "hasTermsData": true,
+      "category": "strategy",
+      "complexity": "heavy",
+      "playerCount": {
+        "min": 1,
+        "max": 4
+      },
+      "playTime": 150,
+      "minAge": 14
+    },
+    {
+      "id": 297,
+      "titleKorean": "윙스팬",
+      "titleEnglish": "Wingspan",
+      "aliases": [
+        "wingspan",
+        "윙 스팬",
+        "날개폭"
+      ],
+      "hasTermsData": false,
+      "category": "strategy",
+      "complexity": "medium",
+      "playerCount": {
+        "min": 1,
+        "max": 5
+      },
+      "playTime": 70,
+      "minAge": 10
+    },
+    {
+      "id": 148,
+      "titleKorean": "윙스팬 : 아시아",
+      "titleEnglish": "Wingspan: Asia",
+      "aliases": [
+        "윙스팬: 아시아",
+        "윙스팬아시아",
+        "wingspan asia",
+        "wingspan: asia",
+        "윙스팬 아시아"
+      ],
+      "hasTermsData": false,
+      "category": "strategy",
+      "complexity": "medium"
+    },
+    {
+      "id": 2,
+      "titleKorean": "피아이",
+      "titleEnglish": "Pi",
+      "aliases": [
+        "pi",
+        "파이"
+      ],
+      "hasTermsData": false,
+      "category": "math",
+      "complexity": "medium"
+    },
+    {
+      "id": 3,
+      "titleKorean": "개조심",
+      "titleEnglish": "Beware of Dog",
+      "aliases": [
+        "beware of dog",
+        "개 조심"
+      ],
+      "hasTermsData": false,
+      "category": "party",
+      "complexity": "light"
+    },
+    {
+      "id": 4,
+      "titleKorean": "고스트",
+      "titleEnglish": "Ghost",
+      "aliases": [
+        "ghost",
+        "유령"
+      ],
+      "hasTermsData": false,
+      "category": "horror",
+      "complexity": "light"
+    },
+    {
+      "id": 5,
+      "titleKorean": "노땡스",
+      "titleEnglish": "No Thanks",
+      "aliases": [
+        "no thanks",
+        "노 땡스"
+      ],
+      "hasTermsData": false,
+      "category": "card",
+      "complexity": "light"
+    },
+    {
+      "id": 6,
+      "titleKorean": "다빈치코드",
+      "titleEnglish": "Da Vinci Code",
+      "aliases": [
+        "da vinci code",
+        "다빈치 코드",
+        "레오나르도"
+      ],
+      "hasTermsData": false,
+      "category": "deduction",
+      "complexity": "light"
+    },
+    {
+      "id": 7,
+      "titleKorean": "닥터유레카",
+      "titleEnglish": "Dr. Eureka",
+      "aliases": [
+        "dr eureka",
+        "dr. eureka",
+        "닥터 유레카",
+        "유레카"
+      ],
+      "hasTermsData": false,
+      "category": "dexterity",
+      "complexity": "light"
+    },
+    {
+      "id": 8,
+      "titleKorean": "달무티",
+      "titleEnglish": "The Great Dalmuti",
+      "aliases": [
+        "the great dalmuti",
+        "great dalmuti",
+        "dalmuti"
+      ],
+      "hasTermsData": false,
+      "category": "card",
+      "complexity": "light"
+    },
+    {
+      "id": 9,
+      "titleKorean": "더게임",
+      "titleEnglish": "The Game",
+      "aliases": [
+        "the game",
+        "더 게임"
+      ],
+      "hasTermsData": false,
+      "category": "cooperative",
+      "complexity": "light"
+    },
+    {
+      "id": 10,
+      "titleKorean": "데드오브윈터",
+      "titleEnglish": "Dead of Winter",
+      "aliases": [
+        "dead of winter",
+        "데드 오브 윈터",
+        "겨울의 죽음"
+      ],
+      "hasTermsData": false,
+      "category": "survival",
+      "complexity": "heavy"
+    },
+    {
+      "id": 11,
+      "titleKorean": "도블",
+      "titleEnglish": "Dobble",
+      "aliases": [
+        "dobble",
+        "spot it",
+        "스포트잇"
+      ],
+      "hasTermsData": false,
+      "category": "family",
+      "complexity": "light"
+    },
+    {
+      "id": 12,
+      "titleKorean": "드렉사우",
+      "titleEnglish": "Dreksau",
+      "aliases": [
+        "dreksau"
+      ],
+      "hasTermsData": false,
+      "category": "card",
+      "complexity": "light"
+    },
+    {
+      "id": 13,
+      "titleKorean": "라비린스",
+      "titleEnglish": "Labyrinth",
+      "aliases": [
+        "labyrinth",
+        "미로"
+      ],
+      "hasTermsData": false,
+      "category": "family",
+      "complexity": "light"
+    },
+    {
+      "id": 14,
+      "titleKorean": "라스베가스",
+      "titleEnglish": "Las Vegas",
+      "aliases": [
+        "las vegas",
+        "라스 베가스",
+        "베가스"
+      ],
+      "hasTermsData": false,
+      "category": "gambling",
+      "complexity": "light"
+    }
+  ]
+} 

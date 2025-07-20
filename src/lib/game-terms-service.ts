@@ -1,13 +1,16 @@
 'use client';
 
 import { GameTermsData, GameTerm, TermSearchResult } from '@/types/game-terms';
+import { GameMappingService } from './game-mapping-service';
 
 class GameTermsService {
     private static instance: GameTermsService;
     private gameTermsCache: Map<number, GameTermsData> = new Map();
     private commonTerms: Map<string, GameTerm> = new Map();
+    private gameMappingService: GameMappingService;
 
     private constructor() {
+        this.gameMappingService = GameMappingService.getInstance();
         this.loadCommonTerms();
     }
 
@@ -56,27 +59,39 @@ class GameTermsService {
         }
 
         try {
-            // 아크노바의 경우 특별 처리
-            if (gameId === 331) {
-                const response = await fetch('/data/game-terms-json/331_ArkNova.json');
-
-                if (!response.ok) {
-                    console.warn(`⚠️ 아크노바 데이터 파일을 찾을 수 없습니다.`);
-                    return null;
-                }
-
-                const gameTermsData: GameTermsData = await response.json();
-
-                // 캐시에 저장
-                this.gameTermsCache.set(gameId, gameTermsData);
-
-                console.log(`✅ 게임 ${gameTermsData.metadata.game_name_korean} 용어 로딩 완료`);
-                return gameTermsData;
+            // GameMappingService 초기화 확인
+            if (!this.gameMappingService.isInitialized()) {
+                await this.gameMappingService.initialize();
             }
 
-            // 다른 게임들은 추후 확장
-            console.warn(`⚠️ 게임 ID ${gameId}는 아직 지원되지 않습니다.`);
-            return null;
+            // 게임 정보 조회
+            const gameInfo = this.gameMappingService.getGameById(gameId);
+            if (!gameInfo) {
+                console.warn(`⚠️ 게임 ID ${gameId}를 찾을 수 없습니다.`);
+                return null;
+            }
+
+            // 용어 데이터가 있는지 확인
+            if (!gameInfo.hasTermsData) {
+                console.warn(`⚠️ 게임 "${gameInfo.titleKorean}" (ID: ${gameId})는 용어 데이터가 없습니다.`);
+                return null;
+            }
+
+            // 용어 데이터 파일 로드
+            const response = await fetch(`/data/game-terms-json/${gameId}_${gameInfo.titleEnglish?.replace(/\s+/g, '') || 'Game'}.json`);
+
+            if (!response.ok) {
+                console.warn(`⚠️ 게임 "${gameInfo.titleKorean}" 용어 데이터 파일을 찾을 수 없습니다.`);
+                return null;
+            }
+
+            const gameTermsData: GameTermsData = await response.json();
+
+            // 캐시에 저장
+            this.gameTermsCache.set(gameId, gameTermsData);
+
+            console.log(`✅ 게임 "${gameInfo.titleKorean}" 용어 ${Object.keys(gameTermsData.game_specific_terms || {}).length}개 로딩 완료`);
+            return gameTermsData;
 
         } catch (error) {
             console.error(`❌ 게임 ID ${gameId} 용어 로딩 실패:`, error);

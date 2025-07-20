@@ -54,10 +54,22 @@ export interface GeminiResponse {
                 text?: string;
             }>;
         };
+        finishReason?: string;
     }>;
     promptFeedback?: {
         blockReason?: string;
     };
+    usageMetadata?: {
+        promptTokenCount?: number;
+        totalTokenCount?: number;
+        promptTokensDetails?: Array<{
+            modality?: string;
+            tokenCount?: number;
+        }>;
+        thoughtsTokenCount?: number;
+    };
+    modelVersion?: string;
+    responseId?: string;
 }
 
 export interface ResearchEnhancedResponse {
@@ -490,9 +502,27 @@ ${gameContext}
 }
 
 /**
+ * 토큰 한계 도달 시 축약된 프롬프트 생성
+ */
+function createFallbackPrompt(originalPrompt: string): string {
+    // 간단한 축약 로직: 시스템 프롬프트를 단순화
+    const simplifiedSystemPrompt = `
+You are a board game rules expert. Provide a clear, concise answer to this board game question.
+Answer in Korean, be specific and accurate.
+`;
+    
+    // 원본 프롬프트에서 질문 부분만 추출 (마지막 몇 줄 가정)
+    const lines = originalPrompt.split('\n');
+    const questionStart = Math.max(0, lines.length - 10); // 마지막 10줄 정도만 사용
+    const questionPart = lines.slice(questionStart).join('\n');
+    
+    return simplifiedSystemPrompt + '\n' + questionPart;
+}
+
+/**
  * Gemini API 호출 헬퍼 함수 - 웹사이트 품질 매칭을 위한 최적화된 파라미터
  */
-async function callGeminiAPI(prompt: string): Promise<string> {
+async function callGeminiAPI(prompt: string, retryCount = 0): Promise<string> {
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     if (!apiKey) {
         throw new GeminiApiError("Gemini API 키가 설정되지 않았습니다. 환경변수를 확인해주세요.");
@@ -507,28 +537,54 @@ async function callGeminiAPI(prompt: string): Promise<string> {
             temperature: 0.1,        // 정확하고 일관된 답변을 위한 낮은 온도
             topK: 40,               // 적절한 토큰 다양성
             topP: 0.95,             // 고품질 토큰 선택
-            maxOutputTokens: 2048,  // 충분한 답변 길이 허용
+            maxOutputTokens: 4096,  // 토큰 한계 문제 해결을 위해 증가
             candidateCount: 1,      // 단일 후보로 일관성 확보
         }
     };
     
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
-    const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
+    let result: GeminiResponse;
+    
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
 
-    if (!response.ok) {
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('🚫 [API 요청 실패]', {
+                status: response.status,
+                statusText: response.statusText,
+                error: errorText,
+                retryCount
+            });
+            
+            throw new GeminiApiError(
+                `API 요청 실패: ${response.status} ${response.statusText}`,
+                response.status,
+                response.statusText
+            );
+        }
+
+        result = await response.json();
+        
+    } catch (error) {
+        if (error instanceof GeminiApiError) {
+            throw error;
+        }
+        
+        console.error('🚫 [네트워크 오류]', {
+            error: error instanceof Error ? error.message : '알 수 없는 오류',
+            retryCount
+        });
+        
         throw new GeminiApiError(
-            `API 요청 실패: ${response.status} ${response.statusText}`,
-            response.status,
-            response.statusText
+            `네트워크 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
         );
     }
-
-    const result: GeminiResponse = await response.json();
 
     // 디버깅을 위한 응답 구조 로깅
     console.log('📋 [API 응답 구조 확인]', {
@@ -536,20 +592,78 @@ async function callGeminiAPI(prompt: string): Promise<string> {
         firstCandidate: result.candidates?.[0] ? 'exists' : 'missing',
         content: result.candidates?.[0]?.content ? 'exists' : 'missing',
         parts: result.candidates?.[0]?.content?.parts?.length || 0,
-        promptFeedback: result.promptFeedback || 'none'
+        finishReason: result.candidates?.[0]?.finishReason || 'none',
+        promptFeedback: result.promptFeedback || 'none',
+        usageMetadata: result.usageMetadata || 'none'
     });
 
-    if (result.candidates && result.candidates.length > 0 &&
-        result.candidates[0].content && result.candidates[0].content.parts &&
-        result.candidates[0].content.parts.length > 0) {
-        const responseText = result.candidates[0].content.parts[0].text;
-        console.log('✅ [API 응답 성공]', { 응답길이: responseText?.length || 0 });
-        return responseText || "답변을 생성할 수 없습니다.";
-    }
-
+    // 프롬프트가 차단된 경우 처리
     if (result.promptFeedback && result.promptFeedback.blockReason) {
         console.warn('⚠️ [API 응답 차단]', result.promptFeedback.blockReason);
         return `답변 생성에 실패했습니다. (사유: ${result.promptFeedback.blockReason})`;
+    }
+
+    // 후보 응답이 있는 경우 처리
+    if (result.candidates && result.candidates.length > 0) {
+        const candidate = result.candidates[0];
+        const finishReason = candidate.finishReason;
+        
+        // 토큰 한계로 인한 중단 처리
+        if (finishReason === 'MAX_TOKENS') {
+            console.warn('⚠️ [토큰 한계 도달]', {
+                promptTokens: result.usageMetadata?.promptTokenCount,
+                totalTokens: result.usageMetadata?.totalTokenCount,
+                retryCount
+            });
+            
+            // 첫 번째 시도에서 실패한 경우 축약된 프롬프트로 재시도
+            if (retryCount === 0) {
+                console.log('🔄 [축약 프롬프트로 재시도]');
+                const fallbackPrompt = createFallbackPrompt(prompt);
+                try {
+                    const fallbackResult = await callGeminiAPI(fallbackPrompt, 1);
+                    return fallbackResult + "\n\n※ 질문이 복잡하여 축약된 답변을 제공했습니다.";
+                } catch (error) {
+                    console.error('❌ [재시도 실패]', error);
+                    // 재시도 실패 시 부분 응답으로 폴백
+                }
+            }
+            
+            // 부분 응답이라도 있으면 사용
+            if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+                const partialText = candidate.content.parts[0].text;
+                if (partialText && partialText.trim()) {
+                    console.log('🔶 [부분 응답 사용]', { 응답길이: partialText.length });
+                    return partialText + "\n\n※ 답변이 길어 일부만 표시되었습니다. 더 구체적인 질문으로 나누어 주세요.";
+                }
+            }
+            
+            return "답변이 너무 길어서 생성에 실패했습니다. 질문을 더 구체적으로 나누어 주세요.";
+        }
+        
+        // 정상적인 응답 처리
+        if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+            const responseText = candidate.content.parts[0].text;
+            if (responseText && responseText.trim()) {
+                console.log('✅ [API 응답 성공]', { 
+                    응답길이: responseText.length,
+                    finishReason: finishReason
+                });
+                return responseText;
+            }
+        }
+        
+        // 안전 필터링으로 인한 차단
+        if (finishReason === 'SAFETY') {
+            console.warn('⚠️ [안전 필터링 차단]', candidate);
+            return "안전 정책에 의해 답변이 제한되었습니다. 질문을 다시 작성해 주세요.";
+        }
+        
+        // 기타 중단 사유
+        if (finishReason && finishReason !== 'STOP') {
+            console.warn('⚠️ [예상치 못한 중단]', { finishReason, candidate });
+            return `답변 생성이 중단되었습니다. (사유: ${finishReason})`;
+        }
     }
 
     // 예상치 못한 응답 구조인 경우 전체 응답을 로깅

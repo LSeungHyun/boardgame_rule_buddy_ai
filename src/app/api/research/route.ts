@@ -9,6 +9,7 @@ import { QuestionAnalyzer } from '@/lib/question-analyzer';
 import { ResearchLimiter } from '@/lib/research-limiter';
 import { researchCache } from '@/lib/research-cache';
 import { enhancedTranslator } from '@/lib/enhanced-translator'; // 🚨 Enhanced Translator 사용
+import { GameMappingService } from '@/lib/game-mapping-service';
 import type { SearchResult } from '@/lib/research-cache';
 
 // 신뢰할 수 있는 소스 도메인 우선순위 (⚡ 개선)
@@ -220,7 +221,7 @@ async function performWebSearch(gameTitle: string, question: string, englishKeyw
   }
 
   // ⚡ 스마트 검색 쿼리 생성 (개선된 부분)
-  const searchQueries = generateSmartSearchQueries(gameTitle, question, englishKeywords);
+  const searchQueries = await generateSmartSearchQueries(gameTitle, question, englishKeywords);
 
   // 🚨 생성된 쿼리들 확인
   console.log('🚨🚨🚨 [생성된 검색 쿼리들]', {
@@ -295,12 +296,16 @@ async function performWebSearch(gameTitle: string, question: string, englishKeyw
       }
 
       // 검색 결과 변환 및 관련성 점수 계산
-      const queryResults = data.items.map((item: any) => ({
-        title: item.title,
-        url: item.link,
-        snippet: item.snippet || '',
-        relevanceScore: calculateRelevanceScore(item, gameTitle, question)
-      })).filter((result: SearchResult) => {
+      const queryResults = await Promise.all(
+        data.items.map(async (item: any) => ({
+          title: item.title,
+          url: item.link,
+          snippet: item.snippet || '',
+          relevanceScore: await calculateRelevanceScore(item, gameTitle, question)
+        }))
+      );
+      
+      const filteredResults = queryResults.filter((result: SearchResult) => {
         // 제외 도메인 필터링
         const domain = new URL(result.url).hostname;
         if (EXCLUDED_DOMAINS.some(excluded => domain.includes(excluded))) {
@@ -365,10 +370,10 @@ async function performWebSearch(gameTitle: string, question: string, englishKeyw
         return true;
       });
 
-      allResults.push(...queryResults);
+      allResults.push(...filteredResults);
 
       // 첫 번째 검색에서 좋은 결과가 나오면 조기 종료
-      if (queryResults.length >= 3) {
+      if (filteredResults.length >= 3) {
         console.log('✅ [조기 종료] 충분한 검색 결과 확보');
         break;
       }
@@ -411,7 +416,7 @@ async function performWebSearch(gameTitle: string, question: string, englishKeyw
 /**
  * 🌟 Enhanced Translator 통합 스마트 검색 쿼리 생성
  */
-function generateSmartSearchQueries(gameTitle: string, question: string, englishKeywords?: string[]): string[] {
+async function generateSmartSearchQueries(gameTitle: string, question: string, englishKeywords?: string[]): Promise<string[]> {
   console.log('🔥 [Enhanced Translator 기반 검색 쿼리 생성]', {
     게임명: gameTitle,
     질문: question.slice(0, 50) + '...',
@@ -438,7 +443,7 @@ function generateSmartSearchQueries(gameTitle: string, question: string, english
 
   // 🚨 PRIORITY 2: JSON 영어 키워드 활용 (새로 추가된 시스템)
   if (englishKeywords && englishKeywords.length > 0) {
-    const englishTitle = getEnglishTitle(gameTitle);
+    const englishTitle = await getEnglishTitle(gameTitle);
     const queries: string[] = [];
     
     console.log('🎯 [JSON 기반 BGG 영어 검색 활성화]', {
@@ -482,7 +487,7 @@ function generateSmartSearchQueries(gameTitle: string, question: string, english
 
   // 질문에서 핵심 키워드 추출
   const questionKeywords = extractQuestionKeywords(question);
-  const englishTitle = getEnglishTitle(gameTitle);
+  const englishTitle = await getEnglishTitle(gameTitle);
 
   // 기존 로직...
   if (englishTitle && questionKeywords.length >= 1) {
@@ -495,42 +500,62 @@ function generateSmartSearchQueries(gameTitle: string, question: string, english
 }
 
 /**
- * 🌟 스마트 게임명 매핑 (365개 게임 확장 가능)
+ * 🌟 스마트 게임명 매핑 - GameMappingService 활용
  */
-function getEnglishTitle(koreanTitle: string): string | null {
-  // 🚨 최소한의 핵심 게임만 매핑 (추후 DB/API 확장 가능)
-  const essentialTitleMap: { [key: string]: string } = {
-    // 가장 인기있는 상위 게임들만 (하드코딩 최소화)
-    '아크노바': 'Ark Nova',
-    '세븐원더스 : 듀얼': '7 Wonders Duel',
-    '세븐원더스 듀얼': '7 Wonders Duel',
-    '7 원더스 듀얼': '7 Wonders Duel',
-    '글룸헤이븐': 'Gloomhaven',
-    '윙스팬': 'Wingspan',
-    '테라포밍 마스': 'Terraforming Mars'
-  };
-
-  // 1. 정확 매칭 우선
-  if (essentialTitleMap[koreanTitle]) {
-    return essentialTitleMap[koreanTitle];
-  }
-
-  // 2. 부분 매칭 (공백 제거 등)
-  const normalizedKorean = koreanTitle.replace(/\s+/g, '').toLowerCase();
-  for (const [korean, english] of Object.entries(essentialTitleMap)) {
-    if (korean.replace(/\s+/g, '').toLowerCase() === normalizedKorean) {
-      return english;
+async function getEnglishTitle(koreanTitle: string): Promise<string | null> {
+  try {
+    const gameMappingService = GameMappingService.getInstance();
+    
+    // GameMappingService 초기화 확인
+    if (!gameMappingService.isInitialized()) {
+      await gameMappingService.initialize();
     }
+
+    // 1. GameMappingService로 게임 정보 조회
+    const gameInfo = gameMappingService.getGameByTitle(koreanTitle);
+    
+    if (gameInfo?.titleEnglish) {
+      console.log('✅ [게임명 매핑 성공]', {
+        한글게임명: koreanTitle,
+        영문매핑: gameInfo.titleEnglish,
+        게임ID: gameInfo.id,
+        출처: 'GameMappingService'
+      });
+      return gameInfo.titleEnglish;
+    }
+
+    // 2. 퍼지 검색으로 유사한 게임 찾기
+    const searchResults = gameMappingService.searchGames(koreanTitle, 1);
+    if (searchResults.length > 0 && searchResults[0].confidence > 0.8) {
+      const bestMatch = searchResults[0];
+      if (bestMatch.game.titleEnglish) {
+        console.log('✅ [퍼지 매칭 성공]', {
+          한글게임명: koreanTitle,
+          매칭게임: bestMatch.game.titleKorean,
+          영문매핑: bestMatch.game.titleEnglish,
+          신뢰도: bestMatch.confidence,
+          출처: 'GameMappingService 퍼지매칭'
+        });
+        return bestMatch.game.titleEnglish;
+      }
+    }
+
+    // 3. 매핑이 없는 경우 null 반환
+    console.log('ℹ️ [게임명 매핑 없음]', {
+      한글게임명: koreanTitle,
+      영문매핑: '없음',
+      메모: '한글명으로만 검색 진행'
+    });
+
+    return null;
+    
+  } catch (error) {
+    console.error('❌ [게임명 매핑 오류]', {
+      한글게임명: koreanTitle,
+      오류: error instanceof Error ? error.message : '알 수 없는 오류'
+    });
+    return null;
   }
-
-  // 3. 매핑이 없는 경우 null 반환 (검색에서 한글명만 사용)
-  console.log('ℹ️ [게임명 매핑]', {
-    한글게임명: koreanTitle,
-    영문매핑: '없음',
-    메모: '한글명으로만 검색 진행'
-  });
-
-  return null;
 }
 
 /**
@@ -747,7 +772,7 @@ function extractGameKeywords(gameTitle: string): string[] {
 /**
  * 검색 결과의 관련성 점수 계산
  */
-function calculateRelevanceScore(item: any, gameTitle: string, question: string): number {
+async function calculateRelevanceScore(item: any, gameTitle: string, question: string): Promise<number> {
   let score = 50; // 기본 점수
 
   const domain = new URL(item.link).hostname;
@@ -762,7 +787,8 @@ function calculateRelevanceScore(item: any, gameTitle: string, question: string)
   }
 
   // 게임 제목 정확 매치 보너스 (강화)
-  const gameKeywords = [gameTitle.toLowerCase(), getEnglishTitle(gameTitle)?.toLowerCase()].filter(Boolean);
+  const englishTitle = await getEnglishTitle(gameTitle);
+  const gameKeywords = [gameTitle.toLowerCase(), englishTitle?.toLowerCase()].filter(Boolean);
   gameKeywords.forEach(gameKeyword => {
     if (gameKeyword && fullText.includes(gameKeyword)) {
       score += 30; // 20 → 30으로 증가

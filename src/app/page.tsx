@@ -82,7 +82,14 @@ export default function Home() {
     setResearchStage('analyzing');
   };
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (
+    content: string, 
+    callbacks?: {
+      onResearchStart?: () => void;
+      onResearchProgress?: (stage: ResearchStage) => void;
+      onComplete?: () => void;
+    }
+  ) => {
     if (!selectedGame) return;
 
     const userMessage: ChatMessage = {
@@ -95,10 +102,37 @@ export default function Home() {
     setResearchStage('analyzing');
 
     try {
-      const response = await askGameQuestionWithSmartResearch(
-        selectedGame.title,
-        content
-      );
+      // 리서치 시작 콜백 호출
+      if (callbacks?.onResearchStart) {
+        callbacks.onResearchStart();
+      }
+
+      // 프로그레스 단계별 콜백 호출을 위한 시뮬레이션
+      const simulateProgress = async () => {
+        const stages: ResearchStage[] = [
+          'analyzing', 
+          'searching', 
+          'processing', 
+          'summarizing', 
+          'generating_logic',
+          'generating_text', 
+          'generating_review'
+        ];
+        
+        for (const stage of stages) {
+          if (callbacks?.onResearchProgress) {
+            callbacks.onResearchProgress(stage);
+          }
+          // 각 단계별로 약간의 지연을 주어 실제 진행 상황을 시뮬레이션
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      };
+
+      // 프로그레스 시뮬레이션과 AI 응답을 병렬로 실행
+      const [response] = await Promise.all([
+        askGameQuestionWithSmartResearch(selectedGame.title, content),
+        simulateProgress()
+      ]);
 
       const aiMessage: ChatMessage = {
         role: 'assistant',
@@ -129,6 +163,11 @@ export default function Home() {
     } finally {
       setIsLoading(false);
       setResearchStage('completed');
+      
+      // 완료 콜백 호출
+      if (callbacks?.onComplete) {
+        callbacks.onComplete();
+      }
     }
   };
 

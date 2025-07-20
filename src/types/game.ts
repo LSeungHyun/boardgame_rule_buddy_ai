@@ -11,7 +11,7 @@ export interface Game {
 }
 
 // 리서치 단계 타입 추가
-export type ResearchStage = 'analyzing' | 'searching' | 'processing' | 'completed';
+export type ResearchStage = 'analyzing' | 'searching' | 'processing' | 'summarizing' | 'generating_logic' | 'generating_text' | 'generating_review' | 'completed';
 
 export interface ChatMessage {
     role: 'user' | 'assistant';
