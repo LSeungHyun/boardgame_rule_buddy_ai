@@ -43,12 +43,13 @@ export default function Home() {
   const handleGameSelect = (game: Game) => {
     console.log('🎯 게임 선택:', game.title);
 
-    // 중복 클릭 방지
-    if (currentPage === 'chat' || selectedGame?.id === game.id) {
-      console.log('⚠️ 이미 선택된 게임이거나 전환 중');
+    // 중복 클릭 방지 - 더 정확한 조건 설정
+    if (selectedGame?.id === game.id) {
+      console.log('⚠️ 이미 선택된 게임');
       return;
     }
 
+    // 상태 업데이트를 동기적으로 처리
     setSelectedGame(game);
 
     // 환영 메시지 생성
@@ -67,12 +68,9 @@ export default function Home() {
     };
 
     setMessages([welcomeMessage]);
-
-    // 강제 페이지 전환 (다음 렌더 사이클에서)
-    setTimeout(() => {
-      console.log('📄 페이지 전환 실행');
-      setCurrentPage('chat');
-    }, 0);
+    setCurrentPage('chat');
+    
+    console.log('📄 페이지 전환 완료');
   };
 
   const handleBackToSelection = () => {

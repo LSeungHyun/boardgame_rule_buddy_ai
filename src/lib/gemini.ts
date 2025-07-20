@@ -83,6 +83,14 @@ export interface ResearchEnhancedResponse {
     // V2 분석 결과 추가
     analysisV2?: QuestionAnalysisV2;
     fromCache?: boolean;
+    // 중단 감지 및 재시도 기능 추가
+    wasTruncated?: boolean;
+    truncationReason?: 'MAX_TOKENS' | 'SAFETY' | 'OTHER';
+    retryCTA?: {
+        message: string;
+        originalQuestion: string;
+        gameTitle: string;
+    };
 }
 
 export class GeminiApiError extends Error {
@@ -463,8 +471,9 @@ ${gameContext}
             리서치요약길이: researchUsed ? researchData?.summary?.length : 0
         });
 
-        const aiAnswer = await callGeminiAPI(enhancedPrompt);
-
+        // 중단 감지를 위해 원본 질문과 게임 제목 전달
+        const aiAnswer = await callGeminiAPI(enhancedPrompt, 0, userQuestion, gameTitle);
+        
         console.log('✅ [완료] 최종 답변이 생성되었습니다:', {
             리서치사용: researchUsed,
             캐시사용: fromCache,
@@ -502,6 +511,67 @@ ${gameContext}
 }
 
 /**
+ * 토큰 사용량 상세 모니터링
+ */
+function logTokenUsage(usageMetadata: any, prompt: string, responseText?: string) {
+    const promptTokens = usageMetadata?.promptTokenCount || 0;
+    const totalTokens = usageMetadata?.totalTokenCount || 0;
+    const responseTokens = totalTokens - promptTokens;
+    
+    // 응답 길이 예측 (한글 기준 대략적 계산)
+    const estimatedResponseLength = responseText ? responseText.length : 0;
+    const estimatedTokens = Math.ceil(estimatedResponseLength / 3); // 한글 1글자 ≈ 1.5-2 토큰, 여유있게 3으로 나눔
+    
+    console.log('📊 [토큰 사용량 분석]', {
+        프롬프트토큰: promptTokens,
+        응답토큰: responseTokens,
+        총토큰: totalTokens,
+        예상응답길이: estimatedResponseLength,
+        예상토큰: estimatedTokens,
+        토큰사용률: `${Math.round((totalTokens / 8192) * 100)}%`, // Gemini 2.5 Flash 모델 한계
+        프롬프트길이: prompt.length,
+        응답길이: responseText?.length || 0
+    });
+    
+    // 토큰 한계 경고
+    if (totalTokens > 7000) {
+        console.warn('⚠️ [토큰 한계 임박]', {
+            남은토큰: 8192 - totalTokens,
+            사용률: `${Math.round((totalTokens / 8192) * 100)}%`
+        });
+    }
+}
+
+/**
+ * 응답 길이 예측 및 최적화
+ */
+function optimizePromptForLength(prompt: string, estimatedResponseLength: number): string {
+    // 응답이 길 것으로 예상되는 경우 프롬프트 최적화
+    if (estimatedResponseLength > 2000) {
+        console.log('🔧 [긴 응답 예상 - 프롬프트 최적화]');
+        
+        // 프롬프트에 간결성 요청 추가
+        const concisenessNote = '\n\n※ 답변은 핵심만 간결하게 제공해주세요.';
+        
+        // 프롬프트가 너무 길면 축약
+        if (prompt.length > 3000) {
+            const lines = prompt.split('\n');
+            const essentialLines = lines.filter(line => 
+                line.includes('질문:') || 
+                line.includes('게임:') || 
+                line.includes('You are') ||
+                line.trim().length > 50
+            );
+            return essentialLines.join('\n') + concisenessNote;
+        }
+        
+        return prompt + concisenessNote;
+    }
+    
+    return prompt;
+}
+
+/**
  * 토큰 한계 도달 시 축약된 프롬프트 생성
  */
 function createFallbackPrompt(originalPrompt: string): string {
@@ -520,9 +590,45 @@ Answer in Korean, be specific and accurate.
 }
 
 /**
+ * 답변 중단 감지 및 재시도 CTA 생성
+ */
+function createRetryCTA(
+    finishReason: string, 
+    originalQuestion: string, 
+    gameTitle: string,
+    partialResponse?: string
+): { message: string; cta: string } {
+    const baseMessage = "💡 **답변이 중간에 끊어졌습니다.**\n\n";
+    
+    let reasonMessage = "";
+    let ctaMessage = "";
+    
+    switch (finishReason) {
+        case 'MAX_TOKENS':
+            reasonMessage = "토큰 한계로 인해 답변이 완성되지 않았습니다.";
+            ctaMessage = " **같은 질문을 다시 시도해보세요**\n\n질문을 더 구체적으로 나누어 주시면 완전한 답변을 드릴 수 있습니다.";
+            break;
+        case 'SAFETY':
+            reasonMessage = "안전 정책에 의해 답변이 제한되었습니다.";
+            ctaMessage = " **질문을 다시 작성해주세요**\n\n다른 표현으로 같은 내용을 질문해보세요.";
+            break;
+        default:
+            reasonMessage = "예상치 못한 오류로 답변이 중단되었습니다.";
+            ctaMessage = " **다시 시도해보세요**\n\n잠시 후 같은 질문을 다시 해주세요.";
+    }
+    
+    const fullMessage = baseMessage + reasonMessage + "\n\n" + ctaMessage;
+    
+    return {
+        message: fullMessage,
+        cta: `다시 질문하기: "${originalQuestion}"`
+    };
+}
+
+/**
  * Gemini API 호출 헬퍼 함수 - 웹사이트 품질 매칭을 위한 최적화된 파라미터
  */
-async function callGeminiAPI(prompt: string, retryCount = 0): Promise<string> {
+async function callGeminiAPI(prompt: string, retryCount = 0, originalQuestion?: string, gameTitle?: string): Promise<string> {
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     if (!apiKey) {
         throw new GeminiApiError("Gemini API 키가 설정되지 않았습니다. 환경변수를 확인해주세요.");
@@ -530,14 +636,19 @@ async function callGeminiAPI(prompt: string, retryCount = 0): Promise<string> {
 
     const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
     
-    // 웹사이트 수준의 답변 품질을 위한 최적화된 설정
+    // 응답 길이 예측 및 프롬프트 최적화
+    const estimatedResponseLength = prompt.length * 2; // 대략적인 예측
+    const optimizedPrompt = optimizePromptForLength(prompt, estimatedResponseLength);
+    const optimizedChatHistory = [{ role: "user", parts: [{ text: optimizedPrompt }] }];
+    
+    // 근본적 해결책: maxOutputTokens 증가 (4096 → 6144)
     const payload = { 
-        contents: chatHistory,
+        contents: optimizedChatHistory,
         generationConfig: {
             temperature: 0.1,        // 정확하고 일관된 답변을 위한 낮은 온도
             topK: 40,               // 적절한 토큰 다양성
             topP: 0.95,             // 고품질 토큰 선택
-            maxOutputTokens: 4096,  // 토큰 한계 문제 해결을 위해 증가
+            maxOutputTokens: 6144,  // 근본적 해결: 8192의 75%로 증가
             candidateCount: 1,      // 단일 후보로 일관성 확보
         }
     };
@@ -586,6 +697,9 @@ async function callGeminiAPI(prompt: string, retryCount = 0): Promise<string> {
         );
     }
 
+    // 토큰 사용량 상세 모니터링
+    logTokenUsage(result.usageMetadata, optimizedPrompt);
+    
     // 디버깅을 위한 응답 구조 로깅
     console.log('📋 [API 응답 구조 확인]', {
         candidates: result.candidates?.length || 0,
@@ -608,61 +722,47 @@ async function callGeminiAPI(prompt: string, retryCount = 0): Promise<string> {
         const candidate = result.candidates[0];
         const finishReason = candidate.finishReason;
         
-        // 토큰 한계로 인한 중단 처리
-        if (finishReason === 'MAX_TOKENS') {
-            console.warn('⚠️ [토큰 한계 도달]', {
+        // 중단 감지 및 재시도 CTA 생성
+        if (finishReason === 'MAX_TOKENS' || finishReason === 'SAFETY' || (finishReason && finishReason !== 'STOP')) {
+            console.warn('⚠️ [답변 중단 감지]', {
+                finishReason,
                 promptTokens: result.usageMetadata?.promptTokenCount,
                 totalTokens: result.usageMetadata?.totalTokenCount,
                 retryCount
             });
             
-            // 첫 번째 시도에서 실패한 경우 축약된 프롬프트로 재시도
-            if (retryCount === 0) {
-                console.log('🔄 [축약 프롬프트로 재시도]');
-                const fallbackPrompt = createFallbackPrompt(prompt);
-                try {
-                    const fallbackResult = await callGeminiAPI(fallbackPrompt, 1);
-                    return fallbackResult + "\n\n※ 질문이 복잡하여 축약된 답변을 제공했습니다.";
-                } catch (error) {
-                    console.error('❌ [재시도 실패]', error);
-                    // 재시도 실패 시 부분 응답으로 폴백
-                }
-            }
-            
-            // 부분 응답이라도 있으면 사용
+            // 부분 응답이 있는지 확인
+            let partialText = "";
             if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
-                const partialText = candidate.content.parts[0].text;
-                if (partialText && partialText.trim()) {
-                    console.log('🔶 [부분 응답 사용]', { 응답길이: partialText.length });
-                    return partialText + "\n\n※ 답변이 길어 일부만 표시되었습니다. 더 구체적인 질문으로 나누어 주세요.";
-                }
+                partialText = candidate.content.parts[0].text || "";
             }
             
-            return "답변이 너무 길어서 생성에 실패했습니다. 질문을 더 구체적으로 나누어 주세요.";
+            // 재시도 CTA 생성
+            const retryInfo = createRetryCTA(finishReason, originalQuestion || "", gameTitle || "", partialText);
+            
+            // 부분 응답이 충분히 긴 경우 부분 + CTA
+            if (partialText && partialText.trim().length > 300) {
+                return partialText + "\n\n---\n\n" + retryInfo.message;
+            }
+            
+            // 부분 응답이 짧거나 없는 경우 CTA만
+            return retryInfo.message;
         }
         
         // 정상적인 응답 처리
         if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
             const responseText = candidate.content.parts[0].text;
             if (responseText && responseText.trim()) {
+                // 응답 길이에 따른 토큰 사용량 재계산
+                logTokenUsage(result.usageMetadata, optimizedPrompt, responseText);
+                
                 console.log('✅ [API 응답 성공]', { 
                     응답길이: responseText.length,
-                    finishReason: finishReason
+                    finishReason: finishReason,
+                    토큰효율성: `${Math.round((responseText.length / (result.usageMetadata?.totalTokenCount || 1)) * 100)}%`
                 });
                 return responseText;
             }
-        }
-        
-        // 안전 필터링으로 인한 차단
-        if (finishReason === 'SAFETY') {
-            console.warn('⚠️ [안전 필터링 차단]', candidate);
-            return "안전 정책에 의해 답변이 제한되었습니다. 질문을 다시 작성해 주세요.";
-        }
-        
-        // 기타 중단 사유
-        if (finishReason && finishReason !== 'STOP') {
-            console.warn('⚠️ [예상치 못한 중단]', { finishReason, candidate });
-            return `답변 생성이 중단되었습니다. (사유: ${finishReason})`;
         }
     }
 

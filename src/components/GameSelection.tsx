@@ -128,9 +128,7 @@ export default function GameSelection({
                             <div
                                 key={game.id}
                                 className="game-card rounded-xl p-4 cursor-pointer group"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
+                                onClick={() => {
                                     onSelectGame(game);
                                 }}
                             >
