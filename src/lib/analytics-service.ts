@@ -137,7 +137,7 @@ class AnalyticsService {
     );
 
     // 개선 영역 식별
-    const improvementAreas = this.identifyImprovementAreas(feedbacks, confidenceVsAccuracy);
+    const improvementAreas = await this.identifyImprovementAreas(feedbacks, confidenceVsAccuracy);
 
     return {
       totalQuestions,
@@ -281,10 +281,10 @@ class AnalyticsService {
     }
   }
 
-  private identifyImprovementAreas(
+  private async identifyImprovementAreas(
     feedbacks: FeedbackData[], 
     confidenceVsAccuracy: any
-  ): string[] {
+  ): Promise<string[]> {
     const areas: string[] = [];
 
     // 신뢰도 보정 필요
@@ -299,7 +299,8 @@ class AnalyticsService {
     }
 
     // 게임별 전문성
-    const gameAccuracies = Object.values(this.calculatePerformanceMetrics().gameSpecificAccuracy);
+    const performanceMetrics = await this.calculatePerformanceMetrics();
+    const gameAccuracies = Object.values(performanceMetrics.gameSpecificAccuracy);
     const lowAccuracyGames = gameAccuracies.filter(g => g.accuracy < 80);
     if (lowAccuracyGames.length > 0) {
       areas.push('게임별 전문 지식 보강');

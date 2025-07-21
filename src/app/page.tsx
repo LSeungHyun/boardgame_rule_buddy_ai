@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import GameSelection from '@/components/GameSelection';
 import ChatScreen from '@/components/ChatScreen';
 import TranslationDebugger from '@/components/TranslationDebugger';
+import { ResponsiveContainer } from '@/components/ui/responsive-container';
+import { MobileNavigation } from '@/components/ui/mobile-navigation';
+import { GameSelectionSuspense, ChatScreenSuspense, DebugPageSuspense } from '@/components/ui/suspense-wrapper';
 import { Game, ChatMessage, ResearchStage } from '@/types/game';
 import { fetchGames, GameFilters } from '@/features/games/api';
 import { errorHandler, AppError } from '@/lib/error-handler';
@@ -213,47 +216,80 @@ export default function Home() {
 
   if (currentPage === 'debug') {
     return (
-      <div className="min-h-screen bg-game-table-dark">
-        <div className="container mx-auto px-4 py-8">
-          <button
-            onClick={() => setCurrentPage('selection')}
-            className="btn-game-secondary mb-6"
-          >
-            ← 메인으로 돌아가기
-          </button>
-          <TranslationDebugger onGoBack={() => setCurrentPage('selection')} />
+      <>
+        <DebugPageSuspense>
+          <div className="min-h-screen bg-game-table-dark pb-20 md:pb-0">
+            <ResponsiveContainer maxWidth="lg" padding="md">
+              <button
+                onClick={() => setCurrentPage('selection')}
+                className="btn-game-secondary mb-6 min-h-[44px]"
+              >
+                ← 메인으로 돌아가기
+              </button>
+              <TranslationDebugger onGoBack={() => setCurrentPage('selection')} />
+            </ResponsiveContainer>
+          </div>
+        </DebugPageSuspense>
+        <div className="md:hidden">
+          <MobileNavigation 
+            currentPage={currentPage} 
+            onPageChange={setCurrentPage}
+            disabled={isLoading}
+          />
         </div>
-      </div>
+      </>
     );
   }
 
   if (currentPage === 'chat' && selectedGame) {
     return (
-      <ChatScreen
-        game={selectedGame}
-        messages={messages}
-        isLoading={isLoading}
-        onSendMessage={handleSendMessage}
-        onGoBack={handleBackToSelection}
-      />
+      <>
+        <ChatScreenSuspense gameTitle={selectedGame.title}>
+          <ChatScreen
+            game={selectedGame}
+            messages={messages}
+            isLoading={isLoading}
+            onSendMessage={handleSendMessage}
+            onGoBack={handleBackToSelection}
+          />
+        </ChatScreenSuspense>
+        <div className="md:hidden">
+          <MobileNavigation 
+            currentPage={currentPage} 
+            onPageChange={setCurrentPage}
+            disabled={isLoading}
+          />
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-game-table-dark">
-      <GameSelection
-        search={{
-          term: searchTerm,
-          setTerm: setSearchTerm
-        }}
-        ui={{
-          isLoading: false
-        }}
-        data={{
-          games,
-          onSelectGame: handleGameSelect
-        }}
-      />
-    </div>
+    <>
+      <GameSelectionSuspense>
+        <div className="min-h-screen bg-game-table-dark pb-20 md:pb-0">
+          <GameSelection
+            search={{
+              term: searchTerm,
+              setTerm: setSearchTerm
+            }}
+            ui={{
+              isLoading: false
+            }}
+            data={{
+              games,
+              onSelectGame: handleGameSelect
+            }}
+          />
+        </div>
+      </GameSelectionSuspense>
+      <div className="md:hidden">
+        <MobileNavigation 
+          currentPage={currentPage} 
+          onPageChange={setCurrentPage}
+          disabled={isLoading}
+        />
+      </div>
+    </>
   );
 }

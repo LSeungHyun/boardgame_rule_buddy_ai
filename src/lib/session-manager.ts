@@ -281,7 +281,7 @@ export class SessionManager {
     // 2. 데이터베이스 확인
     const { data: sessionData, error } = await supabase
       .from('conversation_sessions')
-      .select('updated_at')
+      .select('*')
       .eq('session_id', sessionId)
       .single();
 

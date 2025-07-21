@@ -1,13 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { marked } from 'marked';
 import { ChatMessageProps } from '@/types/game';
 import FeedbackButtons from './FeedbackButtons';
+import { AnswerDisplay } from './ui/answer-display';
+import { AccordionSection } from './ui/accordion-section';
+import { QuestionRecommendations } from './ui/question-recommendations';
+import { generateRecommendedQuestions, generateGameSpecificQuestions, filterDuplicateQuestions, type RecommendedQuestion } from '@/lib/question-recommender';
 
-export default function ChatMessage({ message, game, userQuestion }: ChatMessageProps) {
+export default function ChatMessage({ message, game, userQuestion, onQuestionClick }: ChatMessageProps) {
     const isUser = message.role === 'user';
     const [showSources, setShowSources] = useState(false);
+    const [recommendedQuestions, setRecommendedQuestions] = useState<RecommendedQuestion[]>([]);
 
     // 사용자와 AI 메시지 스타일 구분
     const bubbleClass = isUser
@@ -23,6 +28,31 @@ export default function ChatMessage({ message, game, userQuestion }: ChatMessage
     // 메시지 ID 생성 (실제 구현에서는 고유한 ID를 사용해야 함)
     const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+    // 관련 질문 추천 생성 (AI 답변이고 환영 메시지가 아닐 때)
+    useEffect(() => {
+        if (message.role === 'assistant' && !isWelcomeMessage && userQuestion && onQuestionClick) {
+            const context = {
+                originalQuestion: userQuestion,
+                answer: message.content,
+                gameTitle: game?.title,
+                gameId: game?.gameId
+            };
+
+            // 기본 추천 질문 생성
+            let questions = generateRecommendedQuestions(context);
+
+            // 게임별 특화 질문 추가
+            if (game?.title) {
+                const gameSpecific = generateGameSpecificQuestions(game.title, message.content);
+                questions = [...questions, ...gameSpecific];
+            }
+
+            // 중복 제거 및 최종 필터링
+            const filteredQuestions = filterDuplicateQuestions(questions);
+            setRecommendedQuestions(filteredQuestions.slice(0, 4)); // 최대 4개
+        }
+    }, [message.content, userQuestion, game?.title, game?.gameId, isWelcomeMessage, onQuestionClick]);
+
     return (
         <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-md lg:max-w-2xl rounded-2xl px-4 py-3 ${bubbleClass} relative transition-all duration-200 hover:shadow-xl hover:border-amber-400/40`}>
@@ -37,8 +67,12 @@ export default function ChatMessage({ message, game, userQuestion }: ChatMessage
 
                 {/* 메인 메시지 내용 */}
                 {message.role === 'assistant' ? (
-                    <div className="markdown-content prose prose-invert prose-sm max-w-none text-amber-100"
-                        dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+                    isWelcomeMessage ? (
+                        <div className="markdown-content prose prose-invert prose-sm max-w-none text-amber-100"
+                            dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+                    ) : (
+                        <AnswerDisplay content={message.content} />
+                    )
                 ) : (
                     <p className="font-medium text-amber-900 leading-relaxed">{message.content}</p>
                 )}
@@ -95,6 +129,16 @@ export default function ChatMessage({ message, game, userQuestion }: ChatMessage
                     />
                 )}
             </div>
+
+            {/* 관련 질문 추천 (AI 답변 아래에 별도로 표시) */}
+            {message.role === 'assistant' && !isWelcomeMessage && recommendedQuestions.length > 0 && onQuestionClick && (
+                <div className="mt-4 max-w-md lg:max-w-2xl">
+                    <QuestionRecommendations
+                        questions={recommendedQuestions}
+                        onQuestionClick={onQuestionClick}
+                    />
+                </div>
+            )}
         </div>
     );
 } 

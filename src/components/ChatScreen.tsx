@@ -126,20 +126,20 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
     };
 
     return (
-        <div className="flex flex-col h-screen">
+        <div className="flex flex-col h-screen pb-20 md:pb-0">
             {/* 헤더 (이전과 동일) */}
             <header className="glass-chat border-b border-amber-400/30 shadow-xl backdrop-blur-md">
                 <div className="flex items-center justify-between p-4">
                     <button
                         onClick={onGoBack}
-                        className="p-2 rounded-full hover:bg-amber-500/20 transition-all duration-200 group"
+                        className="p-2 rounded-full hover:bg-amber-500/20 transition-all duration-200 group min-w-[44px] min-h-[44px] flex items-center justify-center"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-amber-300 group-hover:text-yellow-300 group-hover:scale-110 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
                     <div className="text-center">
-                        <h2 className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent drop-shadow-sm">
+                        <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent drop-shadow-sm">
                             📖 {game.title}
                         </h2>
                         <p className="text-xs text-amber-300/80 font-medium">룰 마스터</p>
@@ -167,6 +167,18 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                             message={msg}
                             game={game}
                             userQuestion={userQuestion}
+                            onQuestionClick={(question) => {
+                                if (!isLoading) {
+                                    setInput(question);
+                                    // 자동으로 질문 전송
+                                    setTimeout(() => {
+                                        const form = document.querySelector('form');
+                                        if (form) {
+                                            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                                        }
+                                    }, 100);
+                                }
+                            }}
                         />
                     );
                 })}

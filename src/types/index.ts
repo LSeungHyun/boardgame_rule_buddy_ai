@@ -10,6 +10,9 @@ export * from './game-terms';
 export * from './conversation';
 export * from './database';
 
+// 유틸리티 타입들
+export * from './utils';
+
 // 타입 가드 함수들
 export const isValidSessionId = (sessionId: unknown): sessionId is string => {
   return typeof sessionId === 'string' && sessionId.length > 0;
