@@ -45,6 +45,13 @@ interface ResearchRequest {
   englishKeywords?: string[]; // 🚨 BGG 영어 검색용 키워드 추가
   priority?: 'low' | 'medium' | 'high';
   bypassCache?: boolean;
+  // 맥락 추적 관련 필드 추가
+  contextKeywords?: string[];
+  relatedHistory?: Array<{
+    question: string;
+    answer: string;
+    topic: string;
+  }>;
 }
 
 interface ResearchResponse {

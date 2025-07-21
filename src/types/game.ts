@@ -31,6 +31,15 @@ export interface ChatMessage {
         confidence: number;
         explanation?: string;
     };
+    // 대화 맥락 추적 관련 메타데이터
+    contextMetadata?: {
+        turnNumber: number;
+        sessionId: string;
+        topic: string;
+        isContextuallyRelevant: boolean;
+        referencedTurns?: number[];
+        errorCorrected?: boolean;
+    };
 }
 
 // 검색 관련 상태와 핸들러를 그룹화
@@ -58,6 +67,8 @@ export interface GameSelectionProps {
 
 export interface ChatMessageProps {
     message: ChatMessage;
+    game?: Game;           // 현재 선택된 게임 정보
+    userQuestion?: string; // 해당 답변에 대한 사용자 질문
 }
 
 export interface ChatScreenProps {

@@ -25,7 +25,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
     const [progressText, setProgressText] = useState('');
     // ✨ 전략 2 적용: 99% 도달 시 시각적 효과를 주기 위한 상태
     const [isFinalizing, setIsFinalizing] = useState(false);
-    
+
     // ✨ 스크롤 제어를 위한 상태 추가
     const [lastMessageCount, setLastMessageCount] = useState(0);
     const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
@@ -50,7 +50,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
         const handleScroll = () => {
             const { scrollTop, scrollHeight, clientHeight } = chatContainer as HTMLElement;
             const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
-            
+
             // 사용자가 맨 아래에 있으면 자동 스크롤 활성화, 아니면 비활성화
             setShouldAutoScroll(isAtBottom);
         };
@@ -74,7 +74,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                 setProgressText(config.text);
             }
         }
-        
+
         // ✨ 전략 2 적용: 최종 '검토' 단계에 진입하면 95%부터 99%까지 천천히 움직입니다.
         if (researchStage === 'generating_review') {
             const interval = setInterval(() => {
@@ -100,7 +100,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
         if (input.trim() && !isLoading) {
             // ✨ 메시지 전송 시 자동 스크롤 강제 활성화
             setShouldAutoScroll(true);
-            
+
             onSendMessage(input, {
                 onResearchStart: () => {
                     setShowResearchStatus(true);
@@ -111,10 +111,10 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                     setResearchStage(stage);
                 },
                 onComplete: () => {
-                    setProgress(100); 
+                    setProgress(100);
                     setIsFinalizing(false);
                     setTimeout(() => {
-                        setShowResearchStatus(false); 
+                        setShowResearchStatus(false);
                         setProgress(0);
                         // ✨ 답변 완성 후 스크롤을 맨 아래로 이동
                         scrollToBottom();
@@ -127,8 +127,8 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
 
     return (
         <div className="flex flex-col h-screen">
-             {/* 헤더 (이전과 동일) */}
-             <header className="glass-chat border-b border-amber-400/30 shadow-xl backdrop-blur-md">
+            {/* 헤더 (이전과 동일) */}
+            <header className="glass-chat border-b border-amber-400/30 shadow-xl backdrop-blur-md">
                 <div className="flex items-center justify-between p-4">
                     <button
                         onClick={onGoBack}
@@ -150,9 +150,26 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
 
             {/* 메인 채팅 영역 */}
             <main className="flex-1 p-4 overflow-y-auto custom-scrollbar space-y-4">
-                {messages.map((msg, index) => (
-                    <ChatMessage key={index} message={msg} />
-                ))}
+                {messages.map((msg, index) => {
+                    // AI 답변에 대응하는 사용자 질문 찾기
+                    let userQuestion: string | undefined;
+                    if (msg.role === 'assistant' && index > 0) {
+                        // 이전 메시지가 사용자 질문인지 확인
+                        const previousMessage = messages[index - 1];
+                        if (previousMessage.role === 'user') {
+                            userQuestion = previousMessage.content;
+                        }
+                    }
+
+                    return (
+                        <ChatMessage
+                            key={index}
+                            message={msg}
+                            game={game}
+                            userQuestion={userQuestion}
+                        />
+                    );
+                })}
 
                 {/* ✨ 개선된 프로그레스 바 UI */}
                 {isLoading && showResearchStatus && (
@@ -172,21 +189,21 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                         </div>
                     </div>
                 )}
-                
+
                 {isLoading && !showResearchStatus && (
-                     <div className="flex justify-start">
-                         <div className="glass-card border border-amber-400/40 text-amber-100 rounded-2xl px-4 py-3 flex items-center max-w-xs shadow-lg">
-                             <span className="text-xl mr-3">🎲</span>
-                             <div>
-                                 <span className="font-medium">답변 생성 중</span>
-                                 <div className="flex space-x-1 mt-1">
-                                     <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
-                                     <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
-                                     <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                                 </div>
-                             </div>
-                         </div>
-                     </div>
+                    <div className="flex justify-start">
+                        <div className="glass-card border border-amber-400/40 text-amber-100 rounded-2xl px-4 py-3 flex items-center max-w-xs shadow-lg">
+                            <span className="text-xl mr-3">🎲</span>
+                            <div>
+                                <span className="font-medium">답변 생성 중</span>
+                                <div className="flex space-x-1 mt-1">
+                                    <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
+                                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
+                                    <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 <div ref={messagesEndRef} />

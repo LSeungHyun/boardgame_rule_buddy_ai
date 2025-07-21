@@ -5,6 +5,20 @@ import { researchCache } from './research-cache';
 import { enhancedTranslator } from './enhanced-translator'; // 🚨 Enhanced Translator 사용
 import type { QuestionAnalysisV2 } from './question-analyzer';
 
+// 대화 맥락 추적 시스템 통합
+import { ConversationHistoryManager } from './conversation-history-manager';
+import { ContextAnalyzer } from './context-analyzer';
+import { IntentRecognizer } from './intent-recognizer';
+import { ConsistencyValidator } from './consistency-validator';
+import { ErrorRecoverySystem } from './error-recovery-system';
+import type { 
+  ConversationContext, 
+  QuestionHistoryItem, 
+  ContextAnalysis, 
+  IntentAnalysis,
+  ConsistencyCheck
+} from '@/types';
+
 /**
  * 게임 제목으로부터 게임 ID를 가져오는 함수
  */
@@ -40,7 +54,25 @@ function getGameContext(gameTitle: string): string {
         return '\n📚 **일반 보드게임 질문** - 포괄적 지식으로 답변합니다.\n';
     }
     
-    return `\n🎮 **${gameTitle} 관련 질문** - 이 게임에 특화된 정확한 답변을 제공하겠습니다.\n`;
+    return `
+🎮 **${gameTitle} 전용 룰 마스터 모드 활성화**
+
+⚠️ **중요**: 사용자가 "${gameTitle}" 게임을 선택했습니다. 
+모든 질문은 "${gameTitle}" 게임에 관한 것으로 해석하고 답변하세요.
+
+**답변 원칙:**
+1. 사용자가 게임 이름을 언급하지 않아도 "${gameTitle}"에 대한 질문으로 간주
+2. "${gameTitle}"의 구체적인 룰, 메커니즘, 전략을 중심으로 답변
+3. 일반적인 보드게임 답변이 아닌 "${gameTitle}" 특화 답변 제공
+4. "${gameTitle}"의 실제 플레이 상황과 예시를 포함하여 설명
+
+예시:
+- "게임종료조건"이라고 물으면 → "${gameTitle}의 게임종료조건" 설명
+- "승리조건"이라고 물으면 → "${gameTitle}의 승리조건" 설명
+- "규칙"이라고 물으면 → "${gameTitle}의 규칙" 설명
+
+현재 선택된 게임: **${gameTitle}**
+`;
 }
 
 /**
@@ -205,7 +237,347 @@ export async function askGameQuestion(
 }
 
 /**
- * 스마트 리서치 기능을 포함한 게임 질문 답변 (Phase 4 구현)
+ * 대화 맥락 추적 기능을 포함한 게임 질문 답변 (최신 버전)
+ * @param gameTitle 게임 제목
+ * @param userQuestion 사용자 질문
+ * @param sessionId 세션 ID (대화 맥락 추적용)
+ * @param onResearchStart 리서치 시작 시 호출되는 콜백
+ * @param useV2Analysis V2 분석 시스템 사용 여부 (기본값: false)
+ * @returns 맥락 추적 및 리서치 강화된 AI 답변
+ */
+export async function askGameQuestionWithContextTracking(
+    gameTitle: string,
+    userQuestion: string,
+    sessionId: string,
+    onResearchStart?: () => void,
+    useV2Analysis: boolean = false
+): Promise<ResearchEnhancedResponse> {
+    console.log('🎯 [Context Tracking] 맥락 추적 질문 처리 시작:', {
+        게임: gameTitle,
+        질문: userQuestion.slice(0, 50) + (userQuestion.length > 50 ? '...' : ''),
+        세션ID: sessionId,
+        V2분석사용: useV2Analysis
+    });
+
+    // 대화 맥락 추적 시스템 초기화
+    const historyManager = ConversationHistoryManager.getInstance();
+    const contextAnalyzer = ContextAnalyzer.getInstance();
+    const intentRecognizer = IntentRecognizer.getInstance();
+    const consistencyValidator = ConsistencyValidator.getInstance();
+    const errorRecovery = ErrorRecoverySystem.getInstance();
+
+    // 1. 기존 대화 맥락 조회
+    const context = await historyManager.getContext(sessionId);
+    console.log('📚 [대화 맥락]', {
+        기존세션: context ? '존재' : '신규',
+        히스토리수: context?.questionHistory.length || 0,
+        현재주제: context?.currentTopic || '없음'
+    });
+
+    // 2. 맥락 분석 수행
+    const contextAnalysis = contextAnalyzer.analyzeContext(
+        userQuestion, 
+        context?.questionHistory || []
+    );
+    console.log('🔍 [맥락 분석]', {
+        현재주제: contextAnalysis.currentTopic,
+        히스토리연관: contextAnalysis.relatedToHistory,
+        참조타입: contextAnalysis.referenceType,
+        신뢰도: contextAnalysis.confidence
+    });
+
+    // 3. 의도 파악
+    const intentAnalysis = intentRecognizer.recognizeIntent(
+        userQuestion, 
+        context || { 
+            sessionId, 
+            currentTopic: gameTitle, 
+            topicStartTurn: 1, 
+            questionHistory: [], 
+            lastUpdated: new Date() 
+        }
+    );
+    console.log('🎭 [의도 파악]', {
+        주요의도: intentAnalysis.primaryIntent,
+        이전답변도전: intentAnalysis.isChallengingPreviousAnswer,
+        신뢰도: intentAnalysis.confidence
+    });
+
+    // 4. 오류 감지 및 복구 처리
+    let errorRecoveryMessage = '';
+    if (intentAnalysis.isChallengingPreviousAnswer) {
+        const correctionDetection = errorRecovery.detectUserCorrection(userQuestion, intentAnalysis);
+        if (correctionDetection.isCorrection) {
+            errorRecoveryMessage = correctionDetection.suggestedResponse + '\n\n';
+            console.log('🚨 [오류 감지]', {
+                강도: correctionDetection.intensity,
+                신뢰도: correctionDetection.confidence
+            });
+        }
+    }
+
+    // 5. 질문 복잡도 분석 (기존 로직 유지)
+    const analyzer = new QuestionAnalyzer();
+    let analysisV2: QuestionAnalysisV2 | undefined;
+    let shouldResearch: boolean;
+
+    if (useV2Analysis) {
+        analysisV2 = await analyzer.analyzeComplexityV2(userQuestion);
+        const limiter = new ResearchLimiter();
+        limiter.recordQuestionAsked();
+        shouldResearch = analysisV2.requiresResearch && limiter.canPerformResearch();
+    } else {
+        const complexityScore = analyzer.analyzeComplexity(userQuestion, gameTitle);
+        const limiter = new ResearchLimiter();
+        limiter.recordQuestionAsked();
+        shouldResearch = complexityScore.shouldTriggerResearch && limiter.canPerformResearch();
+    }
+
+    // 6. 맥락 기반 리서치 결정 조정
+    if (contextAnalysis.relatedToHistory && intentAnalysis.primaryIntent === 'clarification') {
+        shouldResearch = true; // 명확화 요청 시 리서치 강화
+        console.log('🔍 [맥락 기반 리서치 강화] 명확화 요청으로 리서치 활성화');
+    }
+
+    console.log('🚦 [최종 리서치 판단]', {
+        기본분석: useV2Analysis ? analysisV2?.requiresResearch : '복잡도 기반',
+        맥락조정: contextAnalysis.relatedToHistory ? '히스토리 연관' : '독립 질문',
+        의도조정: intentAnalysis.primaryIntent,
+        최종결정: shouldResearch ? '🔍 리서치 실행' : '🤖 Gemini만 사용'
+    });
+
+    // 7. 리서치 실행 (기존 로직 유지하되 맥락 정보 추가)
+    let researchData: any = null;
+    let researchUsed = false;
+    let sources: string[] = [];
+    let fromCache = false;
+
+    if (shouldResearch) {
+        console.log('🔍 [맥락 기반 리서치] 웹 검색을 시작합니다...');
+        try {
+            if (onResearchStart) {
+                onResearchStart();
+            }
+
+            // 캐시 확인 (맥락 정보 포함)
+            const cacheKey = `${gameTitle}_${userQuestion}_${contextAnalysis.currentTopic}`;
+            const cached = researchCache.get(gameTitle, cacheKey);
+            if (cached) {
+                console.log('💾 [맥락 캐시 적중] 이전 리서치 결과를 사용합니다');
+                researchData = cached;
+                sources = cached.sources || [];
+                researchUsed = true;
+                fromCache = true;
+            } else {
+                // 맥락 정보를 포함한 리서치 실행
+                const contextualKeywords = [
+                    ...contextAnalysis.keywords,
+                    contextAnalysis.currentTopic
+                ].filter(Boolean);
+
+                const researchResponse = await fetch('/api/research', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        gameTitle,
+                        question: userQuestion,
+                        contextKeywords: contextualKeywords, // 맥락 키워드 추가
+                        relatedHistory: context?.questionHistory.slice(-2) || [], // 최근 2개 히스토리
+                        priority: intentAnalysis.isChallengingPreviousAnswer ? 'high' : 'medium'
+                    })
+                });
+
+                if (researchResponse.ok) {
+                    const researchResult = await researchResponse.json();
+                    if (researchResult.success) {
+                        researchData = researchResult.data;
+                        sources = researchData.sources || [];
+                        researchUsed = true;
+                        fromCache = false;
+                        console.log('✅ [맥락 기반 웹 리서치 성공]', {
+                            출처수: sources.length,
+                            맥락키워드수: contextualKeywords.length
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('❌ [맥락 기반 리서치 오류]', error);
+        }
+    }
+
+    // 8. 게임별 용어 데이터 로드 (기존 로직 유지)
+    let gameTermsContext = '';
+    const gameId = getGameIdFromTitle(gameTitle);
+    
+    if (gameId === 331) {
+        try {
+            let foundTerms: Array<{korean: string, english: string, context?: string}> = [];
+            const questionKeywords = userQuestion.split(' ').filter(word => word.length > 1);
+            let translatedCount = 0;
+            
+            questionKeywords.forEach(keyword => {
+                const result = enhancedTranslator.translate(keyword, gameTitle);
+                if (result) {
+                    foundTerms.push({
+                        korean: keyword,
+                        english: result.primary,
+                        context: result.context
+                    });
+                    translatedCount++;
+                }
+            });
+            
+            if (foundTerms.length > 0) {
+                gameTermsContext = `
+
+🎯 **아크노바 게임 전용 용어 정보:**
+${foundTerms.slice(0, 10).map(term => 
+    `• **${term.korean}** → **${term.english}** (특화 매핑)`
+).join('\n')}
+
+📖 **이 용어들을 참고하여 정확한 아크노바 룰 설명을 제공하세요.**
+`;
+            } else {
+                gameTermsContext = '\n🎮 **아크노바** 게임 선택됨 (일반 룰 지식 활용)\n';
+            }
+        } catch (error) {
+            gameTermsContext = '\n🎮 **아크노바** 게임 선택됨 (용어 검색 실패)\n';
+        }
+    } else {
+        gameTermsContext = getGameContext(gameTitle);
+    }
+
+    // 9. 맥락 정보를 포함한 Gemini 프롬프트 생성
+    let enhancedPrompt = systemPrompt + gameTermsContext;
+
+    // 대화 맥락 정보 추가
+    if (context && context.questionHistory.length > 0) {
+        const recentHistory = context.questionHistory.slice(-3);
+        enhancedPrompt += `
+
+🗣️ **대화 맥락 정보:**
+현재 주제: ${contextAnalysis.currentTopic}
+대화 연관성: ${contextAnalysis.relatedToHistory ? '이전 대화와 연관됨' : '독립적 질문'}
+사용자 의도: ${intentAnalysis.primaryIntent}
+
+**최근 대화 히스토리:**
+${recentHistory.map((item, index) => 
+    `${index + 1}. Q: ${item.question.slice(0, 100)}${item.question.length > 100 ? '...' : ''}
+   A: ${item.answer.slice(0, 150)}${item.answer.length > 150 ? '...' : ''}`
+).join('\n\n')}
+
+**맥락 기반 답변 지침:**
+- 이전 대화 내용을 참고하여 일관성 있는 답변을 제공하세요
+- 사용자가 이전 답변을 지적하는 경우 겸손하게 인정하고 정정하세요
+- 맥락상 연관된 정보가 있다면 자연스럽게 연결하여 설명하세요
+`;
+    }
+
+    // 오류 복구 메시지 추가
+    if (errorRecoveryMessage) {
+        enhancedPrompt += `\n\n🚨 **오류 인정 및 사과:** ${errorRecoveryMessage}`;
+    }
+
+    // 리서치 데이터 추가 (기존 로직)
+    if (researchUsed && researchData) {
+        enhancedPrompt += `
+
+📚 **리서치 데이터 기반 답변 가이드라인:**
+
+다음은 웹에서 수집한 신뢰할 수 있는 정보입니다:
+---
+${researchData.summary}
+---
+
+⚡ **CRITICAL 답변 원칙:**
+1. **신뢰도 우선**: 위 리서치 정보를 주요 근거로 사용하되, 불확실한 부분은 명시적으로 표현하세요
+2. **출처 기반**: 답변에 반드시 "검색된 정보에 따르면" 또는 "커뮤니티에서는" 등의 출처 표현을 포함하세요
+3. **맥락 연결**: 이전 대화와 연관된 부분이 있다면 자연스럽게 연결하여 설명하세요
+4. **일관성 유지**: 이전 답변과 모순되지 않도록 주의하세요
+
+**참고한 정보 출처:**
+${sources.slice(0, 3).map((url, i) => `${i + 1}. ${url}`).join('\n')}`;
+    }
+
+    enhancedPrompt += `\n\n게임 제목: ${gameTitle}\n사용자 질문: ${userQuestion}`;
+
+    // 10. Gemini API 호출
+    try {
+        console.log('🤖 [맥락 기반 Gemini API] 답변 생성을 시작합니다...', {
+            맥락포함: !!context,
+            리서치데이터포함: researchUsed,
+            오류복구: !!errorRecoveryMessage
+        });
+
+        const aiAnswer = await callGeminiAPI(enhancedPrompt, 0, userQuestion, gameTitle);
+        
+        // 11. 일관성 검증
+        let consistencyCheck: ConsistencyCheck | undefined;
+        if (context) {
+            consistencyCheck = consistencyValidator.validateConsistency(aiAnswer, context);
+            console.log('🔍 [일관성 검증]', {
+                일관성: consistencyCheck.isConsistent,
+                충돌수: consistencyCheck.conflictingAnswers.length,
+                신뢰도: consistencyCheck.confidenceLevel
+            });
+        }
+
+        // 12. 대화 히스토리 업데이트
+        const turnNumber = (context?.questionHistory.length || 0) + 1;
+        const historyItem: QuestionHistoryItem = {
+            id: `${sessionId}_${turnNumber}`,
+            sessionId,
+            turnNumber,
+            question: userQuestion,
+            answer: aiAnswer,
+            topic: contextAnalysis.currentTopic,
+            confidence: consistencyCheck?.confidenceLevel === 'high' ? 0.9 : 
+                       consistencyCheck?.confidenceLevel === 'medium' ? 0.7 : 0.5,
+            wasResearched: researchUsed,
+            contextAnalysis,
+            intentAnalysis,
+            timestamp: new Date()
+        };
+
+        await historyManager.updateContext(sessionId, historyItem);
+        console.log('💾 [히스토리 업데이트] 대화 기록이 저장되었습니다');
+
+        // 13. 결과 반환
+        const response: ResearchEnhancedResponse = {
+            answer: errorRecoveryMessage + aiAnswer,
+            researchUsed,
+            sources: researchUsed ? sources : undefined,
+            fromCache: researchUsed ? fromCache : undefined
+        };
+
+        if (useV2Analysis && analysisV2) {
+            response.analysisV2 = analysisV2;
+        } else {
+            const complexityScore = analyzer.analyzeComplexity(userQuestion, gameTitle);
+            response.complexity = {
+                score: complexityScore.totalScore,
+                reasoning: complexityScore.reasoning
+            };
+        }
+
+        console.log('✅ [맥락 추적 완료] 최종 답변이 생성되었습니다:', {
+            맥락추적: true,
+            리서치사용: researchUsed,
+            일관성검증: !!consistencyCheck,
+            오류복구: !!errorRecoveryMessage
+        });
+
+        return response;
+
+    } catch (error) {
+        console.error('❌ [맥락 기반 Gemini API 오류]', error);
+        throw error;
+    }
+}
+
+/**
+ * 스마트 리서치 기능을 포함한 게임 질문 답변 (기존 버전 - 호환성 유지)
  * @param gameTitle 게임 제목
  * @param userQuestion 사용자 질문
  * @param onResearchStart 리서치 시작 시 호출되는 콜백

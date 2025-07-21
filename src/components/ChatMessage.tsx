@@ -5,7 +5,7 @@ import { marked } from 'marked';
 import { ChatMessageProps } from '@/types/game';
 import FeedbackButtons from './FeedbackButtons';
 
-export default function ChatMessage({ message }: ChatMessageProps) {
+export default function ChatMessage({ message, game, userQuestion }: ChatMessageProps) {
     const isUser = message.role === 'user';
     const [showSources, setShowSources] = useState(false);
 
@@ -89,8 +89,8 @@ export default function ChatMessage({ message }: ChatMessageProps) {
                 {message.role === 'assistant' && !isWelcomeMessage && (
                     <FeedbackButtons
                         messageId={messageId}
-                        gameId="current-game-id" // 실제 구현에서는 현재 게임 ID를 전달해야 함
-                        question="사용자 질문" // 실제 구현에서는 실제 질문을 전달해야 함
+                        gameId={game?.id || 'unknown-game'}
+                        question={userQuestion || '질문 정보 없음'}
                         answer={message.content}
                     />
                 )}

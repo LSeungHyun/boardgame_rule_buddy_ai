@@ -7,7 +7,13 @@ import TranslationDebugger from '@/components/TranslationDebugger';
 import { Game, ChatMessage, ResearchStage } from '@/types/game';
 import { fetchGames, GameFilters } from '@/features/games/api';
 import { errorHandler, AppError } from '@/lib/error-handler';
-import { askGameQuestionWithSmartResearch } from '@/lib/gemini';
+import { askGameQuestionWithContextTracking } from '@/lib/gemini';
+import { 
+  usePageView, 
+  useGameSelectionTracking, 
+  useQuestionTracking, 
+  useEngagementTracking 
+} from '@/lib/analytics';
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<'selection' | 'chat' | 'debug'>('selection');
@@ -19,6 +25,15 @@ export default function Home() {
   const [filters, setFilters] = useState<GameFilters>({});
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [sessionId, setSessionId] = useState<string>('');
+
+  // Analytics 훅 초기화
+  const { trackGameSelection, trackGameSearch } = useGameSelectionTracking();
+  const { trackQuestionSubmitted, trackResearchUsed, trackAIResponse } = useQuestionTracking();
+  const { trackSessionStart, trackSessionEnd, trackUserExit, trackError } = useEngagementTracking();
+
+  // 페이지뷰 추적
+  usePageView(currentPage === 'selection' ? '/' : currentPage === 'chat' ? '/chat' : '/debug');
 
   useEffect(() => {
     const loadGames = async () => {
@@ -48,6 +63,15 @@ export default function Home() {
       console.log('⚠️ 이미 선택된 게임');
       return;
     }
+
+    // 새로운 세션 ID 생성 (대화 맥락 추적용)
+    const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    setSessionId(newSessionId);
+    console.log('🆔 새 세션 ID 생성:', newSessionId);
+
+    // Analytics: 게임 선택 추적
+    trackGameSelection(game.title, game.id.toString(), 'click');
+    trackSessionStart(newSessionId);
 
     // 상태 업데이트를 동기적으로 처리
     setSelectedGame(game);
@@ -100,6 +124,11 @@ export default function Home() {
     setResearchStage('analyzing');
 
     try {
+      // Analytics: 질문 전송 추적
+      trackQuestionSubmitted(selectedGame.title, content.length, false);
+      
+      const startTime = Date.now();
+
       // 리서치 시작 콜백 호출
       if (callbacks?.onResearchStart) {
         callbacks.onResearchStart();
@@ -126,11 +155,24 @@ export default function Home() {
         }
       };
 
-      // 프로그레스 시뮬레이션과 AI 응답을 병렬로 실행
+      // 프로그레스 시뮬레이션과 AI 응답을 병렬로 실행 (맥락 추적 활성화)
       const [response] = await Promise.all([
-        askGameQuestionWithSmartResearch(selectedGame.title, content),
+        askGameQuestionWithContextTracking(
+          selectedGame.title, 
+          content, 
+          sessionId,
+          callbacks?.onResearchStart
+        ),
         simulateProgress()
       ]);
+
+      const responseTime = Date.now() - startTime;
+
+      // Analytics: 리서치 사용 및 AI 응답 추적
+      if (typeof response !== 'string' && response.researchUsed) {
+        trackResearchUsed(selectedGame.title, response.complexity?.score || 0, responseTime);
+      }
+      trackAIResponse(responseTime, true);
 
       const aiMessage: ChatMessage = {
         role: 'assistant',
@@ -147,7 +189,7 @@ export default function Home() {
     } catch (error) {
       const appError = errorHandler.handle(error, {
         context: 'asking game question',
-        action: 'askGameQuestionWithSmartResearch',
+        action: 'askGameQuestionWithContextTracking',
         gameName: selectedGame.title,
         question: content
       });
