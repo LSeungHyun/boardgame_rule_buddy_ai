@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Noto_Sans_KR } from 'next/font/google';
 import './globals.css';
 import Providers from './providers';
-import { StagewiseToolbar } from '@stagewise/toolbar-next';
 import { AnalyticsProvider } from '@/lib/analytics';
+import { StagewiseToolbarWrapper } from '@/components/stagewise-toolbar-wrapper';
 
 const notoSansKR = Noto_Sans_KR({
   subsets: ['latin'],
@@ -27,11 +27,7 @@ export default function RootLayout({
         <AnalyticsProvider config={{ enableDevelopment: true }}>
           <Providers>{children}</Providers>
         </AnalyticsProvider>
-        <StagewiseToolbar
-          config={{
-            plugins: [],
-          }}
-        />
+        <StagewiseToolbarWrapper />
       </body>
     </html>
   );

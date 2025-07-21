@@ -7,6 +7,7 @@ import FeedbackButtons from './FeedbackButtons';
 import { AnswerDisplay } from './ui/answer-display';
 import { AccordionSection } from './ui/accordion-section';
 import { QuestionRecommendations } from './ui/question-recommendations';
+import { GameQuickActions } from './ui/game-quick-actions';
 import { generateRecommendedQuestions, generateGameSpecificQuestions, filterDuplicateQuestions, type RecommendedQuestion } from '@/lib/question-recommender';
 
 export default function ChatMessage({ message, game, userQuestion, onQuestionClick }: ChatMessageProps) {
@@ -54,8 +55,8 @@ export default function ChatMessage({ message, game, userQuestion, onQuestionCli
     }, [message.content, userQuestion, game?.title, game?.gameId, isWelcomeMessage, onQuestionClick]);
 
     return (
-        <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-md lg:max-w-2xl rounded-2xl px-4 py-3 ${bubbleClass} relative transition-all duration-200 hover:shadow-xl hover:border-amber-400/40`}>
+        <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} flex-col`}>
+            <div className={`max-w-md lg:max-w-2xl rounded-2xl px-4 py-3 ${bubbleClass} relative transition-all duration-200 hover:shadow-xl hover:border-amber-400/40 ${isUser ? 'self-end' : 'self-start'}`}>
 
                 {/* 메시지 아바타 */}
                 {!isUser && (
@@ -130,8 +131,18 @@ export default function ChatMessage({ message, game, userQuestion, onQuestionCli
                 )}
             </div>
 
-            {/* 관련 질문 추천 (AI 답변 아래에 별도로 표시) */}
-            {message.role === 'assistant' && !isWelcomeMessage && recommendedQuestions.length > 0 && onQuestionClick && (
+            {/* 환영 메시지 아래 퀵 액션 버튼들 */}
+            {message.role === 'assistant' && isWelcomeMessage && game && onQuestionClick && (
+                <div className="mt-4 w-full max-w-md lg:max-w-2xl">
+                    <GameQuickActions
+                        game={game}
+                        onActionClick={onQuestionClick}
+                    />
+                </div>
+            )}
+
+            {/* 관련 질문 추천 (AI 답변 아래에 별도로 표시) - 현재 비활성화됨 */}
+            {false && message.role === 'assistant' && !isWelcomeMessage && recommendedQuestions.length > 0 && onQuestionClick && (
                 <div className="mt-4 max-w-md lg:max-w-2xl">
                     <QuestionRecommendations
                         questions={recommendedQuestions}

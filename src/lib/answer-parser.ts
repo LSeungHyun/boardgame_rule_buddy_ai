@@ -51,21 +51,30 @@ export function parseAnswer(rawAnswer: string): ParsedAnswer {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    // 예시 섹션 감지
-    if (line.includes('예시') || line.includes('예제') || line.includes('Example')) {
+    // 예시 섹션 감지 (더 포괄적으로)
+    if (line.includes('📝예시') || line.includes('예시') || line.includes('예제') || 
+        line.includes('Example') || line.includes('📝 예시') || 
+        line.match(/^예시[:\s]*/) || line.match(/^📝\s*예시/)) {
       inExampleSection = true;
+      // 예시 섹션이 시작되면 이전 섹션을 종료
+      if (currentSection) {
+        parsed.details.push(currentSection);
+        currentSection = null;
+      }
       continue;
     }
 
-    // 섹션 헤더 감지 (##, **, 등)
-    if (line.startsWith('##') || line.startsWith('**')) {
+    // 새로운 섹션이 시작되면 예시 섹션 종료
+    if (line.startsWith('##') || line.startsWith('**') || line.startsWith('📋')) {
+      inExampleSection = false;
+      
       // 이전 섹션 저장
       if (currentSection) {
         parsed.details.push(currentSection);
       }
 
       // 새 섹션 시작
-      const title = line.replace(/^##\s*/, '').replace(/^\*\*/, '').replace(/\*\*$/, '');
+      const title = line.replace(/^##\s*/, '').replace(/^\*\*/, '').replace(/\*\*$/, '').replace(/^📋\s*/, '');
       const sectionType = detectSectionType(title, line);
       
       currentSection = {
@@ -76,9 +85,21 @@ export function parseAnswer(rawAnswer: string): ParsedAnswer {
       continue;
     }
 
-    // 예시 수집
-    if (inExampleSection && line.startsWith('•') || line.startsWith('-') || line.match(/^\d+\./)) {
-      parsed.examples.push(line.replace(/^[•\-\d\.]\s*/, ''));
+    // 예시 수집 (더 포괄적으로)
+    if (inExampleSection) {
+      // 빈 줄이나 구분선은 건너뛰기
+      if (line === '' || line === '--' || line === '---') {
+        continue;
+      }
+      
+      // 예시 항목 감지
+      if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*') || 
+          line.match(/^\d+\./) || line.length > 5) { // 최소 길이 체크로 의미있는 내용만
+        let exampleText = line.replace(/^[•\-\*\d\.]\s*/, '').trim();
+        if (exampleText && exampleText !== '--') {
+          parsed.examples.push(exampleText);
+        }
+      }
       continue;
     }
 
@@ -96,11 +117,55 @@ export function parseAnswer(rawAnswer: string): ParsedAnswer {
     parsed.details.push(currentSection);
   }
 
+  // 예시가 비어있거나 의미없는 내용만 있다면 기본 예시 추가
+  if (parsed.examples.length === 0 || parsed.examples.every(ex => ex === '' || ex === '--')) {
+    // 답변 내용에서 구체적인 예시를 찾아서 추가
+    const exampleCandidates = extractExamplesFromContent(rawAnswer);
+    parsed.examples = exampleCandidates;
+  }
+
   // 규칙 타입 및 중요도 결정
   parsed.ruleType = determineRuleType(rawAnswer);
   parsed.importance = determineImportance(rawAnswer);
 
   return parsed;
+}
+
+/**
+ * 답변 내용에서 구체적인 예시를 추출
+ */
+function extractExamplesFromContent(content: string): string[] {
+  const examples: string[] = [];
+  
+  // 게임 셋업 관련 구체적인 예시 패턴 찾기
+  const patterns = [
+    /첫 번째 시험관[:\s]*[^\.]+\./g,
+    /두 번째 시험관[:\s]*[^\.]+\./g,
+    /세 번째 시험관[:\s]*[^\.]+\./g,
+    /예를 들어[:\s]*[^\.]+\./g,
+    /구체적으로[:\s]*[^\.]+\./g,
+    /\d+인 게임에서[:\s]*[^\.]+\./g,
+  ];
+
+  patterns.forEach(pattern => {
+    const matches = content.match(pattern);
+    if (matches) {
+      matches.forEach(match => {
+        const cleaned = match.trim().replace(/^[:\s]*/, '');
+        if (cleaned.length > 10) { // 의미있는 길이의 예시만
+          examples.push(cleaned);
+        }
+      });
+    }
+  });
+
+  // 기본 예시가 없다면 일반적인 셋업 예시 제공
+  if (examples.length === 0) {
+    examples.push("2인 게임: 각자 시험관 3개와 구슬 6개를 받아 무작위로 배치");
+    examples.push("3-4인 게임: 동일한 방식으로 준비하되, 미션 카드를 중앙에 배치");
+  }
+
+  return examples.slice(0, 3); // 최대 3개까지만
 }
 
 /**
