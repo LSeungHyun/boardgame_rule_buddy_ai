@@ -5,10 +5,67 @@ import { marked } from 'marked';
 import { ChatMessageProps } from '@/types/game';
 import FeedbackButtons from './FeedbackButtons';
 import { AnswerDisplay } from './ui/answer-display';
-import { AccordionSection } from './ui/accordion-section';
 import { QuestionRecommendations } from './ui/question-recommendations';
 import { GameQuickActions } from './ui/game-quick-actions';
+import SetupGuideDisplay from './answers/SetupGuideDisplay';
 import { generateRecommendedQuestions, generateGameSpecificQuestions, filterDuplicateQuestions, type RecommendedQuestion } from '@/lib/question-recommender';
+
+/**
+ * 간단한 질문인지 판단하는 함수
+ * 간단한 질문에는 구조화된 답변보다 자연스러운 답변이 더 적합함
+ */
+function isSimpleQuestion(question?: string, answer?: string): boolean {
+    if (!question) return false;
+
+    const simpleKeywords = [
+        '기본 규칙', '목표', '요약', '몇명', '인원', '플레이어', '시간', '나이',
+        '간단히', '짧게', '개요', '소개', '뭐야', '뭔가요', '어떤', '무엇',
+        '얼마나', '언제', '어디서', '누가', '왜'
+    ];
+
+    const questionLower = question.toLowerCase();
+    const hasSimpleKeyword = simpleKeywords.some(keyword =>
+        questionLower.includes(keyword) || question.includes(keyword)
+    );
+
+    // 질문이 짧고 간단한 키워드를 포함하는 경우
+    const isShortQuestion = question.length < 50;
+
+    // 답변이 너무 길지 않은 경우 (구조화가 필요하지 않음)
+    const isShortAnswer = answer ? answer.length < 500 : true;
+
+    return (hasSimpleKeyword && isShortQuestion) || (isShortQuestion && isShortAnswer);
+}
+
+/**
+ * 셋업 가이드 관련 내용인지 판단하는 함수
+ * 셋업 가이드 관련 내용에는 전용 SetupGuideDisplay 컴포넌트를 사용
+ */
+function isSetupGuideContent(question?: string, answer?: string): boolean {
+    if (!question && !answer) return false;
+
+    const setupKeywords = [
+        '셋업', '준비', '게임 준비', '설치', '배치', '세팅', '초기 설정',
+        '게임 시작', '시작 전', '준비물', '구성 요소', '보드 준비',
+        '카드 배치', '토큰 배치', '말 배치', '컴포넌트 준비'
+    ];
+
+    const questionText = (question || '').toLowerCase();
+    const answerText = (answer || '').toLowerCase();
+    
+    // 질문이나 답변에 셋업 관련 키워드가 포함되어 있는지 확인
+    const hasSetupKeyword = setupKeywords.some(keyword =>
+        questionText.includes(keyword) || answerText.includes(keyword) ||
+        (question || '').includes(keyword) || (answer || '').includes(keyword)
+    );
+
+    // 답변에 마크다운 헤더(###, ####)와 리스트가 포함되어 있고 셋업 관련 내용인 경우
+    const hasMarkdownStructure = answer && (
+        answer.includes('###') || answer.includes('####')
+    ) && answer.includes('*');
+
+    return hasSetupKeyword && hasMarkdownStructure;
+}
 
 export default function ChatMessage({ message, game, userQuestion, onQuestionClick }: ChatMessageProps) {
     const isUser = message.role === 'user';
@@ -27,7 +84,7 @@ export default function ChatMessage({ message, game, userQuestion, onQuestionCli
         (message.content.includes('룰 마스터입니다') || message.content.includes('무엇이든 물어보세요'));
 
     // 메시지 ID 생성 (실제 구현에서는 고유한 ID를 사용해야 함)
-    const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const messageId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
     // 관련 질문 추천 생성 (AI 답변이고 환영 메시지가 아닐 때)
     useEffect(() => {
@@ -68,18 +125,22 @@ export default function ChatMessage({ message, game, userQuestion, onQuestionCli
 
                 {/* 메인 메시지 내용 */}
                 {message.role === 'assistant' ? (
-                    isWelcomeMessage ? (
+                    isWelcomeMessage || isSimpleQuestion(userQuestion, message.content) ? (
                         <div className="markdown-content prose prose-invert prose-sm max-w-none text-amber-100"
                             dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+                    ) : isSetupGuideContent(userQuestion, message.content) ? (
+                        <SetupGuideDisplay content={message.content} />
                     ) : (
                         <AnswerDisplay content={message.content} />
                     )
                 ) : (
-                    <p className="font-medium text-amber-900 leading-relaxed">{message.content}</p>
+                    <p className="font-medium text-amber-900 leading-relaxed">
+                        {message.content.replace('[FORCE_RESEARCH]', '').trim()}
+                    </p>
                 )}
 
-                {/* 리서치 정보 (간결하게) */}
-                {message.role === 'assistant' && message.researchUsed && (
+                {/* 리서치 정보 (개발 환경에서만 표시) */}
+                {process.env.NODE_ENV === 'development' && message.role === 'assistant' && message.researchUsed && (
                     <div className="mt-3 pt-2 border-t border-amber-400/20">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 text-xs">

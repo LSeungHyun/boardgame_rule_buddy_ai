@@ -159,11 +159,7 @@ function extractExamplesFromContent(content: string): string[] {
     }
   });
 
-  // 기본 예시가 없다면 일반적인 셋업 예시 제공
-  if (examples.length === 0) {
-    examples.push("2인 게임: 각자 시험관 3개와 구슬 6개를 받아 무작위로 배치");
-    examples.push("3-4인 게임: 동일한 방식으로 준비하되, 미션 카드를 중앙에 배치");
-  }
+  // 하드코딩된 예시 제거 - AI가 생성한 예시만 사용
 
   return examples.slice(0, 3); // 최대 3개까지만
 }

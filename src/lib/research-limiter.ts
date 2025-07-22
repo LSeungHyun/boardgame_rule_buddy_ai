@@ -276,19 +276,39 @@ export class ResearchLimiter {
     return 'off';
   }
 
+  // 서버 사이드 메모리 저장소 (임시)
+  private static serverMemoryStore: Map<string, ResearchUsageData> = new Map();
+
   /**
    * 사용량 데이터 조회
    */
   private getUsageData(date: string): ResearchUsageData {
+    const key = `${this.storageKey}_${date}`;
+    
     if (typeof window === 'undefined') {
-      // 서버 사이드에서는 기본값 반환
+      // 서버 사이드에서는 메모리 저장소 사용
+      const stored = ResearchLimiter.serverMemoryStore.get(key);
+      if (stored) {
+        console.log('📊 [서버 메모리] 사용량 데이터 로드:', {
+          날짜: date,
+          일일사용량: stored.totalDailyUsage,
+          총질문수: stored.totalQuestions
+        });
+        return stored;
+      }
       return this.createEmptyUsageData(date);
     }
 
     try {
-      const stored = localStorage.getItem(`${this.storageKey}_${date}`);
+      const stored = localStorage.getItem(key);
       if (stored) {
-        return JSON.parse(stored);
+        const data = JSON.parse(stored);
+        console.log('📊 [클라이언트] 사용량 데이터 로드:', {
+          날짜: date,
+          일일사용량: data.totalDailyUsage,
+          총질문수: data.totalQuestions
+        });
+        return data;
       }
     } catch (error) {
       console.warn('사용량 데이터 로드 실패:', error);
@@ -301,10 +321,27 @@ export class ResearchLimiter {
    * 사용량 데이터 저장
    */
   private saveUsageData(date: string, data: ResearchUsageData): void {
-    if (typeof window === 'undefined') return;
+    const key = `${this.storageKey}_${date}`;
+    
+    if (typeof window === 'undefined') {
+      // 서버 사이드에서는 메모리 저장소 사용
+      ResearchLimiter.serverMemoryStore.set(key, data);
+      console.log('💾 [서버 메모리] 사용량 데이터 저장:', {
+        날짜: date,
+        일일사용량: data.totalDailyUsage,
+        총질문수: data.totalQuestions,
+        현재시간사용량: data.currentHourUsage
+      });
+      return;
+    }
 
     try {
-      localStorage.setItem(`${this.storageKey}_${date}`, JSON.stringify(data));
+      localStorage.setItem(key, JSON.stringify(data));
+      console.log('💾 [클라이언트] 사용량 데이터 저장:', {
+        날짜: date,
+        일일사용량: data.totalDailyUsage,
+        총질문수: data.totalQuestions
+      });
     } catch (error) {
       console.warn('사용량 데이터 저장 실패:', error);
     }

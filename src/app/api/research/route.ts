@@ -507,62 +507,11 @@ async function generateSmartSearchQueries(gameTitle: string, question: string, e
 }
 
 /**
- * 🌟 스마트 게임명 매핑 - GameMappingService 활용
+ * 🌟 간단한 게임명 매핑 (매핑 기능 비활성화)
  */
 async function getEnglishTitle(koreanTitle: string): Promise<string | null> {
-  try {
-    const gameMappingService = GameMappingService.getInstance();
-    
-    // GameMappingService 초기화 확인
-    if (!gameMappingService.isInitialized()) {
-      await gameMappingService.initialize();
-    }
-
-    // 1. GameMappingService로 게임 정보 조회
-    const gameInfo = gameMappingService.getGameByTitle(koreanTitle);
-    
-    if (gameInfo?.titleEnglish) {
-      console.log('✅ [게임명 매핑 성공]', {
-        한글게임명: koreanTitle,
-        영문매핑: gameInfo.titleEnglish,
-        게임ID: gameInfo.id,
-        출처: 'GameMappingService'
-      });
-      return gameInfo.titleEnglish;
-    }
-
-    // 2. 퍼지 검색으로 유사한 게임 찾기
-    const searchResults = gameMappingService.searchGames(koreanTitle, 1);
-    if (searchResults.length > 0 && searchResults[0].confidence > 0.8) {
-      const bestMatch = searchResults[0];
-      if (bestMatch.game.titleEnglish) {
-        console.log('✅ [퍼지 매칭 성공]', {
-          한글게임명: koreanTitle,
-          매칭게임: bestMatch.game.titleKorean,
-          영문매핑: bestMatch.game.titleEnglish,
-          신뢰도: bestMatch.confidence,
-          출처: 'GameMappingService 퍼지매칭'
-        });
-        return bestMatch.game.titleEnglish;
-      }
-    }
-
-    // 3. 매핑이 없는 경우 null 반환
-    console.log('ℹ️ [게임명 매핑 없음]', {
-      한글게임명: koreanTitle,
-      영문매핑: '없음',
-      메모: '한글명으로만 검색 진행'
-    });
-
-    return null;
-    
-  } catch (error) {
-    console.error('❌ [게임명 매핑 오류]', {
-      한글게임명: koreanTitle,
-      오류: error instanceof Error ? error.message : '알 수 없는 오류'
-    });
-    return null;
-  }
+  // 매핑 기능 비활성화 - 한글명으로만 검색 진행
+  return null;
 }
 
 /**

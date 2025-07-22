@@ -596,15 +596,34 @@ export async function askGameQuestionWithSmartResearch(
         V2분석사용: useV2Analysis
     });
 
-    // 1. 질문 복잡도 분석
+    // 1. 강제 리서치 마커 확인
+    const isForceResearch = userQuestion.includes('[FORCE_RESEARCH]');
+    const cleanQuestion = userQuestion.replace('[FORCE_RESEARCH]', '').trim();
+    
+    if (isForceResearch) {
+        console.log('🚨 [강제 리서치] 퀵버튼 게임요약/셋업가이드 - 무조건 리서치 실행');
+    }
+
+    // 2. 질문 복잡도 분석
     const analyzer = new QuestionAnalyzer();
     let analysisV2: QuestionAnalysisV2 | undefined;
     let shouldResearch: boolean;
 
-    if (useV2Analysis) {
+    if (isForceResearch) {
+        // 강제 리서치인 경우 분석 없이 바로 리서치 실행
+        const limiter = new ResearchLimiter();
+        limiter.recordQuestionAsked();
+        shouldResearch = limiter.canPerformResearch();
+        
+        console.log('🎯 [강제 리서치 판단]', {
+            타입: '퀵버튼 강제 리서치',
+            할당량확인: shouldResearch ? '가능' : '초과',
+            최종결정: shouldResearch ? '🔍 리서치 실행' : '🚫 할당량 초과로 일반 모드'
+        });
+    } else if (useV2Analysis) {
         // V2 분석 시스템 사용
         console.log('🚀 [V2 분석 시스템] 새로운 분석 방식 적용');
-        analysisV2 = await analyzer.analyzeComplexityV2(userQuestion);
+        analysisV2 = await analyzer.analyzeComplexityV2(cleanQuestion);
 
         console.log('📊 [V2 분석 결과]', {
             유형: analysisV2.type,
@@ -619,7 +638,7 @@ export async function askGameQuestionWithSmartResearch(
         shouldResearch = analysisV2.requiresResearch && limiter.canPerformResearch();
     } else {
         // 기존 분석 시스템 사용
-        const complexityScore = analyzer.analyzeComplexity(userQuestion, gameTitle);
+        const complexityScore = analyzer.analyzeComplexity(cleanQuestion, gameTitle);
 
         console.log('📊 [기존 복잡도 분석]', {
             점수: complexityScore.totalScore,
@@ -689,7 +708,7 @@ export async function askGameQuestionWithSmartResearch(
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         gameTitle,
-                        question: userQuestion,
+                        question: isForceResearch ? cleanQuestion : userQuestion, // 강제 리서치인 경우 정제된 질문 사용
                         englishKeywords, // 🚨 BGG 영어 검색용 키워드 추가!
                         priority: useV2Analysis && analysisV2 ?
                             (analysisV2.type === 'strategy' ? 'high' : 'medium') :

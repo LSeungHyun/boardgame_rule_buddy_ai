@@ -30,6 +30,8 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
     const [lastMessageCount, setLastMessageCount] = useState(0);
     const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
+
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
@@ -93,6 +95,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
         }
 
     }, [researchStage, showResearchStatus]);
+
 
 
     const handleSubmit = (e: React.FormEvent) => {
