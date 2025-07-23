@@ -6,6 +6,8 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { Send } from 'lucide-react';
 import WelcomeGuideModal from '@/components/WelcomeGuideModal';
 import { SendButton } from '@/components/ui/send-button';
+import { FloatingFeedbackFAB } from '@/components/ui/floating-feedback-fab';
+import { useUnifiedFeedback } from '@/components/feedback/UnifiedFeedbackModal';
 
 // 🎨 Enhanced Floating Particles Component
 const FloatingParticles = () => {
@@ -186,7 +188,7 @@ const PremiumInput = ({ value, onChange, onKeyPress, onSubmit }: {
           <motion.input
             ref={inputRef}
             type="text"
-            placeholder="게임 이름을 입력하세요 (예: 루미큐브, 카탄, 스플렌더, 윙스팬)"
+            placeholder="게임 이름을 입력하세요 (예: 루미큐브)"
             value={value}
             onChange={onChange}
             onKeyPress={onKeyPress}
@@ -378,6 +380,9 @@ export default function Home() {
   const [gameName, setGameName] = useState('');
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState<boolean>(false);
 
+  // 통합 피드백 시스템
+  const { showFeedback, FeedbackModalComponent, isOpen: isFeedbackOpen } = useUnifiedFeedback();
+
   // Removed parallax effects to prevent text blurring
 
   const valueCards = [
@@ -551,6 +556,16 @@ export default function Home() {
           />
         )}
       </AnimatePresence>
+
+      {/* 플로팅 피드백 FAB */}
+      <FloatingFeedbackFAB
+        onFeedbackClick={() => showFeedback('home')}
+        isModalOpen={isFeedbackOpen}
+        pageContext="home"
+      />
+
+      {/* 통합 피드백 모달 */}
+      {FeedbackModalComponent}
     </div>
   );
 }

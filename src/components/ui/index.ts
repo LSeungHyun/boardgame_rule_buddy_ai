@@ -37,3 +37,4 @@ export { GameQuickActions } from './game-quick-actions';
 export { InteractiveDiagram } from './interactive-diagram';
 export { VisualDiagram } from './visual-diagram';
 export { InteractiveBoardLayout } from './interactive-board-layout';
+export { FloatingFeedbackFAB } from './floating-feedback-fab';

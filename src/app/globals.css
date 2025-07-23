@@ -325,3 +325,60 @@ body {
   outline: 2px solid var(--primary-400);
   outline-offset: 2px;
 }
+
+/* 🎯 플로팅 피드백 버튼 최적화 */
+@layer components {
+  .floating-feedback-fab {
+    /* 모바일에서 터치 영역 확보 */
+    min-height: 44px;
+    
+    /* iOS 사파리에서 터치 딜레이 제거 */
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    
+    /* 스크롤 시에도 고정 위치 유지 */
+    position: fixed;
+    z-index: 1000;
+    
+    /* 호버 시 미세한 글로우 효과 */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .floating-feedback-fab:hover {
+    filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
+  }
+
+  /* 모바일 터치 최적화 */
+  @media (max-width: 768px) {
+    .floating-feedback-fab {
+      bottom: 1rem;
+      right: 1rem;
+      /* 아이폰 하단 홈 인디케이터 영역 고려 */
+      bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+  }
+
+  /* 접근성 개선 */
+  .floating-feedback-fab:focus-visible {
+    outline: 2px solid rgb(99 102 241);
+    outline-offset: 2px;
+  }
+
+  /* 다크모드 대응 */
+  @media (prefers-color-scheme: dark) {
+    .floating-feedback-fab {
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  /* 터치 디바이스에서 호버 효과 비활성화 */
+  @media (hover: none) and (pointer: coarse) {
+    .floating-feedback-fab:hover {
+      filter: none;
+    }
+  }
+}

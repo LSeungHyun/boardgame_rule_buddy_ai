@@ -142,4 +142,5 @@ export interface ChatScreenProps {
     }) => void;
     isLoading: boolean;
     onQuestionClick?: (question: string) => void;
+    headerActions?: import('react').ReactNode; // 헤더 우측에 표시할 액션 버튼들
 } 

@@ -449,7 +449,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                             >
                                                 <span className="flex-shrink-0 w-2 h-2 rounded-full bg-primary-400 mt-1.5"></span>
                                                 <span>
-                                                    피드백으로 계속 발전합니다!
+                                                    유저분들의 소중한 피드백으로 발전합니다!
                                                 </span>
                                             </motion.li>
                                         </ul>

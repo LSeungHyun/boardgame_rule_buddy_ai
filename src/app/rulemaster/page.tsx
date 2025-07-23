@@ -25,6 +25,8 @@ import {
 
 import { ClarityTest } from '@/components/ui/clarity-test';
 import { useFeedbackModal } from '@/components/feedback/FeedbackModal';
+import { FloatingFeedbackFAB } from '@/components/ui/floating-feedback-fab';
+import { useUnifiedFeedback } from '@/components/feedback/UnifiedFeedbackModal';
 import { API_ENDPOINTS, CONFIDENCE_CHECK } from '@/lib/constants';
 import { findGameByExactName } from '@/features/games/api';
 
@@ -172,8 +174,15 @@ export default function RuleMaster() {
     const [isLoading, setIsLoading] = useState(false);
     const [researchStage, setResearchStage] = useState<ResearchStage>('analyzing');
 
-    // MVP 피드백 시스템
+    // MVP 피드백 시스템 (기존)
     const { showFeedback, FeedbackModalComponent } = useFeedbackModal();
+    
+    // 통합 피드백 시스템 (새로운)
+    const { 
+        showFeedback: showUnifiedFeedback, 
+        FeedbackModalComponent: UnifiedFeedbackModalComponent,
+        isOpen: isFeedbackOpen 
+    } = useUnifiedFeedback();
 
     // Analytics 훅
     const questionTracking = useQuestionTracking();
@@ -464,6 +473,34 @@ export default function RuleMaster() {
         router.push('/');
     };
 
+    // 헤더용 피드백 버튼 컴포넌트
+    const HeaderFeedbackButton = () => (
+        <motion.button
+            onClick={() => showUnifiedFeedback('rulemaster', chatState.gameContext, {
+                hasSearchResults: chatState.messages.length > 2,
+                lastAnswerLength: chatState.messages[chatState.messages.length - 1]?.content?.length,
+                sessionDuration: Date.now() - parseInt(chatState.sessionId.split('_')[1])
+            })}
+            className="p-3 rounded-2xl glass-card border border-amber-400/20 hover:border-amber-400/40 transition-all duration-300 group min-w-[48px] min-h-[48px] flex items-center justify-center relative overflow-hidden shadow-lg hover:shadow-xl"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            aria-label="피드백 보내기"
+        >
+            <motion.div
+                className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-500/10 to-amber-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            />
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-amber-200 group-hover:text-amber-100 transition-colors duration-300 relative z-10"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+            >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+        </motion.button>
+    );
+
     return (
         <div className="min-h-screen relative overflow-hidden gpu-accelerated">
             {/* Enhanced Background Effects */}
@@ -485,6 +522,7 @@ export default function RuleMaster() {
                             onSendMessage={handleSendMessage}
                             isLoading={isLoading}
                             onQuestionClick={handleQuestionClick}
+                            headerActions={<HeaderFeedbackButton />}
                         />
                     </ChatScreenSuspense>
                 </motion.div>
@@ -493,7 +531,10 @@ export default function RuleMaster() {
             {/* 개발 환경 전용 - Clarity 테스트 패널 */}
             {process.env.NODE_ENV === 'development' && <ClarityTest />}
 
-            {/* MVP 피드백 모달 */}
+            {/* 통합 피드백 모달 */}
+            {UnifiedFeedbackModalComponent}
+
+            {/* 기존 MVP 피드백 모달 (필요시 유지) */}
             {FeedbackModalComponent}
         </div>
     );

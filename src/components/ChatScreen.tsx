@@ -18,7 +18,7 @@ const researchStageConfig: Record<ResearchStage, { progress: number; text: strin
     completed: { progress: 100, text: '답변 완성!', icon: '🎉' },
 };
 
-export default function ChatScreen({ game, onGoBack, messages, onSendMessage, isLoading }: ChatScreenProps) {
+export default function ChatScreen({ game, onGoBack, messages, onSendMessage, isLoading, headerActions }: ChatScreenProps) {
     const [input, setInput] = useState('');
     const [researchStage, setResearchStage] = useState<ResearchStage>('analyzing');
     const [showResearchStatus, setShowResearchStatus] = useState(false);
@@ -118,25 +118,29 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
         <div className="flex flex-col h-screen relative">
             {/* Enhanced Header */}
             <motion.header
-                className="glass-card-premium border-b border-white/10 shadow-2xl relative z-10"
+                className="glass-card border-b border-amber-400/20 shadow-2xl relative z-10 hover:border-amber-400/30 transition-all duration-300"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+                style={{
+                    backdropFilter: 'blur(20px) saturate(150%)',
+                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(217, 119, 6, 0.05))',
+                }}
             >
                 <div className="flex items-center justify-between p-4 md:p-6">
                     {/* Enhanced Back Button */}
                     <motion.button
                         onClick={onGoBack}
-                        className="p-3 rounded-2xl glass-premium hover-premium transition-all duration-300 group min-w-[48px] min-h-[48px] flex items-center justify-center relative overflow-hidden"
+                        className="p-3 rounded-2xl glass-card border border-amber-400/20 hover:border-amber-400/40 transition-all duration-300 group min-w-[48px] min-h-[48px] flex items-center justify-center relative overflow-hidden shadow-lg hover:shadow-xl"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                     >
                         <motion.div
-                            className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary-500/20 to-secondary-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                            className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-500/10 to-amber-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                         />
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6 text-slate-300 group-hover:text-primary-300 transition-colors duration-300 relative z-10"
+                            className="h-6 w-6 text-amber-200 group-hover:text-amber-100 transition-colors duration-300 relative z-10"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -152,20 +156,15 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.2, duration: 0.6 }}
                     >
-                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold gradient-text-premium drop-shadow-sm">
+                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-amber-100 drop-shadow-sm">
                             📖 {game?.title || '룰마스터 AI'}
                         </h2>
-                        <motion.p
-                            className="text-xs md:text-sm text-slate-400 font-medium mt-1"
-                            animate={{ opacity: [0.6, 1, 0.6] }}
-                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                        >
-                            AI 룰 어시스턴트
-                        </motion.p>
                     </motion.div>
 
-                    {/* Spacer */}
-                    <div className="w-12"></div>
+                    {/* Header Actions */}
+                    <div className="flex items-center">
+                        {headerActions || <div className="w-12"></div>}
+                    </div>
                 </div>
             </motion.header>
 
@@ -341,7 +340,12 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
 
             {/* Enhanced Input Area */}
             <motion.footer
-                className="glass-card-premium border-t border-white/10 relative z-10"
+                className="border-t border-amber-400/20 relative z-10 shadow-2xl"
+                style={{
+                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.15))',
+                    backdropFilter: 'none',
+                    WebkitBackdropFilter: 'none',
+                }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
@@ -349,21 +353,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                 <form onSubmit={handleSubmit} className="p-4 md:p-6 flex gap-3">
                     {/* Enhanced Input Field */}
                     <div className="flex-1 relative">
-                        {/* Input Glow Effect */}
-                        <motion.div
-                            className="absolute inset-0 rounded-2xl"
-                            style={{
-                                background: isInputFocused
-                                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))'
-                                    : 'transparent',
-                                filter: 'blur(20px)',
-                                transform: 'scale(1.02)',
-                            }}
-                            animate={{
-                                opacity: isInputFocused ? 1 : 0,
-                            }}
-                            transition={{ duration: 0.3 }}
-                        />
+
 
                         <input
                             type="text"
@@ -373,12 +363,20 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                             onBlur={() => setIsInputFocused(false)}
                             placeholder="🎲 보드게임 규칙에 대해 궁금한 점을 물어보세요..."
                             className={`
-                                w-full glass-card-premium focus-premium rounded-2xl px-6 py-4 
-                                placeholder:text-slate-400/70 text-slate-100 text-base
+                                w-full rounded-2xl px-6 py-4 
+                                placeholder:text-amber-400/70 text-amber-100 text-base font-medium
                                 transition-all duration-300 relative z-10
-                                border-2 ${isInputFocused ? 'border-primary-400/40' : 'border-transparent'}
+                                border-2 ${isInputFocused ? 'border-amber-400/60' : 'border-amber-400/20'}
                                 disabled:opacity-50 disabled:cursor-not-allowed
+                                shadow-lg hover:shadow-xl
                             `}
+                            style={{
+                                background: isInputFocused
+                                    ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.15))'
+                                    : 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1))',
+                                backdropFilter: 'none',
+                                WebkitBackdropFilter: 'none',
+                            }}
                             disabled={isLoading}
                         />
                     </div>
