@@ -5,10 +5,20 @@ import { errorHandler, ErrorType } from '@/lib/error-handler';
 
 export interface GameFilters {
     searchTerm?: string;
+    limit?: number; // 검색 결과 제한
 }
+
+// 성능 최적화를 위한 상수
+const DEFAULT_SEARCH_LIMIT = 50; // 기본 검색 결과 제한
+const MIN_SEARCH_LENGTH = 1; // 최소 검색어 길이
 
 export const fetchGames = async (filters?: GameFilters): Promise<Game[]> => {
     try {
+        // 검색어가 너무 짧으면 빈 배열 반환 (성능 최적화)
+        if (filters?.searchTerm && filters.searchTerm.trim().length < MIN_SEARCH_LENGTH) {
+            return [];
+        }
+
         let query = supabase
             .from('games')
             .select('*')
@@ -39,11 +49,19 @@ export const fetchGames = async (filters?: GameFilters): Promise<Game[]> => {
         }));
 
         // 클라이언트 사이드에서 초성 검색 필터링
-        if (filters?.searchTerm) {
+        if (filters?.searchTerm && filters.searchTerm.trim().length >= MIN_SEARCH_LENGTH) {
+            const searchTerm = filters.searchTerm.trim();
+
             games = games.filter(game =>
-                isKoreanSearchMatch(filters.searchTerm!, game.title) ||
-                (game.publisher && isKoreanSearchMatch(filters.searchTerm!, game.publisher))
+                isKoreanSearchMatch(searchTerm, game.title) ||
+                (game.publisher && isKoreanSearchMatch(searchTerm, game.publisher))
             );
+
+            // 🚀 성능 최적화: 검색 결과 제한
+            const limit = filters.limit || DEFAULT_SEARCH_LIMIT;
+            games = games.slice(0, limit);
+
+            console.log(`🔍 [검색 최적화] "${searchTerm}" 검색 결과: ${games.length}개 (제한: ${limit}개)`);
         }
 
         return games;
@@ -89,13 +107,16 @@ export const fetchGameById = async (gameId: number): Promise<Game | null> => {
     }
 };
 
-export const searchGames = async (searchTerm: string): Promise<Game[]> => {
-    if (!searchTerm.trim()) {
+export const searchGames = async (searchTerm: string, limit?: number): Promise<Game[]> => {
+    if (!searchTerm.trim() || searchTerm.trim().length < MIN_SEARCH_LENGTH) {
         return [];
     }
 
     try {
-        return await fetchGames({ searchTerm });
+        return await fetchGames({
+            searchTerm: searchTerm.trim(),
+            limit: limit || DEFAULT_SEARCH_LIMIT
+        });
     } catch (error) {
         throw errorHandler.handle(error, { function: 'searchGames', searchTerm });
     }

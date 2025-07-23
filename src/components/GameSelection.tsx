@@ -13,8 +13,8 @@ export default function GameSelection({
     ui,
     data
 }: GameSelectionProps) {
-    const { term: searchTerm, setTerm: setSearchTerm } = search;
-    const { isLoading } = ui;
+    const { term: searchTerm, setTerm: setSearchTerm, isSearching } = search;
+    const { isLoading, error: loadingError } = ui;
     const { games, onSelectGame } = data;
 
     const clearAllFilters = () => {
@@ -36,12 +36,15 @@ export default function GameSelection({
     // 검색어가 있는지 확인
     const hasSearchCriteria = searchTerm.trim();
 
-    // 로딩 스켈레톤 컴포넌트
+    // 🚀 성능 최적화: 로딩 스켈레톤 개수 축소
     const LoadingSkeleton = () => (
         <div className="space-y-3">
-            {[...Array(5)].map((_, index) => (
+            {[...Array(3)].map((_, index) => (
                 <GameCardSkeleton key={index} />
             ))}
+            <div className="text-center text-amber-400/60 text-sm">
+                🔍 검색 중...
+            </div>
         </div>
     );
 
@@ -51,7 +54,7 @@ export default function GameSelection({
             <BetaBanner />
 
             {/* 개선된 Hero 섹션 */}
-            <motion.header 
+            <motion.header
                 className="text-center mb-8 md:mb-12"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -64,7 +67,7 @@ export default function GameSelection({
                     transition={{ duration: 0.8, ease: "easeOut" }}
                 >
                     <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-4">
-                        <motion.span 
+                        <motion.span
                             className="block bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent drop-shadow-lg"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -72,7 +75,7 @@ export default function GameSelection({
                         >
                             룰마스터 AI
                         </motion.span>
-                        <motion.span 
+                        <motion.span
                             className="block text-xl sm:text-2xl md:text-3xl bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-500 bg-clip-text text-transparent drop-shadow-lg font-medium mt-2"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -81,8 +84,8 @@ export default function GameSelection({
                             룰북 대신, AI에게 물어보세요 🤖
                         </motion.span>
                     </h1>
-                    
-                    <motion.p 
+
+                    <motion.p
                         className="text-lg sm:text-xl text-slate-200 mb-2 font-medium drop-shadow"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -93,7 +96,7 @@ export default function GameSelection({
                 </motion.div>
 
                 {/* 핵심 가치 카드 - 모바일 최적화 */}
-                <motion.div 
+                <motion.div
                     className="hidden md:grid md:grid-cols-3 gap-4 mb-8 max-w-4xl mx-auto"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -127,7 +130,7 @@ export default function GameSelection({
             </motion.header>
 
             {/* 핵심 기능: 게임 검색 - 최상단 배치 */}
-            <motion.div 
+            <motion.div
                 className="mb-8 md:mb-10"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -137,7 +140,7 @@ export default function GameSelection({
                 <div className="mb-6 relative group max-w-2xl mx-auto">
                     <input
                         type="text"
-placeholder="게임 이름을 입력하세요 (예: 루미큐브, ㄹㅁㅋ)"
+                        placeholder="게임 이름을 입력하세요 (예: 루미큐브, ㄹㅁㅋ)"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full p-4 md:p-5 text-lg md:text-xl rounded-2xl shadow-lg
@@ -148,18 +151,24 @@ placeholder="게임 이름을 입력하세요 (예: 루미큐브, ㄹㅁㅋ)"
                                  hover:shadow-xl hover:bg-slate-50 min-h-[56px]"
                         autoFocus
                     />
-                                         {/* 검색 아이콘 */}
-                     <div className="absolute right-4 md:right-5 top-1/2 transform -translate-y-1/2">
-                         <div className="text-slate-400 text-xl">
-                             🔍
-                         </div>
-                     </div>
+                    {/* 검색 아이콘 또는 로딩 표시 */}
+                    <div className="absolute right-4 md:right-5 top-1/2 transform -translate-y-1/2">
+                        {isSearching ? (
+                            <div className="text-blue-500 text-xl animate-spin">
+                                ⚙️
+                            </div>
+                        ) : (
+                            <div className="text-slate-400 text-xl">
+                                🔍
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* 필터 상태 표시 */}
                 <AnimatePresence>
                     {hasSearchCriteria && (
-                        <motion.div 
+                        <motion.div
                             className="flex flex-wrap items-center gap-2 mb-4"
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
@@ -167,7 +176,7 @@ placeholder="게임 이름을 입력하세요 (예: 루미큐브, ㄹㅁㅋ)"
                             transition={{ duration: 0.3 }}
                         >
                             {searchTerm && (
-                                <motion.div 
+                                <motion.div
                                     className="glass-card border border-amber-400/40 text-amber-200 px-4 py-2 rounded-full text-sm flex items-center gap-2 min-h-[44px]
                                              hover:border-amber-400/60 hover:bg-amber-500/10 transition-all duration-200"
                                     initial={{ scale: 0.9, opacity: 0 }}
@@ -177,6 +186,11 @@ placeholder="게임 이름을 입력하세요 (예: 루미큐브, ㄹㅁㅋ)"
                                     <span className="flex items-center gap-2">
                                         <span className="text-amber-400">🔍</span>
                                         검색: "{searchTerm}"
+                                        {games.length >= 50 && (
+                                            <span className="text-orange-400 text-xs">
+                                                (상위 50개 결과)
+                                            </span>
+                                        )}
                                     </span>
                                     <motion.button
                                         onClick={() => setSearchTerm('')}
@@ -189,9 +203,7 @@ placeholder="게임 이름을 입력하세요 (예: 루미큐브, ㄹㅁㅋ)"
                                     </motion.button>
                                 </motion.div>
                             )}
-                            
 
-                            
                             <motion.button
                                 onClick={clearAllFilters}
                                 className="text-amber-300/80 hover:text-amber-200 text-sm underline transition-colors min-h-[44px] px-2
@@ -206,8 +218,6 @@ placeholder="게임 이름을 입력하세요 (예: 루미큐브, ㄹㅁㅋ)"
                 </AnimatePresence>
             </motion.div>
 
-
-
             {/* 결과 섹션 */}
             <motion.div
                 initial={{ opacity: 0 }}
@@ -215,20 +225,20 @@ placeholder="게임 이름을 입력하세요 (예: 루미큐브, ㄹㅁㅋ)"
                 transition={{ delay: 1.6, duration: 0.6 }}
             >
                 {!hasSearchCriteria ? (
-                    <motion.div 
+                    <motion.div
                         className="text-center py-12"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
                         <div className="glass-card rounded-2xl p-8 max-w-md mx-auto hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10">
-                            <motion.div 
+                            <motion.div
                                 className="text-6xl mb-4"
-                                animate={{ 
+                                animate={{
                                     rotate: [0, 5, -5, 0],
                                     scale: [1, 1.05, 1]
                                 }}
-                                transition={{ 
+                                transition={{
                                     duration: 2,
                                     repeat: Infinity,
                                     ease: "easeInOut"
@@ -243,86 +253,91 @@ placeholder="게임 이름을 입력하세요 (예: 루미큐브, ㄹㅁㅋ)"
                             </p>
                         </div>
                     </motion.div>
-                ) : isLoading ? (
+                ) : isSearching ? (
                     <LoadingSkeleton />
                 ) : games.length > 0 ? (
                     <div className="space-y-3">
-                        <AnimatePresence>
-                            {games.map((game, index) => (
-                                <motion.div
-                                    key={game.id}
-                                    className="game-card rounded-xl p-4 cursor-pointer group min-h-[80px] flex items-center
-                                             hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/10 
-                                             transition-all duration-300 ease-out
-                                             border border-transparent hover:border-amber-400/30"
-                                    onClick={() => {
-                                        onSelectGame(game);
-                                    }}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    transition={{ 
-                                        delay: index * 0.05, 
-                                        duration: 0.4,
-                                        ease: "easeOut"
-                                    }}
-                                    whileHover={{ y: -2 }}
-                                    whileTap={{ scale: 0.98 }}
-                                >
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full">
-                                        <div className="flex-1">
-                                            <h3 className="text-base sm:text-lg font-bold text-amber-100 group-hover:text-yellow-300 transition-colors drop-shadow mb-1">
-                                                {game.title}
-                                            </h3>
-                                            <p className="text-amber-200/80 text-sm group-hover:text-amber-200 transition-colors">
-                                                {game.description}
-                                            </p>
+                        {/* 🚀 성능 최적화: AnimatePresence 제거, 간단한 애니메이션만 유지 */}
+                        {games.map((game, index) => (
+                            <motion.div
+                                key={game.id}
+                                className="game-card rounded-xl p-4 cursor-pointer group min-h-[80px] flex items-center
+                                         hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/10 
+                                         transition-all duration-300 ease-out
+                                         border border-transparent hover:border-amber-400/30"
+                                onClick={() => {
+                                    onSelectGame(game);
+                                }}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{
+                                    delay: Math.min(index * 0.02, 0.5), // 최대 지연시간 제한
+                                    duration: 0.3,
+                                    ease: "easeOut"
+                                }}
+                                whileHover={{ y: -2 }}
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full">
+                                    <div className="flex-1">
+                                        <h3 className="text-base sm:text-lg font-bold text-amber-100 group-hover:text-yellow-300 transition-colors drop-shadow mb-1">
+                                            {game.title}
+                                        </h3>
+                                        <p className="text-amber-200/80 text-sm group-hover:text-amber-200 transition-colors">
+                                            {game.description}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-3 flex-shrink-0">
+                                        <motion.span
+                                            className={`${getDifficultyColor(game.difficulty)} text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg border min-h-[28px] flex items-center
+                                                      group-hover:shadow-md transition-all duration-200`}
+                                            whileHover={{ scale: 1.05 }}
+                                        >
+                                            {game.difficulty}
+                                        </motion.span>
+                                        <div className="text-amber-300/80 text-sm whitespace-nowrap hidden sm:block">
+                                            보드게임
                                         </div>
-                                        <div className="flex items-center gap-3 flex-shrink-0">
-                                            <motion.span
-                                                className={`${getDifficultyColor(game.difficulty)} text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg border min-h-[28px] flex items-center
-                                                          group-hover:shadow-md transition-all duration-200`}
-                                                whileHover={{ scale: 1.05 }}
-                                            >
-                                                {game.difficulty}
-                                            </motion.span>
-                                            <div className="text-amber-300/80 text-sm whitespace-nowrap hidden sm:block">
-                                                보드게임
-                                            </div>
-                                            <motion.div 
-                                                className="text-yellow-400 group-hover:text-yellow-300 transition-colors text-xl"
-                                                animate={{ 
-                                                    rotate: [0, 10, -10, 0]
-                                                }}
-                                                transition={{ 
-                                                    duration: 2,
-                                                    repeat: Infinity,
-                                                    ease: "easeInOut"
-                                                }}
-                                            >
-                                                ⚡
-                                            </motion.div>
+                                        <div className="text-yellow-400 group-hover:text-yellow-300 transition-colors text-xl">
+                                            ⚡
                                         </div>
                                     </div>
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
+                                </div>
+                            </motion.div>
+                        ))}
+
+                        {/* 검색 결과 제한 안내 */}
+                        {games.length >= 50 && (
+                            <motion.div
+                                className="text-center py-4"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.5 }}
+                            >
+                                <div className="text-amber-400/70 text-sm">
+                                    📊 성능 최적화를 위해 상위 50개 결과만 표시됩니다
+                                </div>
+                                <div className="text-amber-500/60 text-xs mt-1">
+                                    더 구체적인 검색어로 원하는 게임을 찾아보세요
+                                </div>
+                            </motion.div>
+                        )}
                     </div>
                 ) : (
-                    <motion.div 
+                    <motion.div
                         className="text-center py-12"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.5 }}
                     >
                         <div className="glass-card rounded-2xl p-8 max-w-md mx-auto hover:scale-105 transition-all duration-300">
-                            <motion.div 
+                            <motion.div
                                 className="text-5xl mb-4"
-                                animate={{ 
+                                animate={{
                                     scale: [1, 1.1, 1],
                                     rotate: [0, -10, 10, 0]
                                 }}
-                                transition={{ 
+                                transition={{
                                     duration: 2,
                                     repeat: Infinity,
                                     ease: "easeInOut"

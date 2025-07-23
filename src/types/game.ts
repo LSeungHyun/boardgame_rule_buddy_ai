@@ -80,9 +80,19 @@ export interface GameDataConfig {
 }
 
 export interface GameSelectionProps {
-    search: SearchConfig;
-    ui: UIConfig;
-    data: GameDataConfig;
+    search: {
+        term: string;
+        setTerm: (term: string) => void;
+        isSearching?: boolean; // 검색 중 상태 표시용
+    };
+    ui: {
+        isLoading: boolean;
+        error?: string | null;
+    };
+    data: {
+        games: Game[];
+        onSelectGame: (game: Game) => void;
+    };
 }
 
 export interface ChatMessageProps {

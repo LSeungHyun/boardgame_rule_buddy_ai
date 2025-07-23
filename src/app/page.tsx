@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import GameSelection from '@/components/GameSelection';
 import ChatScreen from '@/components/ChatScreen';
 import TranslationDebugger from '@/components/TranslationDebugger';
@@ -21,6 +21,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GameQuickActions } from '@/components/ui/game-quick-actions';
 
+// 🚀 성능 최적화 상수 - Context7 호환성
+const SEARCH_DEBOUNCE_DELAY = 300; // 디바운싱 지연시간 (ms)
+const MAX_SEARCH_RESULTS = 50; // 최대 검색 결과 수
+
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<'selection' | 'chat' | 'debug' | 'universal-beta'>('selection');
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
@@ -28,10 +32,13 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [researchStage, setResearchStage] = useState<ResearchStage>('analyzing');
   const [games, setGames] = useState<Game[]>([]);
-  const [filters, setFilters] = useState<GameFilters>({});
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sessionId, setSessionId] = useState<string>('');
+
+  // 🚀 검색 성능 최적화를 위한 상태
+  const [isSearching, setIsSearching] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>('');
 
   // Universal Rule Master (Beta) 상태
   const [universalBetaState, setUniversalBetaState] = useState<UniversalBetaState>({
@@ -44,19 +51,89 @@ export default function Home() {
   // Gemini API용 채팅 히스토리 (contents 포맷)
   const [geminiChatHistory, setGeminiChatHistory] = useState<GeminiContent[]>([]);
 
-  // Analytics 훅 초기화
-  const { trackGameSelection, trackGameSearch } = useGameSelectionTracking();
-  const { trackQuestionSubmitted, trackResearchUsed, trackAIResponse } = useQuestionTracking();
-  const { trackSessionStart, trackSessionEnd, trackUserExit, trackError } = useEngagementTracking();
+  // 🔧 Analytics 훅 초기화 - Context7 패턴으로 안정화
+  const analytics = useGameSelectionTracking();
+  const questionTracking = useQuestionTracking();
+  const engagementTracking = useEngagementTracking();
 
-  // 페이지뷰 추적
-  const pageMapping = {
+  // 🔧 Context7 베스트 프랙티스: 안정적인 함수 참조 생성
+  const trackGameSearch = useCallback((searchTerm: string, resultCount: number) => {
+    // Context7 패턴: 조건부 호출로 안정성 확보
+    if (analytics?.trackGameSearch) {
+      analytics.trackGameSearch(searchTerm, resultCount);
+    }
+  }, []); // 🔑 빈 의존성 배열로 함수 안정화
+
+  // 페이지뷰 추적 - Context7 호환성 최적화
+  const pageMapping = useMemo(() => ({
     'selection': '/',
     'chat': '/chat',
     'debug': '/debug',
     'universal-beta': '/universal-beta'
-  };
+  }), []);
+
   usePageView(pageMapping[currentPage]);
+
+  // 🚀 Context7 패턴: 디바운싱 최적화
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, SEARCH_DEBOUNCE_DELAY);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // 🔧 Context7 베스트 프랙티스: 검색 로직을 Effect 내부로 이동
+  useEffect(() => {
+    // Context7 패턴: 함수를 Effect 내부에서 정의하여 의존성 문제 해결
+    async function loadGames() {
+      try {
+        setLoadingError(null);
+
+        // 검색어가 없으면 빈 배열로 설정 (성능 최적화)
+        if (!debouncedSearchTerm.trim()) {
+          setGames([]);
+          setIsSearching(false);
+          return;
+        }
+
+        setIsSearching(true);
+        console.log('🔍 [검색 시작]', { 검색어: debouncedSearchTerm, 제한: MAX_SEARCH_RESULTS });
+
+        // Context7 패턴: 객체를 Effect 내부에서 생성
+        const searchFilters: GameFilters = {
+          searchTerm: debouncedSearchTerm.trim(),
+          limit: MAX_SEARCH_RESULTS
+        };
+
+        const fetchedGames = await fetchGames(searchFilters);
+        setGames(fetchedGames);
+
+        console.log('✅ [검색 완료]', {
+          검색어: debouncedSearchTerm,
+          결과수: fetchedGames.length,
+          제한: MAX_SEARCH_RESULTS
+        });
+
+        // Context7 패턴: 안정화된 함수 사용
+        if (debouncedSearchTerm.trim()) {
+          trackGameSearch(debouncedSearchTerm, fetchedGames.length);
+        }
+      } catch (error) {
+        console.error('❌ [검색 오류]', error);
+        const appError = errorHandler.handle(error, {
+          context: 'loading games',
+          action: 'fetchGames',
+          filters: { searchTerm: debouncedSearchTerm, limit: MAX_SEARCH_RESULTS }
+        });
+        setLoadingError(appError.message);
+      } finally {
+        setIsSearching(false);
+      }
+    }
+
+    loadGames();
+  }, [debouncedSearchTerm, trackGameSearch]); // ✅ 안정화된 의존성만 포함
 
   // 스크롤 위치 초기화 - 페이지 시작 시 최상단으로
   useEffect(() => {
@@ -65,28 +142,19 @@ export default function Home() {
     }
   }, [currentPage]);
 
-  useEffect(() => {
-    const loadGames = async () => {
-      try {
-        setLoadingError(null);
-        const searchFilters = { ...filters, searchTerm };
-        const fetchedGames = await fetchGames(searchFilters);
-        setGames(fetchedGames);
-      } catch (error) {
-        const appError = errorHandler.handle(error, {
-          context: 'loading games',
-          action: 'fetchGames',
-          filters: { ...filters, searchTerm }
-        });
-        setLoadingError(appError.message);
-      }
-    };
+  // 🚀 Context7 패턴: 검색어 변경 핸들러 최적화
+  const handleSearchTermChange = useCallback((newSearchTerm: string) => {
+    setSearchTerm(newSearchTerm);
 
-    loadGames();
-  }, [filters, searchTerm]);
+    // 검색어가 지워지면 즉시 결과 클리어 (UX 개선)
+    if (!newSearchTerm.trim()) {
+      setGames([]);
+      setDebouncedSearchTerm('');
+    }
+  }, []);
 
-  // Universal Beta 모드 활성화
-  const handleUniversalBetaToggle = () => {
+  // Universal Beta 모드 활성화 - Context7 최적화
+  const handleUniversalBetaToggle = useCallback(() => {
     console.log('🌟 [Universal Beta] 베타 모드 활성화');
 
     const newSessionId = `universal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -115,12 +183,14 @@ export default function Home() {
     setGeminiChatHistory([]);
     setCurrentPage('universal-beta');
 
-    // Analytics 추적
-    trackSessionStart(newSessionId);
-  };
+    // Context7 패턴: 안전한 함수 호출
+    if (engagementTracking?.trackSessionStart) {
+      engagementTracking.trackSessionStart(newSessionId);
+    }
+  }, [engagementTracking]);
 
-  // Universal Beta에서 일반 모드로 돌아가기
-  const handleBackToSelection = () => {
+  // Universal Beta에서 일반 모드로 돌아가기 - Context7 최적화
+  const handleBackToSelection = useCallback(() => {
     if (universalBetaState.isActive) {
       console.log('🔄 [Universal Beta] 일반 모드로 복귀');
       setUniversalBetaState({
@@ -136,10 +206,10 @@ export default function Home() {
     setSelectedGame(null);
     setMessages([]);
     setResearchStage('analyzing');
-  };
+  }, [universalBetaState.isActive]);
 
-  // 기존 게임 선택 핸들러
-  const handleGameSelect = (game: Game) => {
+  // 기존 게임 선택 핸들러 - Context7 최적화
+  const handleGameSelect = useCallback((game: Game) => {
     console.log('🎯 게임 선택:', game.title);
 
     // 중복 클릭 방지
@@ -152,9 +222,13 @@ export default function Home() {
     const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     setSessionId(newSessionId);
 
-    // Analytics: 게임 선택 추적
-    trackGameSelection(game.title, game.id.toString(), 'click');
-    trackSessionStart(newSessionId);
+    // Context7 패턴: 안전한 Analytics 호출
+    if (analytics?.trackGameSelection) {
+      analytics.trackGameSelection(game.title, game.id.toString(), 'click');
+    }
+    if (engagementTracking?.trackSessionStart) {
+      engagementTracking.trackSessionStart(newSessionId);
+    }
 
     setSelectedGame(game);
 
@@ -175,10 +249,10 @@ export default function Home() {
 
     setMessages([welcomeMessage]);
     setCurrentPage('chat');
-  };
+  }, [selectedGame, analytics, engagementTracking]);
 
-  // Universal Beta 메시지 전송 핸들러
-  const handleUniversalBetaSendMessage = async (content: string) => {
+  // Universal Beta 메시지 전송 핸들러 - Context7 최적화
+  const handleUniversalBetaSendMessage = useCallback(async (content: string) => {
     if (!universalBetaState.isActive) return;
 
     console.log('🌟 [Universal Beta] 메시지 처리:', {
@@ -202,7 +276,7 @@ export default function Home() {
 
         console.log('🎮 [Universal Beta] 게임명 설정:', gameName);
 
-        // 게임 컨텍스트 설정
+        // Context7 패턴: 객체를 함수 내부에서 생성
         const gameContext: GameContext = {
           gameName,
           setAt: new Date(),
@@ -309,10 +383,10 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [universalBetaState, geminiChatHistory]);
 
-  // 기존 메시지 전송 핸들러 (365게임 모드용)
-  const handleSendMessage = async (
+  // 기존 메시지 전송 핸들러 (365게임 모드용) - Context7 최적화
+  const handleSendMessage = useCallback(async (
     content: string,
     callbacks?: {
       onResearchStart?: () => void;
@@ -332,8 +406,10 @@ export default function Home() {
     setResearchStage('analyzing');
 
     try {
-      // Analytics: 질문 전송 추적
-      trackQuestionSubmitted(selectedGame.title, content.length, false);
+      // Context7 패턴: 안전한 Analytics 호출
+      if (questionTracking?.trackQuestionSubmitted) {
+        questionTracking.trackQuestionSubmitted(selectedGame.title, content.length, false);
+      }
 
       const startTime = Date.now();
 
@@ -342,7 +418,7 @@ export default function Home() {
         callbacks.onResearchStart();
       }
 
-      // 프로그레스 단계별 콜백 호출을 위한 시뮬레이션
+      // Context7 패턴: 함수를 내부에서 정의
       const simulateProgress = async () => {
         const stages: ResearchStage[] = [
           'analyzing',
@@ -374,11 +450,13 @@ export default function Home() {
 
       const responseTime = Date.now() - startTime;
 
-      // Analytics
-      if (typeof response !== 'string' && response.researchUsed) {
-        trackResearchUsed(selectedGame.title, response.complexity?.score || 0, responseTime);
+      // Context7 패턴: 안전한 Analytics 호출
+      if (typeof response !== 'string' && response.researchUsed && questionTracking?.trackResearchUsed) {
+        questionTracking.trackResearchUsed(selectedGame.title, response.complexity?.score || 0, responseTime);
       }
-      trackAIResponse(responseTime, true);
+      if (questionTracking?.trackAIResponse) {
+        questionTracking.trackAIResponse(responseTime, true);
+      }
 
       const aiMessage: ChatMessage = {
         role: 'assistant',
@@ -413,10 +491,10 @@ export default function Home() {
         callbacks.onComplete();
       }
     }
-  };
+  }, [selectedGame, sessionId, questionTracking]);
 
-  // Universal Beta 화면 렌더링
-  const renderUniversalBetaScreen = () => (
+  // Universal Beta 화면 렌더링 - Context7 최적화
+  const renderUniversalBetaScreen = useCallback(() => (
     <ResponsiveContainer maxWidth="xl" padding="md" className="min-h-screen">
       {/* 베타 헤더 */}
       <div className="mb-6">
@@ -458,7 +536,7 @@ export default function Home() {
         )}
       </div>
     </ResponsiveContainer>
-  );
+  ), [universalBetaState, messages, isLoading, handleBackToSelection, handleUniversalBetaSendMessage]);
 
   if (currentPage === 'debug') {
     return (
@@ -504,7 +582,8 @@ export default function Home() {
         <GameSelection
           search={{
             term: searchTerm,
-            setTerm: setSearchTerm
+            setTerm: handleSearchTermChange,
+            isSearching
           }}
           ui={{
             isLoading,
