@@ -104,26 +104,18 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
             // ✨ 메시지 전송 시 자동 스크롤 강제 활성화
             setShouldAutoScroll(true);
 
-            onSendMessage(input, {
-                onResearchStart: () => {
-                    setShowResearchStatus(true);
-                    setResearchStage('analyzing');
-                },
-                // 상위 컴포넌트에서 세분화된 stage(generating_logic 등)를 전달해야 합니다.
-                onResearchProgress: (stage: ResearchStage) => {
-                    setResearchStage(stage);
-                },
-                onComplete: () => {
-                    setProgress(100);
-                    setIsFinalizing(false);
-                    setTimeout(() => {
-                        setShowResearchStatus(false);
-                        setProgress(0);
-                        // ✨ 답변 완성 후 스크롤을 맨 아래로 이동
-                        scrollToBottom();
-                    }, 500);
-                }
-            });
+            // 리서치 상태 시뮬레이션
+            setShowResearchStatus(true);
+            setResearchStage('analyzing');
+            
+            onSendMessage(input);
+            
+            // 답변을 기다리는 동안의 진행 시뮬레이션
+            setTimeout(() => {
+                setShowResearchStatus(false);
+                setProgress(0);
+                scrollToBottom();
+            }, 1000);
             setInput('');
         }
     };
@@ -143,7 +135,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                     </button>
                     <div className="text-center">
                         <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent drop-shadow-sm">
-                            📖 {game.title}
+                            📖 {game?.title || '룰마스터 AI'}
                         </h2>
                         <p className="text-xs text-amber-300/80 font-medium">룰 마스터</p>
                     </div>

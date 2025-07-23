@@ -131,7 +131,7 @@ export interface ChatMessageProps {
 }
 
 export interface ChatScreenProps {
-    game: Game;
+    game: Game | null;
     onGoBack: () => void;
     messages: ChatMessage[];
     onSendMessage: (text: string, callbacks?: {
@@ -140,4 +140,5 @@ export interface ChatScreenProps {
         onComplete?: () => void;
     }) => void;
     isLoading: boolean;
+    onQuestionClick?: (question: string) => void;
 } 
