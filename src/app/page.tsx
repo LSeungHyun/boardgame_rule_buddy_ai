@@ -414,8 +414,8 @@ export default function Home() {
       const timestamp = localStorage.getItem('welcomeModalClosedTimestamp');
 
       if (!timestamp) {
-        // Delay modal appearance for better UX
-        setTimeout(() => setIsWelcomeModalOpen(true), 2000);
+        // Show modal immediately for better UX
+        setIsWelcomeModalOpen(true);
         return;
       }
 
@@ -428,7 +428,7 @@ export default function Home() {
         lastClosedTime.getDate() === now.getDate();
 
       if (!isSameDay) {
-        setTimeout(() => setIsWelcomeModalOpen(true), 2000);
+        setIsWelcomeModalOpen(true);
       }
     };
 

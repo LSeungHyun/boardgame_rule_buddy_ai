@@ -55,10 +55,6 @@ export function AnswerDisplay({ content, className, showSummaryOnly = false }: A
         <span className="text-2xl flex-shrink-0 mt-1">{ruleStyle.icon}</span>
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <span className={cn('text-sm font-medium px-2 py-1 rounded-full', ruleStyle.bg, ruleStyle.text)}>
-              {parsedAnswer.ruleType === 'basic' ? '기본 규칙' : 
-               parsedAnswer.ruleType === 'exception' ? '예외 사항' : '유용한 팁'}
-            </span>
             {parsedAnswer.importance === 'high' && (
               <span className="text-xs bg-red-500/20 text-red-200 px-2 py-1 rounded-full border border-red-400/30">
                 중요

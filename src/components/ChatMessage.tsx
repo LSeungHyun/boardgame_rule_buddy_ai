@@ -79,9 +79,11 @@ export default function ChatMessage({ message, game, userQuestion, messageIndex,
 
     const sanitizedHtml = message.role === 'assistant' ? marked(message.content) : message.content;
 
-    // 환영 메시지는 피드백 제외
+    // 환경 메시지는 피드백 제외 - 진짜 간단한 환영 메시지만 해당
     const isWelcomeMessage = message.role === 'assistant' &&
-        (message.content.includes('룰 마스터입니다') || message.content.includes('무엇이든 물어보세요'));
+        message.content.includes('무엇이든 물어보세요') && 
+        !message.content.includes('룰 마스터입니다') &&
+        !message.content.includes('Universal Rule Master (Beta)');
 
     // 첫 번째 게임 답변인지 확인 (게임 전문 룰마스터 소개 메시지 또는 Universal Rule Master Beta 첫 답변)
     const isFirstGameAnswer = message.role === 'assistant' && (

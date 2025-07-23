@@ -572,15 +572,15 @@ export default function UnifiedFeedbackModal({
                     <DialogContent className="sm:max-w-lg w-[95vw] max-h-[90vh] overflow-hidden border-0 p-0 bg-transparent shadow-none">
                         <motion.div
                             className="relative rounded-3xl p-4 md:p-6 overflow-hidden"
-                            style={{
-                                background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 60px rgba(99, 102, 241, 0.2)',
-                            }}
+                                                    style={{
+                            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 60px rgba(99, 102, 241, 0.2)',
+                        }}
                             initial={{ opacity: 0, scale: 0.9, y: 50 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 50 }}
-                            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
                         >
                             {/* Floating Particles */}
                             <ModalFloatingParticles />
@@ -623,14 +623,14 @@ export default function UnifiedFeedbackModal({
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.2, duration: 0.6 }}
+                                    transition={{ delay: 0.1, duration: 0.4 }}
                                 >
                                     <DialogTitle className="text-center mb-4">
                                         <motion.div
                                             className="flex items-center justify-center gap-3 mb-2"
                                             initial={{ opacity: 0, scale: 0.9 }}
                                             animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: 0.3, duration: 0.8 }}
+                                            transition={{ delay: 0.15, duration: 0.4 }}
                                         >
                                             <motion.div
                                                 animate={{ 
@@ -654,7 +654,7 @@ export default function UnifiedFeedbackModal({
                                             className="text-center"
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.6, duration: 0.6 }}
+                                            transition={{ delay: 0.3, duration: 0.4 }}
                                         >
                                             <p className="text-sm md:text-base text-slate-300/90 leading-relaxed">
                                                 {step === 'quick' 
@@ -686,12 +686,12 @@ export default function UnifiedFeedbackModal({
                                         disabled={isSubmitting}
                                         className="p-3 rounded-2xl glass-card-premium hover-premium transition-all duration-300 active:scale-95 group"
                                         style={{
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            background: 'rgba(255, 255, 255, 0.08)',
+                                            border: '1px solid rgba(255, 255, 255, 0.15)',
                                         }}
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
-                                        transition={{ delay: 0.8 + index * 0.1 }}
+                                        transition={{ delay: 0.4 + index * 0.05 }}
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                     >
@@ -720,7 +720,7 @@ export default function UnifiedFeedbackModal({
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                transition={{ delay: 0.6 }}
+                                transition={{ delay: 0.3 }}
                             >
                                 <PremiumButton
                                     onClick={() => setStep('detailed')}
@@ -736,11 +736,11 @@ export default function UnifiedFeedbackModal({
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
-                                    transition={{ delay: 1.2 }}
+                                    transition={{ delay: 0.6 }}
                                     className="mt-6 p-4 rounded-2xl relative z-10"
                                     style={{
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        background: 'rgba(255, 255, 255, 0.08)',
+                                        border: '1px solid rgba(255, 255, 255, 0.15)',
                                     }}
                                 >
                                     <div className="text-sm font-medium mb-3 text-slate-200 flex items-center gap-2">
@@ -759,7 +759,7 @@ export default function UnifiedFeedbackModal({
                                                 className={`w-full text-left p-3 rounded-xl ${category.color} hover:opacity-80 transition-all duration-200 hover:scale-[1.02]`}
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
-                                                transition={{ delay: 1.4 + index * 0.1 }}
+                                                transition={{ delay: 0.7 + index * 0.05 }}
                                                 whileHover={{ scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
                                             >
@@ -822,7 +822,7 @@ export default function UnifiedFeedbackModal({
                                     className="flex gap-3 pt-4"
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.8, duration: 0.6 }}
+                                    transition={{ delay: 0.4, duration: 0.4 }}
                                 >
                                     <PremiumButton
                                         onClick={handleGoBack}
@@ -860,9 +860,9 @@ export default function UnifiedFeedbackModal({
                                 className="text-xs text-slate-400/80 border-t border-slate-400/20 pt-4 mt-6 text-center relative z-10"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                transition={{ delay: 1.0, duration: 0.6 }}
+                                transition={{ delay: 0.6, duration: 0.4 }}
                             >
-                                💡 <strong className="text-slate-300">팁:</strong> 빠른 피드백은 앱 개선에 큰 도움이 됩니다!
+                                💝 소중한 피드백은 서비스 개선에 큰 도움이 됩니다! 정말 감사합니다!
                             </motion.div>
                         </motion.div>
                     </DialogContent>

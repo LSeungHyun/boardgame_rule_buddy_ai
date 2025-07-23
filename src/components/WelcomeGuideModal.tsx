@@ -87,8 +87,8 @@ const FeatureCard = ({ item, index }: {
                 scale: 0.9
             }}
             transition={{
-                delay: 0.3 + index * 0.1,
-                duration: 0.6,
+                delay: 0.1 + index * 0.05,
+                duration: 0.3,
                 ease: [0.23, 1, 0.32, 1]
             }}
             whileHover={{
@@ -270,7 +270,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                             initial={{ opacity: 0, scale: 0.9, y: 50 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 50 }}
-                            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
                         >
                             {/* Floating Particles */}
                             <ModalFloatingParticles />
@@ -313,14 +313,14 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.2, duration: 0.6 }}
+                                    transition={{ delay: 0.1, duration: 0.4 }}
                                 >
                                     <DialogTitle className="text-center mb-4">
                                         <motion.span
                                             className="block text-2xl md:text-3xl font-bold gradient-text-premium drop-shadow-2xl"
                                             initial={{ opacity: 0, scale: 0.9 }}
                                             animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: 0.3, duration: 0.8 }}
+                                            transition={{ delay: 0.15, duration: 0.4 }}
                                         >
                                             룰마스터 AI에 오신 것을 환영합니다!
                                         </motion.span>
@@ -332,7 +332,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                             }}
                                             initial={{ opacity: 0, scale: 0.8 }}
                                             animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: 0.5, duration: 0.6 }}
+                                            transition={{ delay: 0.25, duration: 0.4 }}
                                         >
                                             <span className="text-sm font-medium text-primary-300">Beta</span>
                                             <motion.span
@@ -349,7 +349,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                             className="text-center"
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.6, duration: 0.6 }}
+                                            transition={{ delay: 0.3, duration: 0.4 }}
                                         >
                                             <p className="text-base md:text-lg text-slate-300/90 leading-relaxed">
                                                 보드게임 규칙이 궁금할 때, AI에게 바로 물어보세요.
@@ -363,14 +363,14 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                 className="space-y-4 py-4 relative z-10"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                transition={{ delay: 0.8, duration: 0.6 }}
+                                transition={{ delay: 0.4, duration: 0.4 }}
                             >
                                 {/* Usage Guide */}
                                 <motion.div
                                     className="space-y-4"
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 1.2, duration: 0.6 }}
+                                    transition={{ delay: 0.6, duration: 0.4 }}
                                 >
                                     <div className="rounded-2xl p-4" style={{
                                         background: 'rgba(255, 255, 255, 0.05)',
@@ -385,7 +385,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                                 className="flex gap-2 items-start"
                                                 initial={{ opacity: 0, x: -20 }}
                                                 animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 1.4, duration: 0.5 }}
+                                                transition={{ delay: 0.7, duration: 0.3 }}
                                             >
                                                 <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-500/20 border border-primary-400/30 flex items-center justify-center text-xs font-bold text-primary-300">
                                                     1
@@ -398,7 +398,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                                 className="flex gap-2 items-start"
                                                 initial={{ opacity: 0, x: -20 }}
                                                 animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 1.6, duration: 0.5 }}
+                                                transition={{ delay: 0.8, duration: 0.3 }}
                                             >
                                                 <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-500/20 border border-primary-400/30 flex items-center justify-center text-xs font-bold text-primary-300">
                                                     2
@@ -423,7 +423,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                                 className="flex gap-2 items-start"
                                                 initial={{ opacity: 0, x: -20 }}
                                                 animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 1.8, duration: 0.5 }}
+                                                transition={{ delay: 0.9, duration: 0.3 }}
                                             >
                                                 <span className="flex-shrink-0 w-2 h-2 rounded-full bg-emerald-400 mt-1.5"></span>
                                                 <span>
@@ -434,7 +434,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                                 className="flex gap-2 items-start"
                                                 initial={{ opacity: 0, x: -20 }}
                                                 animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 2.0, duration: 0.5 }}
+                                                transition={{ delay: 1.0, duration: 0.3 }}
                                             >
                                                 <span className="flex-shrink-0 w-2 h-2 rounded-full bg-amber-400 mt-1.5"></span>
                                                 <span>
@@ -445,7 +445,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                                 className="flex gap-2 items-start"
                                                 initial={{ opacity: 0, x: -20 }}
                                                 animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 2.2, duration: 0.5 }}
+                                                transition={{ delay: 1.1, duration: 0.3 }}
                                             >
                                                 <span className="flex-shrink-0 w-2 h-2 rounded-full bg-primary-400 mt-1.5"></span>
                                                 <span>
@@ -462,7 +462,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                     className="flex items-center space-x-3"
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 2.4, duration: 0.6 }}
+                                    transition={{ delay: 1.2, duration: 0.4 }}
                                 >
                                     <Checkbox
                                         id="dont-show-again"
@@ -480,7 +480,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 2.6, duration: 0.6 }}
+                                    transition={{ delay: 1.3, duration: 0.4 }}
                                 >
                                     <PremiumButton onClick={handleClose}>
                                         확인하고 시작하기 ✨
