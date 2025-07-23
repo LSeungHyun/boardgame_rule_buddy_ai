@@ -29,6 +29,7 @@ export default function Home() {
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sessionId, setSessionId] = useState<string>('');
+  const [isSearching, setIsSearching] = useState(false);
 
   // Analytics 훅 초기화
   const { trackGameSelection, trackGameSearch } = useGameSelectionTracking();
@@ -45,11 +46,20 @@ export default function Home() {
     }
   }, [currentPage]);
 
+  // 디바운싱된 검색 로직
   useEffect(() => {
-    const loadGames = async () => {
+    // 검색어가 없으면 게임 목록 초기화
+    if (!searchTerm.trim()) {
+      setGames([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const timeoutId = setTimeout(async () => {
       try {
         setLoadingError(null);
-        const searchFilters = { ...filters, searchTerm };
+        const searchFilters = { ...filters, searchTerm: searchTerm.trim() };
         const fetchedGames = await fetchGames(searchFilters);
         setGames(fetchedGames);
       } catch (error) {
@@ -59,11 +69,13 @@ export default function Home() {
           filters: { ...filters, searchTerm }
         });
         setLoadingError(appError.message);
+      } finally {
+        setIsSearching(false);
       }
-    };
+    }, 300); // 300ms 디바운싱
 
-    loadGames();
-  }, [filters, searchTerm]);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, filters]);
 
   const handleGameSelect = (game: Game) => {
     console.log('🎯 게임 선택:', game.title);
@@ -281,7 +293,7 @@ export default function Home() {
               setTerm: setSearchTerm
             }}
             ui={{
-              isLoading: false
+              isLoading: isSearching
             }}
             data={{
               games,

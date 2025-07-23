@@ -15,6 +15,14 @@ export const fetchGames = async (filters?: GameFilters): Promise<Game[]> => {
             .not('game_id', 'is', null)
             .order('game_id', { ascending: true });
 
+        // 검색어가 있는 경우 데이터베이스 레벨에서 기본 필터링
+        if (filters?.searchTerm && filters.searchTerm.trim()) {
+            const searchTerm = filters.searchTerm.trim();
+            
+            // 데이터베이스에서 기본 텍스트 검색 (LIKE 연산자 사용)
+            query = query.or(`title.ilike.%${searchTerm}%,publisher.ilike.%${searchTerm}%`);
+        }
+
         const { data, error } = await query;
 
         if (error) {
@@ -38,15 +46,17 @@ export const fetchGames = async (filters?: GameFilters): Promise<Game[]> => {
             createdAt: game.created_at,
         }));
 
-        // 클라이언트 사이드에서 초성 검색 필터링
-        if (filters?.searchTerm) {
+        // 클라이언트 사이드에서 초성 검색 추가 필터링 (데이터베이스에서 누락된 것)
+        if (filters?.searchTerm && filters.searchTerm.trim()) {
             games = games.filter(game =>
                 isKoreanSearchMatch(filters.searchTerm!, game.title) ||
                 (game.publisher && isKoreanSearchMatch(filters.searchTerm!, game.publisher))
             );
         }
 
-        return games;
+        // 검색 결과 제한 (성능 최적화)
+        const MAX_RESULTS = 50;
+        return games.slice(0, MAX_RESULTS);
     } catch (error) {
         // 이미 AppError인 경우 그대로 throw, 아닌 경우 변환
         throw errorHandler.handle(error, { function: 'fetchGames', filters });

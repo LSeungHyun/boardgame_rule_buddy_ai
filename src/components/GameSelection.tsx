@@ -247,28 +247,17 @@ placeholder="게임 이름을 입력하세요 (예: 루미큐브, ㄹㅁㅋ)"
                     <LoadingSkeleton />
                 ) : games.length > 0 ? (
                     <div className="space-y-3">
-                        <AnimatePresence>
-                            {games.map((game, index) => (
-                                <motion.div
-                                    key={game.id}
-                                    className="game-card rounded-xl p-4 cursor-pointer group min-h-[80px] flex items-center
-                                             hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/10 
-                                             transition-all duration-300 ease-out
-                                             border border-transparent hover:border-amber-400/30"
-                                    onClick={() => {
-                                        onSelectGame(game);
-                                    }}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    transition={{ 
-                                        delay: index * 0.05, 
-                                        duration: 0.4,
-                                        ease: "easeOut"
-                                    }}
-                                    whileHover={{ y: -2 }}
-                                    whileTap={{ scale: 0.98 }}
-                                >
+                        {games.map((game, index) => (
+                            <div
+                                key={game.id}
+                                className="game-card rounded-xl p-4 cursor-pointer group min-h-[80px] flex items-center
+                                         hover:scale-[1.01] hover:shadow-lg hover:shadow-amber-500/10 
+                                         transition-all duration-200 ease-out
+                                         border border-transparent hover:border-amber-400/30"
+                                onClick={() => {
+                                    onSelectGame(game);
+                                }}
+                            >
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full">
                                         <div className="flex-1">
                                             <h3 className="text-base sm:text-lg font-bold text-amber-100 group-hover:text-yellow-300 transition-colors drop-shadow mb-1">
@@ -279,34 +268,22 @@ placeholder="게임 이름을 입력하세요 (예: 루미큐브, ㄹㅁㅋ)"
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-3 flex-shrink-0">
-                                            <motion.span
+                                            <span
                                                 className={`${getDifficultyColor(game.difficulty)} text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg border min-h-[28px] flex items-center
                                                           group-hover:shadow-md transition-all duration-200`}
-                                                whileHover={{ scale: 1.05 }}
                                             >
                                                 {game.difficulty}
-                                            </motion.span>
+                                            </span>
                                             <div className="text-amber-300/80 text-sm whitespace-nowrap hidden sm:block">
                                                 보드게임
                                             </div>
-                                            <motion.div 
-                                                className="text-yellow-400 group-hover:text-yellow-300 transition-colors text-xl"
-                                                animate={{ 
-                                                    rotate: [0, 10, -10, 0]
-                                                }}
-                                                transition={{ 
-                                                    duration: 2,
-                                                    repeat: Infinity,
-                                                    ease: "easeInOut"
-                                                }}
-                                            >
+                                            <div className="text-yellow-400 group-hover:text-yellow-300 transition-colors text-xl">
                                                 ⚡
-                                            </motion.div>
+                                            </div>
                                         </div>
                                     </div>
-                                </motion.div>
+                                </div>
                             ))}
-                        </AnimatePresence>
                     </div>
                 ) : (
                     <motion.div 
@@ -332,7 +309,7 @@ placeholder="게임 이름을 입력하세요 (예: 루미큐브, ㄹㅁㅋ)"
                             </motion.div>
                             <h3 className="text-xl font-semibold text-amber-100 mb-2">검색 결과가 없습니다</h3>
                             <p className="text-amber-200/80 mb-4">
-                                다른 검색어나 카테고리로 시도해보세요
+                                다른 검색어로 시도해보세요
                             </p>
                             <motion.button
                                 onClick={clearAllFilters}
