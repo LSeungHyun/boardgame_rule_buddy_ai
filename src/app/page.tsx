@@ -1,12 +1,52 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import WelcomeGuideModal from '@/components/WelcomeGuideModal';
 
 export default function Home() {
   const router = useRouter();
   const [gameName, setGameName] = useState('');
+  const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState<boolean>(false);
+
+  // Welcome Modal 표시 여부 결정 로직
+  useEffect(() => {
+    const checkWelcomeModalVisibility = () => {
+      const timestamp = localStorage.getItem('welcomeModalClosedTimestamp');
+
+      if (!timestamp) {
+        // 타임스탬프가 없으면 첫 방문이므로 모달 표시
+        setIsWelcomeModalOpen(true);
+        return;
+      }
+
+      const lastClosedTime = new Date(parseInt(timestamp));
+      const now = new Date();
+
+      // 같은 날인지 확인 (년, 월, 일이 모두 같은지 체크)
+      const isSameDay =
+        lastClosedTime.getFullYear() === now.getFullYear() &&
+        lastClosedTime.getMonth() === now.getMonth() &&
+        lastClosedTime.getDate() === now.getDate();
+
+      if (!isSameDay) {
+        // 다른 날이면 모달 표시
+        setIsWelcomeModalOpen(true);
+      }
+    };
+
+    checkWelcomeModalVisibility();
+  }, []);
+
+  // Welcome Modal 닫기 핸들러
+  const handleCloseWelcomeModal = (dontShowAgain: boolean) => {
+    if (dontShowAgain) {
+      // 현재 타임스탬프 저장
+      localStorage.setItem('welcomeModalClosedTimestamp', new Date().getTime().toString());
+    }
+    setIsWelcomeModalOpen(false);
+  };
 
   // 엔터키 처리 및 게임명으로 rulemaster 페이지 이동
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -139,8 +179,8 @@ export default function Home() {
               aria-label="게임 검색 시작"
             >
               <div className={`text-xl transition-colors duration-200 ${gameName.trim()
-                  ? 'text-blue-500 hover:text-blue-600'
-                  : 'text-slate-400'
+                ? 'text-blue-500 hover:text-blue-600'
+                : 'text-slate-400'
                 }`}>
                 🎲
               </div>
@@ -171,7 +211,6 @@ export default function Home() {
                   key={game}
                   onClick={() => {
                     setGameName(game);
-                    handleSubmit();
                   }}
                   className="px-3 py-1 bg-slate-700/50 hover:bg-slate-600/70 text-slate-300 rounded-full text-sm transition-all duration-200 hover:scale-105"
                 >
@@ -183,7 +222,11 @@ export default function Home() {
         </motion.div>
       </div>
 
-
+      {/* Welcome Guide Modal */}
+      <WelcomeGuideModal
+        isOpen={isWelcomeModalOpen}
+        onClose={handleCloseWelcomeModal}
+      />
     </div>
   );
 }
