@@ -7,6 +7,7 @@
 
 import { GameRepository } from '@/usecases/game-search';
 import { GameEntity, GameCategoryType, GameDifficulty } from '@/domain/entities/game';
+import { GameCategoryInferenceService, DefaultGameCategoryInferenceService } from '@/domain/services/game-category-inference.service';
 import { fetchGames, GameFilters } from '@/features/games/api';
 import { Game } from '@/types/game';
 
@@ -14,79 +15,38 @@ import { Game } from '@/types/game';
  * 기존 Game 타입을 GameEntity로 변환하는 어댑터
  */
 export class GameRepositoryAdapter implements GameRepository {
+  private categoryInferenceService: GameCategoryInferenceService;
+
+  constructor(categoryInferenceService?: GameCategoryInferenceService) {
+    this.categoryInferenceService = categoryInferenceService || new DefaultGameCategoryInferenceService();
+  }
   
   /**
    * 기존 Game 객체를 GameEntity로 변환
    */
   private mapToGameEntity(game: Game): GameEntity {
     return {
-      id: game.id,
+      id: game.gameId || parseInt(game.id) || 0, // gameId 우선, 없으면 id를 숫자로 변환, 실패시 0
       title: game.title,
       description: game.description,
       difficulty: game.difficulty as GameDifficulty,
-      categories: this.inferCategories(game), // 카테고리 추론 로직
+      categories: this.categoryInferenceService.inferCategories(game), // Domain 서비스 사용
       playerCount: {
         min: 2, // 기본값 (실제로는 게임 데이터에서 가져와야 함)
-        max: 4
+        max: 6
       },
       playingTime: {
         min: 30, // 기본값
-        max: 90
+        max: 120
       },
-      age: 10, // 기본값
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      age: 12, // 기본값
+      isActive: game.isActive !== false, // undefined면 true로 처리
+      createdAt: new Date(game.createdAt || Date.now()),
+      updatedAt: new Date(Date.now())
     };
   }
 
-  /**
-   * 게임 제목과 설명을 기반으로 카테고리를 추론
-   * 실제 프로덕션에서는 데이터베이스에 카테고리 정보가 있어야 함
-   */
-  private inferCategories(game: Game): GameCategoryType[] {
-    const categories: GameCategoryType[] = [];
-    const titleAndDesc = (game.title + ' ' + game.description).toLowerCase();
 
-    // 간단한 키워드 기반 카테고리 추론
-    if (titleAndDesc.includes('strategy') || titleAndDesc.includes('전략') || 
-        titleAndDesc.includes('empire') || titleAndDesc.includes('civilization')) {
-      categories.push('strategy');
-    }
-
-    if (titleAndDesc.includes('card') || titleAndDesc.includes('카드') ||
-        titleAndDesc.includes('deck') || titleAndDesc.includes('hand')) {
-      categories.push('card');
-    }
-
-    if (titleAndDesc.includes('family') || titleAndDesc.includes('가족') ||
-        titleAndDesc.includes('children') || titleAndDesc.includes('kids') ||
-        game.difficulty === 'Very Easy' || game.difficulty === 'Easy') {
-      categories.push('family');
-    }
-
-    if (titleAndDesc.includes('puzzle') || titleAndDesc.includes('퍼즐') ||
-        titleAndDesc.includes('logic') || titleAndDesc.includes('brain')) {
-      categories.push('puzzle');
-    }
-
-    if (titleAndDesc.includes('party') || titleAndDesc.includes('파티') ||
-        titleAndDesc.includes('social') || titleAndDesc.includes('group')) {
-      categories.push('party');
-    }
-
-    if (titleAndDesc.includes('coop') || titleAndDesc.includes('협력') ||
-        titleAndDesc.includes('cooperative') || titleAndDesc.includes('together')) {
-      categories.push('coop');
-    }
-
-    // 카테고리가 없으면 전략게임으로 기본 분류
-    if (categories.length === 0) {
-      categories.push('strategy');
-    }
-
-    return categories;
-  }
 
   /**
    * 모든 게임 조회
@@ -107,7 +67,10 @@ export class GameRepositoryAdapter implements GameRepository {
   async findById(id: number): Promise<GameEntity | null> {
     try {
       const games = await fetchGames({});
-      const game = games.find(g => g.id === id);
+      // gameId 또는 id를 숫자로 변환해서 비교
+      const game = games.find(g => 
+        g.gameId === id || parseInt(g.id) === id
+      );
       return game ? this.mapToGameEntity(game) : null;
     } catch (error) {
       console.error('게임 상세 조회 실패:', error);

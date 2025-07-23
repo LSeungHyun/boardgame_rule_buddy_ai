@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { gameSetupService } from '@/lib/game-setup-service';
-import { GameSetupGuide, SetupStep, SetupProgress, GameVariant } from '@/types/game-setup';
+import type { GameSetupGuide as GameSetupGuideType, SetupStep, SetupProgress, GameVariant } from '@/types/game-setup';
 import { AccordionSection } from './accordion-section';
 import VisualSetupGuide from '@/components/game-setup/visual-setup-guide';
 import { Button } from './button';
@@ -25,7 +25,7 @@ export function GameSetupGuideComponent({
   onClose,
   className
 }: GameSetupGuideProps) {
-  const [guide, setGuide] = useState<GameSetupGuide | null>(null);
+  const [guide, setGuide] = useState<GameSetupGuideType | null>(null);
   const [steps, setSteps] = useState<SetupStep[]>([]);
   const [progress, setProgress] = useState<SetupProgress>({
     gameId,
@@ -446,3 +446,6 @@ function SetupStepCard({
     </motion.div>
   );
 }
+
+// 기본 export도 추가
+export default GameSetupGuideComponent;

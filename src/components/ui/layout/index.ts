@@ -10,7 +10,7 @@ export { MobileNavigation } from '../mobile-navigation';
 export { ResponsiveContainer } from '../responsive-container';
 
 // 로딩 및 상태 컴포넌트
-export { LoadingStates } from '../loading-states';
+// LoadingStates 컴포넌트는 존재하지 않으므로 제거
 export { 
   GameSelectionSuspense, 
   ChatScreenSuspense, 

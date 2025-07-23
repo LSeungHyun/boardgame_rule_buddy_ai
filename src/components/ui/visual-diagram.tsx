@@ -197,4 +197,5 @@ const VisualDiagram: React.FC<DiagramProps> = ({
   );
 };
 
+export { VisualDiagram };
 export default VisualDiagram;

@@ -21,8 +21,8 @@ export * from './game-setup';
 // 공유 컴포넌트
 export * from './shared';
 
-// 예시 컴포넌트
-export * from './examples';
+// 예시 컴포넌트 (현재 없음)
+// export * from './examples';
 
 // 도구 및 유틸리티 컴포넌트
 export * from './tools';

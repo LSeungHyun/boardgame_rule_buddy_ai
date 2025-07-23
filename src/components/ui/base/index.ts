@@ -52,6 +52,6 @@ export {
   SheetTrigger
 } from '../sheet';
 
-// 알림 컴포넌트
-export { toast, useToast } from '../toast';
+// 알림 컴포넌트 (훅은 별도 경로에서 import)
+export { toast, useToast } from '../../../hooks/use-toast';
 export { Toaster } from '../toaster';

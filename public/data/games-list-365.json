@@ -1,0 +1,1880 @@
+{
+  "metadata": {
+    "source": "Supabase rule-master database",
+    "date": "2025-01-23",
+    "description": "365개 보드게임 전체 목록 - Supabase 난이도 정보 통합 완료",
+    "total_games": 365,
+    "project_id": "qycehjnsonhotbqowlln",
+    "table": "games",
+    "note": "game_id 순서로 정렬된 게임 제목 목록",
+    "lastUpdated": "2025-07-19T11:40:11.045Z",
+    "difficultyLevels": [
+      "Very Easy",
+      "Easy",
+      "Normal",
+      "Semi-Hard",
+      "Hard",
+      "Extreme"
+    ],
+    "difficultyDistribution": {
+      "Semi-Hard": 23,
+      "Normal": 81,
+      "Very Easy": 106,
+      "Easy": 144,
+      "Extreme": 3,
+      "Hard": 8
+    }
+  },
+  "games": [
+    {
+      "id": 1,
+      "title": "세븐원더스 : 듀얼",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 2,
+      "title": "피아이",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 3,
+      "title": "개조심",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 4,
+      "title": "고스트",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 5,
+      "title": "노땡스",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 6,
+      "title": "다빈치코드",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 7,
+      "title": "닥터유레카",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 8,
+      "title": "달무티",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 9,
+      "title": "더게임",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 10,
+      "title": "데드오브윈터",
+      "difficulty": "Extreme"
+    },
+    {
+      "id": 11,
+      "title": "도블",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 12,
+      "title": "드렉사우",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 13,
+      "title": "라비린스",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 14,
+      "title": "라스베가스",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 15,
+      "title": "라온",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 16,
+      "title": "러시아워",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 17,
+      "title": "러시아워쉬프트",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 18,
+      "title": "시퀀스",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 19,
+      "title": "레지스탕스 아발론",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 20,
+      "title": "레지스탕스:쿠",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 21,
+      "title": "렉시오",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 22,
+      "title": "로보77",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 23,
+      "title": "루미큐브",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 24,
+      "title": "루핑루이",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 25,
+      "title": "마닐라",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 26,
+      "title": "마라케시",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 27,
+      "title": "마법의미로",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 28,
+      "title": "서바이브",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 29,
+      "title": "마헤",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 30,
+      "title": "맨해튼",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 31,
+      "title": "나방속이기 (장난꾸러기 나방)",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 32,
+      "title": "모노폴리",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 33,
+      "title": "모던아트",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 34,
+      "title": "미니빌",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 35,
+      "title": "미니빌:그린밸리",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 36,
+      "title": "미니빌:항구",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 37,
+      "title": "미스터잭",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 38,
+      "title": "미스터잭 포켓",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 39,
+      "title": "바운스오프",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 40,
+      "title": "바퀴벌레 샐러드",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 41,
+      "title": "바퀴벌레포커",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 42,
+      "title": "배틀쉽",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 43,
+      "title": "뱅",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 44,
+      "title": "텔레스트레이션",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 45,
+      "title": "뱅:다이스",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 46,
+      "title": "뱅:닷지시티",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 47,
+      "title": "웰컴백 투더 던전",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 48,
+      "title": "보난자",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 49,
+      "title": "부루마불",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 50,
+      "title": "블로커스",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 51,
+      "title": "블리츠",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 52,
+      "title": "사무라이",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 53,
+      "title": "사보타지",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 54,
+      "title": "석기시대",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 55,
+      "title": "선물입니다",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 56,
+      "title": "세트",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 57,
+      "title": "셜록13",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 58,
+      "title": "쇼텐토텐",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 59,
+      "title": "숲속의음악대",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 60,
+      "title": "슈퍼라이노",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 61,
+      "title": "스크래블",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 62,
+      "title": "스트라테고",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 63,
+      "title": "스트림스",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 64,
+      "title": "스티키스틱스",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 65,
+      "title": "스파이폴",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 66,
+      "title": "스플렌더",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 67,
+      "title": "신의한수",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 68,
+      "title": "아발론",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 69,
+      "title": "아브라카왓",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 70,
+      "title": "아임더보스",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 71,
+      "title": "와이어트어프",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 72,
+      "title": "우노",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 73,
+      "title": "위너스서클",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 74,
+      "title": "이매진",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 75,
+      "title": "장기",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 76,
+      "title": "스타워즈 : 덱빌딩 게임",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 77,
+      "title": "젝스님트",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 78,
+      "title": "젠가",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 79,
+      "title": "젬블로",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 80,
+      "title": "마법사와 움직이는 탑",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 81,
+      "title": "차이나타운",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 82,
+      "title": "챠오챠오",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 83,
+      "title": "체스 앤 체커스",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 84,
+      "title": "카르카손",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 85,
+      "title": "카탄:도시와기사",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 86,
+      "title": "카탄:항해사",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 87,
+      "title": "카탄:5-6인확장",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 88,
+      "title": "컬러레또",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 89,
+      "title": "컴팩트컬링",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 90,
+      "title": "컴플레또",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 91,
+      "title": "티켓투라이드 : 유럽",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 92,
+      "title": "코드777",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 93,
+      "title": "코코너츠",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 94,
+      "title": "티켓투라이드 : 노르딕컨트리",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 95,
+      "title": "쿼클",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 96,
+      "title": "퀵소",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 97,
+      "title": "클라스크",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 98,
+      "title": "클루",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 99,
+      "title": "타르기",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 100,
+      "title": "타뷸라의늑대",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 101,
+      "title": "타임라인:한국사",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 102,
+      "title": "타임라인",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 103,
+      "title": "터틀블럭",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 104,
+      "title": "텀블링다이스",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 105,
+      "title": "텀블링몽키",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 106,
+      "title": "꼬꼬미노",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 107,
+      "title": "톡톡우드맨",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 108,
+      "title": "티켓투라이드",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 109,
+      "title": "티키토플",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 110,
+      "title": "파라오코드",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 111,
+      "title": "팬데믹",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 112,
+      "title": "퍼레이드",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 113,
+      "title": "링코",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 114,
+      "title": "펭귄팡팡 (펭귄트랩)",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 115,
+      "title": "포세일",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 116,
+      "title": "피치카",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 117,
+      "title": "디셉션 : 홍콩 살인 사건",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 118,
+      "title": "한밤의 늑대인간 : 기본캐릭터",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 119,
+      "title": "할리갈리",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 120,
+      "title": "할리갈리 익스트림",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 121,
+      "title": "할리갈리 컵스",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 122,
+      "title": "해적룰렛",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 123,
+      "title": "흔들흔들해적선",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 124,
+      "title": "텀플",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 125,
+      "title": "코드네임 픽쳐스",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 126,
+      "title": "폴드잇",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 127,
+      "title": "도블 동물원",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 128,
+      "title": "센추리 : 향신료의 길",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 129,
+      "title": "벼룩서커스",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 130,
+      "title": "토스트통통",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 131,
+      "title": "미스터잭 인 뉴욕",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 132,
+      "title": "루미큐브 한글",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 133,
+      "title": "임호텝",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 134,
+      "title": "세븐원더스",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 135,
+      "title": "마스크맨",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 136,
+      "title": "타란툴라탱고",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 137,
+      "title": "인디언포커",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 138,
+      "title": "유령대소동",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 139,
+      "title": "엘드리치호러",
+      "difficulty": "Hard"
+    },
+    {
+      "id": 140,
+      "title": "스플렌더 : 찬란한도시",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 141,
+      "title": "스탁파일",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 142,
+      "title": "마피아 데 쿠바",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 143,
+      "title": "셀레스티아",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 144,
+      "title": "라온 조각",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 145,
+      "title": "쿠키런 러브레터",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 146,
+      "title": "스텔라",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 147,
+      "title": "인코그니토",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 148,
+      "title": "윙스팬 : 아시아",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 149,
+      "title": "뒤죽박죽 서커스",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 150,
+      "title": "세트업",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 151,
+      "title": "달러투도넛",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 152,
+      "title": "워터게이트",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 153,
+      "title": "오트리오",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 154,
+      "title": "프로젝트L",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 155,
+      "title": "생쥐만세 (비바토포)",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 156,
+      "title": "쇼킹룰렛",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 157,
+      "title": "샤크",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 158,
+      "title": "스파이폴2",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 159,
+      "title": "라쿠카라차",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 160,
+      "title": "스컬킹",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 161,
+      "title": "졸리앤로저",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 162,
+      "title": "슬루스",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 163,
+      "title": "방방 날아라 돼지",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 164,
+      "title": "커피러시",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 165,
+      "title": "오뚜기 윷놀이",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 166,
+      "title": "탑텐TV",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 167,
+      "title": "초밥왕",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 168,
+      "title": "악어룰렛",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 169,
+      "title": "애니모크레이지",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 170,
+      "title": "큐윅스",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 171,
+      "title": "데드 맨스 드로우",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 172,
+      "title": "스킵피티",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 173,
+      "title": "도망자",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 174,
+      "title": "탤리호 (할랄리)",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 175,
+      "title": "아키올로지",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 176,
+      "title": "킹도미노",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 177,
+      "title": "테라포밍마스",
+      "difficulty": "Hard"
+    },
+    {
+      "id": 178,
+      "title": "윌유메리미 (데어이쎄스)",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 179,
+      "title": "사그라다",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 180,
+      "title": "크라임호텔",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 181,
+      "title": "아줄",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 182,
+      "title": "센추리 : 동방의 바다",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 183,
+      "title": "5분 미스터리",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 184,
+      "title": "가짜예술가 뉴욕에가다",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 185,
+      "title": "꿈의 대화",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 186,
+      "title": "기즈모",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 187,
+      "title": "영리한 여우",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 188,
+      "title": "더마인드",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 189,
+      "title": "넘버9",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 190,
+      "title": "용의자들",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 191,
+      "title": "듀플릭",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 192,
+      "title": "산토리니",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 193,
+      "title": "요기",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 194,
+      "title": "코드네임",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 195,
+      "title": "로스트시티",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 196,
+      "title": "도미니언",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 197,
+      "title": "랩터",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 198,
+      "title": "데칼코",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 199,
+      "title": "상어 아일랜드",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 200,
+      "title": "상어를 조심해",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 201,
+      "title": "티츄 딜럭스",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 202,
+      "title": "공기놀이",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 203,
+      "title": "너도나도파티",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 204,
+      "title": "잉카의 황금",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 205,
+      "title": "센추리 : 신대륙의 개척자",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 206,
+      "title": "의자쌓기",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 207,
+      "title": "고읭고읭",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 208,
+      "title": "테이블톡 베이직",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 209,
+      "title": "테이블톡 커플",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 210,
+      "title": "테이블톡 패밀리",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 211,
+      "title": "노터치 크라켄 디럭스 (크툴루를 건드리지마)",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 212,
+      "title": "저스트원",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 213,
+      "title": "타코 캣 고트 치즈 피자",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 214,
+      "title": "부두프린스",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 215,
+      "title": "뱀파이어퀸",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 216,
+      "title": "카탄",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 217,
+      "title": "우봉고3D",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 218,
+      "title": "꼬치의 달인",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 219,
+      "title": "지도제작자들",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 220,
+      "title": "화이트홀",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 221,
+      "title": "5초준다",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 222,
+      "title": "거짓말탐지기",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 223,
+      "title": "빛의 도시 파리",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 224,
+      "title": "5분마블",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 225,
+      "title": "블랙햇츠",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 226,
+      "title": "13클루",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 227,
+      "title": "사운드퀴즈쇼",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 228,
+      "title": "밸런스게임",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 229,
+      "title": "내 마음의 주파수",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 230,
+      "title": "요트다이스",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 231,
+      "title": "사이먼에어",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 232,
+      "title": "다이아몬드 게임",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 233,
+      "title": "구룡투",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 234,
+      "title": "다잉메시지 : 소설가의 마지막 문장",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 235,
+      "title": "돌팔이 약장수",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 236,
+      "title": "스페이스크루",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 237,
+      "title": "바퀴벌레포커 로얄",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 238,
+      "title": "루빅스레이스",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 239,
+      "title": "언락2",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 240,
+      "title": "언락3",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 241,
+      "title": "도둑잡기",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 242,
+      "title": "포션폭발",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 243,
+      "title": "더치블리츠",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 244,
+      "title": "인더스트리아",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 245,
+      "title": "만약카드 이심전심",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 246,
+      "title": "디크립토",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 247,
+      "title": "퍼스트콘택트",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 248,
+      "title": "카멜업 2판",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 249,
+      "title": "스크리블 타임",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 250,
+      "title": "로꼬라마",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 251,
+      "title": "듄 : 임페리움",
+      "difficulty": "Extreme"
+    },
+    {
+      "id": 252,
+      "title": "딕싯",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 253,
+      "title": "파라노말 디텍티브",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 254,
+      "title": "왓츠 잇 투야",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 255,
+      "title": "블리츠 한글자",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 256,
+      "title": "지킬대하이드",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 257,
+      "title": "언락4",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 258,
+      "title": "서스펙트게임",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 259,
+      "title": "포커",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 260,
+      "title": "고스톱",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 261,
+      "title": "캐스캐디아",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 262,
+      "title": "블랙햇츠2",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 263,
+      "title": "언락1",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 264,
+      "title": "독수리 눈치싸움",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 265,
+      "title": "쇼텐토텐2",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 266,
+      "title": "시크릿 히틀러",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 267,
+      "title": "진라면",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 268,
+      "title": "다잉메시지 확장판 : 공범의 그림자",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 269,
+      "title": "바방크",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 270,
+      "title": "부루마불 대한독립",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 271,
+      "title": "광기의 저택",
+      "difficulty": "Hard"
+    },
+    {
+      "id": 272,
+      "title": "큐비토스",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 273,
+      "title": "페이퍼사파리 : 피카츄와 친구들",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 274,
+      "title": "포인트샐러드 : 이브이에디션",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 275,
+      "title": "러브레터",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 276,
+      "title": "코드네임 듀엣",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 277,
+      "title": "스파이시",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 278,
+      "title": "머핀타임",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 279,
+      "title": "시타델",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 280,
+      "title": "스플렌더 대결",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 281,
+      "title": "새벽의 뱀파이어",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 282,
+      "title": "노팅엄의 지방관",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 283,
+      "title": "인생게임",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 284,
+      "title": "이스탄불",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 285,
+      "title": "재치와 눈치",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 286,
+      "title": "워드캡처 티키타카",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 287,
+      "title": "익스플로딩 키튼",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 288,
+      "title": "강아지똥 웰시코기",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 289,
+      "title": "벌룬컵",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 290,
+      "title": "디스크커버",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 291,
+      "title": "스트라이크",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 292,
+      "title": "한밤의 수수께끼",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 293,
+      "title": "슬리핑 퀸즈",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 294,
+      "title": "아그리콜라(개정판)",
+      "difficulty": "Hard"
+    },
+    {
+      "id": 295,
+      "title": "우노어택",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 296,
+      "title": "우봉고",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 297,
+      "title": "윙스팬",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 298,
+      "title": "옛날옛적에",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 299,
+      "title": "인쉬",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 300,
+      "title": "장미전쟁",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 301,
+      "title": "폴짝폴짝 개구리 사탕먹기",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 302,
+      "title": "치킨차차",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 303,
+      "title": "언락5",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 304,
+      "title": "언락6",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 305,
+      "title": "카후나",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 306,
+      "title": "캔트스탑",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 307,
+      "title": "폭탄돌리기",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 308,
+      "title": "퍼니버니",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 309,
+      "title": "팀3",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 310,
+      "title": "콰르토",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 311,
+      "title": "쿼리도",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 312,
+      "title": "파워그리드",
+      "difficulty": "Hard"
+    },
+    {
+      "id": 313,
+      "title": "패치워크",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 314,
+      "title": "펭귄파티",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 315,
+      "title": "하나비",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 316,
+      "title": "하이소사이어티",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 317,
+      "title": "타기론",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 318,
+      "title": "후엠아이",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 319,
+      "title": "아르낙의 잊혀진 유적",
+      "difficulty": "Hard"
+    },
+    {
+      "id": 320,
+      "title": "크로키놀",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 321,
+      "title": "알려줘 너의 TMI",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 322,
+      "title": "버건디의 성",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 323,
+      "title": "햄버거타이쿤",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 324,
+      "title": "스플렌더 : 포켓몬",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 325,
+      "title": "배럴다이스",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 326,
+      "title": "카트라이더 레이싱게임",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 327,
+      "title": "미니빌 2",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 328,
+      "title": "페루도",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 329,
+      "title": "방금 떠올린 프로포즈의 말을 너에게 바칠게",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 330,
+      "title": "겟패킹",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 331,
+      "title": "아크노바",
+      "difficulty": "Extreme"
+    },
+    {
+      "id": 332,
+      "title": "라이헌트 시크릿 텔러",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 333,
+      "title": "다빈치코드 플러스",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 334,
+      "title": "돌VS인간",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 335,
+      "title": "워드캡처",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 336,
+      "title": "푸에르토리코 1897",
+      "difficulty": "Hard"
+    },
+    {
+      "id": 337,
+      "title": "푸에블로",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 338,
+      "title": "카멜레온",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 339,
+      "title": "콰왈레",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 340,
+      "title": "잠만보 다이스게임",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 341,
+      "title": "이스탄불 주사위게임",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 342,
+      "title": "금지어 게임",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 343,
+      "title": "스위스 사는 스미스씨",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 344,
+      "title": "심술쟁이 고양이",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 345,
+      "title": "에버델",
+      "difficulty": "Hard"
+    },
+    {
+      "id": 346,
+      "title": "맘마미아",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 347,
+      "title": "아슬아슬 피자",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 348,
+      "title": "다이브",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 349,
+      "title": "자이푸르",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 350,
+      "title": "하모니즈",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 351,
+      "title": "알리바이",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 352,
+      "title": "전지적 추리시점",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 353,
+      "title": "클러스터",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 354,
+      "title": "어콰이어",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 355,
+      "title": "뒤죽박죽 서커스 산리오",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 356,
+      "title": "왓더벅",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 357,
+      "title": "피트",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 358,
+      "title": "갈팡질팡",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 359,
+      "title": "놉놉테이블",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 360,
+      "title": "스카이팀",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 361,
+      "title": "반지의 제왕 가운데 땅에서의 대결",
+      "difficulty": "Semi-Hard"
+    },
+    {
+      "id": 362,
+      "title": "캣츠런",
+      "difficulty": "Very Easy"
+    },
+    {
+      "id": 363,
+      "title": "라이헌트 미스터리 아티스트",
+      "difficulty": "Easy"
+    },
+    {
+      "id": 364,
+      "title": "풍기",
+      "difficulty": "Normal"
+    },
+    {
+      "id": 365,
+      "title": "나의 최애 명대사",
+      "difficulty": "Very Easy"
+    }
+  ],
+  "statistics": {
+    "korean_titles": 365,
+    "popular_games_included": [
+      "윙스팬",
+      "아크노바",
+      "테라포밍마스",
+      "카탄",
+      "스플렌더",
+      "팬데믹",
+      "도미니언",
+      "아줄",
+      "코드네임",
+      "티켓투라이드"
+    ],
+    "game_categories": [
+      "전략게임",
+      "파티게임",
+      "퍼즐게임",
+      "협력게임",
+      "덱빌딩게임",
+      "타일배치게임",
+      "추리게임",
+      "워커플레이스먼트"
+    ]
+  }
+}

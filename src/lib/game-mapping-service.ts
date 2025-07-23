@@ -157,6 +157,11 @@ export class GameMappingService {
     if (this.options.autoInitialize) {
       this.initialize().catch(error => {
         console.error('[GameMappingService] 자동 초기화 실패:', error);
+        
+        // 브라우저 환경에서 더 상세한 에러 정보 제공
+        if (typeof window !== 'undefined') {
+          console.warn('게임 매핑 서비스 초기화에 실패했습니다. 나중에 수동으로 재시도할 수 있습니다.');
+        }
       });
     }
   }
@@ -197,48 +202,85 @@ export class GameMappingService {
    */
   private async loadGameData(): Promise<GameMappingConfig> {
     try {
-      // 기존 games-list-365.json을 기반으로 데이터 로드
-      // 추후 enhanced-games-mapping.json으로 교체 예정
+      // games-list-365.json 파일 로드
       const gamesListResponse = await fetch('/data/games-list-365.json');
       if (!gamesListResponse.ok) {
         throw new Error(`HTTP ${gamesListResponse.status}: 게임 리스트 로드 실패`);
       }
       
-      const gamesList = await gamesListResponse.json();
+      const gamesData = await gamesListResponse.json();
       
-      // 기존 포맷을 새 포맷으로 변환
+      // 실제 파일 구조에 맞게 데이터 파싱
+      if (!gamesData.games || !Array.isArray(gamesData.games)) {
+        throw new Error('games 배열을 찾을 수 없습니다');
+      }
+
+      // difficulty를 complexity로 매핑하는 함수
+      const mapDifficultyToComplexity = (difficulty: string): 'light' | 'medium' | 'heavy' | undefined => {
+        switch (difficulty) {
+          case 'Very Easy':
+          case 'Easy':
+            return 'light';
+          case 'Normal':
+          case 'Semi-Hard':
+            return 'medium';
+          case 'Hard':
+          case 'Extreme':
+            return 'heavy';
+          default:
+            return undefined;
+        }
+      };
+      
+      // 새로운 포맷으로 변환 (데이터 검증 포함)
       const convertedConfig: GameMappingConfig = {
         metadata: {
-          version: '1.0.0',
-          lastUpdated: new Date().toISOString(),
-          totalGames: Object.keys(gamesList).length,
-          description: 'games-list-365.json에서 변환됨'
+          version: gamesData.metadata?.version || '1.0.0',
+          lastUpdated: gamesData.metadata?.lastUpdated || new Date().toISOString(),
+          totalGames: gamesData.games.length,
+          description: gamesData.metadata?.description || 'games-list-365.json에서 로드됨'
         },
-        games: Object.entries(gamesList).map(([id, title]) => ({
-          id: parseInt(id),
-          titleKorean: title as string,
-          titleEnglish: undefined,
-          aliases: [
-            (title as string).toLowerCase(),
-            (title as string).replace(/\s/g, ''),
-            (title as string).replace(/:/g, ' :')
-          ],
-          hasTermsData: parseInt(id) === 331, // 현재는 아크노바만 용어 데이터 있음
-          category: undefined,
-          complexity: undefined
-        }))
+        games: gamesData.games
+          .filter((game: any) => {
+            // 필수 필드 검증
+            const isValid = game.id && typeof game.id === 'number' && 
+                           game.title && typeof game.title === 'string' && 
+                           game.title.trim().length > 0;
+            
+            if (!isValid) {
+              this.log(`유효하지 않은 게임 데이터 스킵: ${JSON.stringify(game)}`);
+            }
+            
+            return isValid;
+          })
+          .map((game: any) => ({
+            id: game.id,
+            titleKorean: game.title.trim(),
+            titleEnglish: undefined,
+            aliases: [
+              game.title.toLowerCase(),
+              game.title.replace(/\s/g, ''),
+              game.title.replace(/:/g, ' :'),
+              game.title.replace(/\s*:\s*/g, ':')
+            ].filter(alias => alias.length > 0), // 빈 별칭 제거
+            hasTermsData: game.id === 331, // 현재는 아크노바만 용어 데이터 있음
+            category: undefined,
+            complexity: mapDifficultyToComplexity(game.difficulty)
+          }))
       };
 
       if (!isValidGameMappingConfig(convertedConfig)) {
         throw new Error('로드된 게임 데이터 형식이 올바르지 않습니다');
       }
 
+      this.log(`데이터 로드 성공: ${convertedConfig.games.length}개 게임, 메타데이터 포함`);
       return convertedConfig;
       
     } catch (error) {
-      this.log(`데이터 로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      this.log(`데이터 로드 실패: ${errorMessage}`);
       throw new GameMappingError(
-        '게임 데이터 로드 실패',
+        `게임 데이터 로드 실패: ${errorMessage}`,
         GameMappingErrorType.DATA_LOAD_FAILED
       );
     }

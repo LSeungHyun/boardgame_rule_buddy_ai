@@ -14,4 +14,4 @@ export { ScoreInput } from '../score-input';
 
 // 게임 셋업 관련 컴포넌트
 export { SetupChecklist } from '../setup-checklist';
-export { GameSetupGuide } from '../game-setup-guide';
+export { GameSetupGuideComponent as GameSetupGuide } from '../game-setup-guide';

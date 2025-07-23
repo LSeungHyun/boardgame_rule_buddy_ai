@@ -6,7 +6,7 @@
 // 다이어그램 컴포넌트
 export { InteractiveDiagram } from '../interactive-diagram';
 export { VisualDiagram } from '../visual-diagram';
-export { DiagramTemplates } from '../diagram-templates';
+export { GAME_DIAGRAM_TEMPLATES, getGameViewBox } from '../diagram-templates';
 
 // 보드 레이아웃 컴포넌트
 export { InteractiveBoardLayout } from '../interactive-board-layout';

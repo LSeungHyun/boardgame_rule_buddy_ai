@@ -263,4 +263,5 @@ const InteractiveBoardLayout: React.FC<InteractiveBoardLayoutProps> = ({
   );
 };
 
+export { InteractiveBoardLayout };
 export default InteractiveBoardLayout;

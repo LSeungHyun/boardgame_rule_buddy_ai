@@ -20,9 +20,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GameQuickActions } from '@/components/ui/game-quick-actions';
+import { EnhancedGameSearch } from '@/components/enhanced-game-search';
 
 export default function Home() {
-  const [currentPage, setCurrentPage] = useState<'selection' | 'chat' | 'debug' | 'universal-beta'>('selection');
+  const [currentPage, setCurrentPage] = useState<'selection' | 'chat' | 'debug' | 'universal-beta' | 'bgg-explorer'>('selection');
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -105,10 +106,16 @@ export default function Home() {
 
 저는 모든 보드게임에 대해 도움을 드릴 수 있는 AI 어시스턴트입니다.
 
+🔥 **새로운 기능!** BGG(BoardGameGeek) API와 연동하여 실시간 게임 정보를 제공합니다:
+- 📈 최신 인기 게임 목록 (Hot List)
+- ⭐ 상세한 게임 정보 (평점, 플레이어 수, 플레이 시간 등)
+- 🎯 BGG 커뮤니티 데이터 기반 게임 추천
+- 🔗 Context7을 통한 향상된 룰 분석
+
 **어떤 보드게임이 궁금하신가요?** 
 게임 이름을 입력해주시면 그 게임에 대한 모든 질문에 답변해드리겠습니다.
 
-예: "글룸헤이븐", "아그리콜라", "테라포밍 마스" 등`
+예: "글룸헤이븐", "아그리콜라", "테라포밍 마스", "아크 노바" 등`
     };
 
     setMessages([welcomeMessage]);
@@ -417,59 +424,154 @@ export default function Home() {
 
   // Universal Beta 화면 렌더링
   const renderUniversalBetaScreen = () => (
-    <ResponsiveContainer maxWidth="xl" padding="md" className="min-h-screen">
-      {/* 베타 헤더 */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="outline"
-            onClick={handleBackToSelection}
-            className="flex items-center gap-2"
-          >
-            ← 메인으로 돌아가기
-          </Button>
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-amber-300">Universal Rule Master (Beta)</h1>
-            <p className="text-sm text-amber-400/80">모든 보드게임 지원 • 베타 서비스</p>
-          </div>
-          <div className="w-32" /> {/* 균형 맞추기용 */}
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
+      {/* 배경 애니메이션 요소 */}
+      <div className="fixed inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/20 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/20 rounded-full blur-xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-emerald-500/10 rounded-full blur-xl animate-ping delay-2000"></div>
       </div>
 
-      {/* 채팅 화면 */}
-      <div className="max-w-4xl mx-auto">
-        <ChatScreen
-          game={{ id: 'universal', title: universalBetaState.gameContext?.gameName || 'Universal Beta', description: 'Universal Rule Master Beta Mode' } as Game}
-          onGoBack={handleBackToSelection}
-          messages={messages}
-          onSendMessage={handleUniversalBetaSendMessage}
-          isLoading={isLoading}
-        />
+      <ResponsiveContainer maxWidth="xl" padding="md" className="relative z-10 min-h-screen">
+        {/* 베타 헤더 */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <Button
+              variant="outline"
+              onClick={handleBackToSelection}
+              className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 transition-all duration-300"
+            >
+              ← 메인으로 돌아가기
+            </Button>
+            
+            <div className="text-center">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-300 bg-clip-text text-transparent">
+                Universal Rule Master
+              </h1>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <span className="px-3 py-1 text-xs font-semibold bg-gradient-to-r from-purple-500/80 to-pink-500/80 backdrop-blur-sm rounded-full text-white">
+                  BETA
+                </span>
+                <p className="text-sm text-amber-400/80">모든 보드게임 지원</p>
+              </div>
+            </div>
+            
+            <div className="w-32" />
+          </div>
+        </div>
 
-        {/* 베타 모드에서 Step 3: 퀵 버튼 표시 */}
-        {universalBetaState.conversationState === 'awaiting_command' && universalBetaState.gameContext && (
-          <div className="mt-6">
-            <GameQuickActions
-              game={{ id: 'universal', title: universalBetaState.gameContext.gameName } as Game}
-              onActionClick={handleUniversalBetaSendMessage}
-              className="max-w-2xl mx-auto"
+        {/* 채팅 화면 */}
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 shadow-2xl">
+            <ChatScreen
+              game={{ id: 'universal', title: universalBetaState.gameContext?.gameName || 'Universal Beta', description: 'Universal Rule Master Beta Mode' } as Game}
+              onGoBack={handleBackToSelection}
+              messages={messages}
+              onSendMessage={handleUniversalBetaSendMessage}
+              isLoading={isLoading}
             />
           </div>
-        )}
-      </div>
-    </ResponsiveContainer>
+
+          {/* 베타 모드에서 Step 3: 퀵 버튼 표시 */}
+          {universalBetaState.conversationState === 'awaiting_command' && universalBetaState.gameContext && (
+            <div className="mt-6">
+              <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 p-4">
+                <GameQuickActions
+                  game={{ id: 'universal', title: universalBetaState.gameContext.gameName } as Game}
+                  onActionClick={handleUniversalBetaSendMessage}
+                  className="max-w-2xl mx-auto"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </ResponsiveContainer>
+    </div>
   );
 
   if (currentPage === 'debug') {
     return (
       <DebugPageSuspense>
-        <TranslationDebugger onBack={handleBackToSelection} />
+        <TranslationDebugger onGoBack={handleBackToSelection} />
       </DebugPageSuspense>
     );
   }
 
   if (currentPage === 'universal-beta') {
     return renderUniversalBetaScreen();
+  }
+
+  if (currentPage === 'bgg-explorer') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-orange-50">
+        <ResponsiveContainer maxWidth="full" padding="md" className="min-h-screen">
+          {/* BGG Explorer 헤더 */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <Button
+                variant="outline"
+                onClick={handleBackToSelection}
+                className="flex items-center gap-2"
+              >
+                ← 메인으로 돌아가기
+              </Button>
+              
+              <div className="text-center">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">
+                  BGG Explorer
+                </h1>
+                <p className="text-lg text-gray-600 mt-2">BoardGameGeek과 연동된 게임 탐색</p>
+              </div>
+              
+              <div className="w-32" />
+            </div>
+          </div>
+
+          {/* 향상된 게임 검색 컴포넌트 */}
+          <EnhancedGameSearch
+            onGameSelect={(game) => {
+              // BGG 게임을 선택했을 때 Universal Beta로 이동하면서 게임 컨텍스트 설정
+              const newSessionId = `bgg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+              
+              setUniversalBetaState({
+                isActive: true,
+                conversationState: 'awaiting_command',
+                gameContext: {
+                  gameName: game.title,
+                  setAt: new Date(),
+                  turnNumber: 1
+                },
+                sessionId: newSessionId
+              });
+
+              const welcomeMessage: ChatMessage = {
+                role: 'assistant',
+                content: `🎲 **${game.title}**의 룰 마스터입니다!
+
+BGG 정보:
+${game.bggData ? `⭐ 평점: ${game.bggData.averageRating.toFixed(1)}/10 (${game.bggData.numVotes}명 평가)
+👥 플레이어: ${game.bggData.minPlayers}-${game.bggData.maxPlayers}명
+⏱️ 플레이 시간: ${game.bggData.playingTime}분
+📅 출시년도: ${game.bggData.yearPublished}
+🎯 복잡도: ${game.bggData.complexity.toFixed(1)}/5
+
+📝 카테고리: ${game.bggData.categories.slice(0, 3).join(', ')}${game.bggData.categories.length > 3 ? ' 등' : ''}
+⚙️ 메카닉: ${game.bggData.mechanics.slice(0, 3).join(', ')}${game.bggData.mechanics.length > 3 ? ' 등' : ''}` : '게임 정보를 가져오는 중입니다...'}
+
+이 게임에 대한 어떤 룰이나 질문이든 물어보세요! 🎯`
+              };
+
+              setMessages([welcomeMessage]);
+              setGeminiChatHistory([]);
+              setCurrentPage('universal-beta');
+              trackSessionStart(newSessionId);
+            }}
+            placeholder="BGG에서 게임을 검색하세요..."
+            showHotGames={true}
+          />
+        </ResponsiveContainer>
+      </div>
+    );
   }
 
   if (currentPage === 'chat') {
@@ -492,7 +594,13 @@ export default function Home() {
     <GameSelectionSuspense>
       <div className="min-h-screen">
         {/* Universal Beta 진입 버튼 추가 */}
-        <div className="fixed top-4 right-4 z-50">
+        <div className="fixed top-4 right-4 z-50 flex gap-2">
+          <Button
+            onClick={() => setCurrentPage('bgg-explorer')}
+            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold px-4 py-2 rounded-lg shadow-lg"
+          >
+            🔥 BGG Explorer
+          </Button>
           <Button
             onClick={handleUniversalBetaToggle}
             className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-6 py-2 rounded-lg shadow-lg"
@@ -507,8 +615,7 @@ export default function Home() {
             setTerm: setSearchTerm
           }}
           ui={{
-            isLoading,
-            error: loadingError
+            isLoading
           }}
           data={{
             games,

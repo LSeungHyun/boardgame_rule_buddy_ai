@@ -7,12 +7,28 @@ import { confidenceTemplates, gracefulLimitationTemplate } from './prompts';
 import { gameQuestionValidator, GameValidationResult } from './game-question-validator';
 import { GameMappingService } from './game-mapping-service';
 
+// Enhanced BGG Integration
+import { EnhancedRuleGenerationUseCase, RuleGenerationRequest } from '@/usecases/enhanced-rule-generation';
+import { createBGGRepositories } from '@/adapters/repositories/bgg-repository-adapter';
+import { EnhancedWebSearchAdapter } from '@/adapters/repositories/enhanced-web-search-adapter';
+
 class RuleMasterService {
     private static instance: RuleMasterService;
     private gameMappingService: GameMappingService;
+    private enhancedRuleGenerator: EnhancedRuleGenerationUseCase;
 
     private constructor() { 
         this.gameMappingService = GameMappingService.getInstance();
+        
+        // Enhanced BGG Integration 초기화
+        const { bggRepository, bggForumRepository } = createBGGRepositories();
+        const webSearchRepository = new EnhancedWebSearchAdapter();
+        
+        this.enhancedRuleGenerator = new EnhancedRuleGenerationUseCase(
+            bggRepository,
+            bggForumRepository,
+            webSearchRepository
+        );
     }
 
     public static getInstance(): RuleMasterService {
@@ -23,7 +39,7 @@ class RuleMasterService {
     }
 
     /**
-     * 룰 질문에 대한 답변 생성
+     * 룰 질문에 대한 답변 생성 (BGG 강화 버전)
      */
     public async generateAnswer(query: RuleMasterQuery): Promise<RuleMasterResponse> {
         try {
@@ -38,46 +54,128 @@ class RuleMasterService {
                 return this.createGameMismatchResponse(validation, query);
             }
 
-            // 1. 질문에서 관련 용어 추출
-            const relatedTerms = await this.extractRelatedTerms(query);
+            // 🚀 1. BGG 강화 룰 생성 시도
+            const gameTitle = this.getGameTitleById(query.gameId);
+            const enhancedResult = await this.tryEnhancedRuleGeneration(gameTitle, query.question);
 
-            // 2. 게임 컨텍스트 구축
-            const gameContext = await this.buildGameContext(query.gameId, relatedTerms);
+            if (enhancedResult) {
+                console.log('✅ [Rule Master Service] BGG 강화 답변 생성 성공');
+                return this.convertEnhancedResultToResponse(enhancedResult, query);
+            }
 
-            // 3. 신뢰도 사전 계산 (AI 호출 전)
-            const preConfidence = this.calculatePreConfidence(query, relatedTerms, gameContext);
-
-            // 4. AI를 통한 답변 생성
-            const aiResponse = await this.generateAIAnswer(query, gameContext, relatedTerms);
-
-            // 5. 신뢰도 기반 답변 후처리
-            const finalAnswer = this.applyConfidenceBasedFormatting(aiResponse, preConfidence, query);
-
-            // 6. 최종 신뢰도 계산 (AI 응답 후)
-            const finalConfidence = this.calculateFinalConfidence(preConfidence, aiResponse.length, relatedTerms);
-
-            // 7. 추가 제안사항 생성
-            const suggestions = this.generateSuggestions(query, relatedTerms, finalConfidence);
-
-            return {
-                answer: finalAnswer,
-                relatedTerms: relatedTerms.slice(0, 10),
-                confidence: finalConfidence,
-                sources: this.extractSources(relatedTerms, gameContext),
-                suggestions
-            };
+            // 2. 폴백: 기존 방식으로 답변 생성
+            console.log('⚠️ [Rule Master Service] BGG 강화 실패, 기존 방식 사용');
+            return await this.generateLegacyAnswer(query);
 
         } catch (error) {
-            console.error('❌ 룰마스터 답변 생성 실패:', error);
-
-            return {
-                answer: gracefulLimitationTemplate(query.question, '시스템 오류로 인해 답변을 생성할 수 없습니다'),
-                relatedTerms: [],
-                confidence: 0,
-                sources: [],
-                suggestions: ['잠시 후 다시 시도해 주세요', '질문을 더 간단하게 바꿔서 물어보세요']
-            };
+            console.error('❌ [Rule Master Service] 답변 생성 실패:', error);
+            return this.createErrorResponse(query, error);
         }
+    }
+
+    /**
+     * BGG 강화 룰 생성 시도
+     */
+    private async tryEnhancedRuleGeneration(gameTitle: string, question: string) {
+        try {
+            console.log('🚀 [Rule Master Service] BGG 강화 룰 생성 시도:', gameTitle);
+
+            const request: RuleGenerationRequest = {
+                gameTitle,
+                question,
+                userExperienceLevel: undefined, // 자동 감지
+                preferDetailLevel: 'standard'
+            };
+
+            const enhancedResult = await this.enhancedRuleGenerator.generateEnhancedRuleAnswer(request);
+            
+            console.log('🎯 [Rule Master Service] BGG 강화 결과:', {
+                신뢰도: enhancedResult.confidence,
+                소스수: enhancedResult.sources.length,
+                스타일: enhancedResult.answerStyle.complexityLevel
+            });
+
+            return enhancedResult;
+        } catch (error) {
+            console.warn('⚠️ [Rule Master Service] BGG 강화 룰 생성 실패:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Enhanced 결과를 기존 Response 형식으로 변환
+     */
+    private convertEnhancedResultToResponse(enhancedResult: any, query: RuleMasterQuery): RuleMasterResponse {
+        // Enhanced 결과에서 관련 용어 추출 (BGG 데이터 기반)
+        const relatedTerms: TermSearchResult[] = enhancedResult.context.gameInfo.mechanics.map((mechanic: string) => ({
+            korean: mechanic,
+            english: mechanic,
+            description: `${mechanic} 메카닉 관련`,
+            category: 'mechanic',
+            isSpecific: false,
+            matchScore: 0.8
+        }));
+
+        // 추천사항을 기존 형식으로 변환
+        const suggestions = [
+            ...enhancedResult.recommendations.similarQuestions.slice(0, 2),
+            ...enhancedResult.recommendations.relatedRules.slice(0, 2)
+        ];
+
+        return {
+            answer: enhancedResult.answer,
+            relatedTerms: relatedTerms.slice(0, 10),
+            confidence: enhancedResult.confidence,
+            sources: enhancedResult.sources,
+            suggestions
+        };
+    }
+
+    /**
+     * 기존 방식의 답변 생성 (폴백)
+     */
+    private async generateLegacyAnswer(query: RuleMasterQuery): Promise<RuleMasterResponse> {
+        // 1. 질문에서 관련 용어 추출
+        const relatedTerms = await this.extractRelatedTerms(query);
+
+        // 2. 게임 컨텍스트 구축
+        const gameContext = await this.buildGameContext(query.gameId, relatedTerms);
+
+        // 3. 신뢰도 사전 계산 (AI 호출 전)
+        const preConfidence = this.calculatePreConfidence(query, relatedTerms, gameContext);
+
+        // 4. AI를 통한 답변 생성
+        const aiResponse = await this.generateAIAnswer(query, gameContext, relatedTerms);
+
+        // 5. 신뢰도 기반 답변 후처리
+        const finalAnswer = this.applyConfidenceBasedFormatting(aiResponse, preConfidence, query);
+
+        // 6. 최종 신뢰도 계산 (AI 응답 후)
+        const finalConfidence = this.calculateFinalConfidence(preConfidence, aiResponse.length, relatedTerms);
+
+        // 7. 추가 제안사항 생성
+        const suggestions = this.generateSuggestions(query, relatedTerms, finalConfidence);
+
+        return {
+            answer: finalAnswer,
+            relatedTerms: relatedTerms.slice(0, 10),
+            confidence: finalConfidence,
+            sources: this.extractSources(relatedTerms, gameContext),
+            suggestions
+        };
+    }
+
+    /**
+     * 에러 응답 생성
+     */
+    private createErrorResponse(query: RuleMasterQuery, error: any): RuleMasterResponse {
+        return {
+            answer: gracefulLimitationTemplate(query.question, '시스템 오류로 인해 답변을 생성할 수 없습니다'),
+            relatedTerms: [],
+            confidence: 0,
+            sources: [],
+            suggestions: ['잠시 후 다시 시도해 주세요', '질문을 더 간단하게 바꿔서 물어보세요']
+        };
     }
 
     /**
