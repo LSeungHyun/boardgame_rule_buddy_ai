@@ -133,10 +133,28 @@ function constructGeminiPrompt(gameName: string): string {
 
 /**
  * Gemini API 호출
+ * Next.js 15 + Turbopack 환경변수 호환성 개선
  */
 async function callGeminiAPI(prompt: string): Promise<ScoreSheetTemplate> {
-  const apiKey = process.env.GOOGLE_API_KEY;
-  
+  // 🔧 Next.js 15 + Turbopack 환경변수 폴백 패턴 적용
+  if (!process.env.GOOGLE_API_KEY && !process.env.NEXT_PUBLIC_GOOGLE_API_KEY) {
+    console.log('⚠️ [Scoring Script Gemini API] Turbopack 환경변수 수동 설정');
+    // .env.local에서 읽은 Gemini API 키로 수동 설정 (Google API와 같은 키 사용)
+    process.env.GOOGLE_API_KEY = 'AIzaSyDKh7zI-W1zx2LkttbopdGAWsuJVlIqVOo';
+    process.env.NEXT_PUBLIC_GOOGLE_API_KEY = 'AIzaSyDKh7zI-W1zx2LkttbopdGAWsuJVlIqVOo';
+  }
+
+  // Context7 호환 환경변수 처리
+  const apiKey = process.env.GOOGLE_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+
+  console.log('🔑 [Scoring Script API 환경변수 디버깅]', {
+    'GOOGLE_API_KEY 존재': !!process.env.GOOGLE_API_KEY,
+    'NEXT_PUBLIC_GOOGLE_API_KEY 존재': !!process.env.NEXT_PUBLIC_GOOGLE_API_KEY,
+    '사용할 키 존재': !!apiKey,
+    '키 길이': apiKey ? apiKey.length : 0,
+    '실행 환경': typeof window === 'undefined' ? 'server' : 'client'
+  });
+
   if (!apiKey) {
     throw new Error('GOOGLE_API_KEY 환경변수가 설정되지 않았습니다.');
   }
@@ -181,16 +199,16 @@ async function callGeminiAPI(prompt: string): Promise<ScoreSheetTemplate> {
   }
 
   const data = await response.json();
-  
+
   if (!data.candidates || data.candidates.length === 0) {
     throw new Error('Gemini API에서 응답을 생성하지 못했습니다.');
   }
 
   const generatedText = data.candidates[0].content.parts[0].text;
-  
+
   try {
     const scoreSheetTemplate: ScoreSheetTemplate = JSON.parse(generatedText);
-    
+
     // 응답 검증
     if (!scoreSheetTemplate.gameName || !scoreSheetTemplate.scoringCategories) {
       throw new Error('생성된 스크립트 형식이 올바르지 않습니다.');

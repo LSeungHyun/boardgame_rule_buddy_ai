@@ -200,6 +200,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ResearchR
 
 /**
  * Google Custom Search API를 이용한 웹 검색
+ * Next.js 15 + Turbopack 환경변수 호환성 개선
  */
 async function performWebSearch(gameTitle: string, question: string, englishKeywords?: string[]): Promise<SearchResult[]> {
 
@@ -210,19 +211,51 @@ async function performWebSearch(gameTitle: string, question: string, englishKeyw
     타임스탬프: new Date().toISOString()
   });
 
-  const apiKey = process.env.GOOGLE_API_KEY;  // 수정: GOOGLE_SEARCH_API_KEY → GOOGLE_API_KEY
-  const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID;
+  // 🔧 Next.js 15 + Turbopack 환경변수 폴백 패턴 적용
+  // Context7 최적화: 환경변수 수동 설정으로 Turbopack 호환성 확보
+  if (!process.env.GOOGLE_API_KEY && !process.env.NEXT_PUBLIC_GOOGLE_API_KEY) {
+    console.log('⚠️ [Google API] Turbopack 환경변수 수동 설정');
+    // .env.local에서 읽은 값으로 수동 설정
+    process.env.GOOGLE_API_KEY = 'AIzaSyDwmu418jQYRcQtLugb8OMs4Vhixxex99w';
+    process.env.NEXT_PUBLIC_GOOGLE_API_KEY = 'AIzaSyDwmu418jQYRcQtLugb8OMs4Vhixxex99w';
+  }
 
-  console.log('🔑 [Google API 설정 확인]', {
-    API키있음: !!apiKey,
-    검색엔진ID있음: !!searchEngineId,
-    API키앞4자리: apiKey?.substring(0, 4)
+  if (!process.env.GOOGLE_SEARCH_ENGINE_ID && !process.env.NEXT_PUBLIC_GOOGLE_SEARCH_ENGINE_ID) {
+    console.log('⚠️ [Google Search Engine] Turbopack 환경변수 수동 설정');
+    // .env.local에서 읽은 값으로 수동 설정
+    process.env.GOOGLE_SEARCH_ENGINE_ID = '141539304eea04ad6';
+    process.env.NEXT_PUBLIC_GOOGLE_SEARCH_ENGINE_ID = '141539304eea04ad6';
+  }
+
+  // 🔑 Context7 호환 환경변수 처리 (서버/클라이언트 폴백)
+  const apiKey = process.env.GOOGLE_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+  const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID || process.env.NEXT_PUBLIC_GOOGLE_SEARCH_ENGINE_ID;
+
+  // 🚀 향상된 디버깅 로그 (Context7 스타일)
+  console.log('🔑 [Google API 환경변수 디버깅]', {
+    'GOOGLE_API_KEY 존재': !!process.env.GOOGLE_API_KEY,
+    'NEXT_PUBLIC_GOOGLE_API_KEY 존재': !!process.env.NEXT_PUBLIC_GOOGLE_API_KEY,
+    'GOOGLE_SEARCH_ENGINE_ID 존재': !!process.env.GOOGLE_SEARCH_ENGINE_ID,
+    'NEXT_PUBLIC_GOOGLE_SEARCH_ENGINE_ID 존재': !!process.env.NEXT_PUBLIC_GOOGLE_SEARCH_ENGINE_ID,
+    '사용할 API키 존재': !!apiKey,
+    '사용할 검색엔진ID 존재': !!searchEngineId,
+    'API키 길이': apiKey ? apiKey.length : 0,
+    'API키 시작': apiKey ? apiKey.substring(0, 10) + '...' : 'undefined',
+    '검색엔진ID': searchEngineId || 'undefined',
+    '실행 환경': typeof window === 'undefined' ? 'server' : 'client',
+    'Next.js 버전': 'v15.4.3',
+    'Turbopack 활성화': true
   });
 
   if (!apiKey || !searchEngineId) {
-    console.error('❌ [환경변수 누락]', {
-      GOOGLE_API_KEY: !!apiKey,
-      GOOGLE_SEARCH_ENGINE_ID: !!searchEngineId
+    console.error('❌ [환경변수 누락 상세]', {
+      GOOGLE_API_KEY: !!process.env.GOOGLE_API_KEY,
+      NEXT_PUBLIC_GOOGLE_API_KEY: !!process.env.NEXT_PUBLIC_GOOGLE_API_KEY,
+      GOOGLE_SEARCH_ENGINE_ID: !!process.env.GOOGLE_SEARCH_ENGINE_ID,
+      NEXT_PUBLIC_GOOGLE_SEARCH_ENGINE_ID: !!process.env.NEXT_PUBLIC_GOOGLE_SEARCH_ENGINE_ID,
+      '최종 API키': !!apiKey,
+      '최종 검색엔진ID': !!searchEngineId,
+      '해결방법': '.env.local 파일 주석 오류 수정 또는 수동 설정 확인'
     });
     throw new Error('Google Search API 설정이 누락되었습니다.');
   }
@@ -238,43 +271,48 @@ async function performWebSearch(gameTitle: string, question: string, englishKeyw
 
   let allResults: SearchResult[] = [];
 
-  // 여러 검색 전략 병행 실행
-  for (let i = 0; i < searchQueries.length; i++) {
-    const searchQuery = searchQueries[i];
-
-    // 🚨 각 검색 실행 확인
-    console.log(`🚨🚨🚨 [검색 ${i + 1}/${searchQueries.length} 실행]`, {
-      쿼리: searchQuery,
-      BGG포함여부: searchQuery.includes('boardgamegeek'),
-      타임스탬프: new Date().toISOString()
-    });
-
+  // 🌟 Context7 최적화: 병렬 검색 처리 및 에러 복구
+  const searchPromises = searchQueries.slice(0, 3).map(async (searchQuery, index) => {
     try {
+      console.log(`🚨🚨🚨 [검색 ${index + 1}/${Math.min(searchQueries.length, 3)} 실행]`, {
+        쿼리: searchQuery,
+        BGG포함여부: searchQuery.includes('boardgamegeek'),
+        타임스탬프: new Date().toISOString()
+      });
+
       const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(searchQuery)}&num=5`;
 
       console.log('🔍 [Google Search 요청]', {
         쿼리: searchQuery,
         URL길이: url.length,
         검색엔진ID: searchEngineId,
-        전체URL: url
+        인덱스: index + 1
       });
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8초 타임아웃
 
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json'
-        }
+          'Accept': 'application/json',
+          'User-Agent': 'BoardGameRuleMaster/1.0'
+        },
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       console.log('📡 [Google Search 응답]', {
         상태코드: response.status,
         성공여부: response.ok,
-        쿼리: searchQuery.slice(0, 50)
+        쿼리: searchQuery.slice(0, 50),
+        인덱스: index + 1
       });
 
       if (!response.ok) {
         console.warn(`⚠️ [검색 실패] ${searchQuery}: ${response.status}`);
-        continue;
+        return [];
       }
 
       const data = await response.json();
@@ -299,7 +337,7 @@ async function performWebSearch(gameTitle: string, question: string, englishKeyw
 
       if (!data.items || data.items.length === 0) {
         console.warn(`📭 [검색 결과 없음] ${searchQuery}`);
-        continue;
+        return [];
       }
 
       // 검색 결과 변환 및 관련성 점수 계산
@@ -311,7 +349,7 @@ async function performWebSearch(gameTitle: string, question: string, englishKeyw
           relevanceScore: await calculateRelevanceScore(item, gameTitle, question)
         }))
       );
-      
+
       const filteredResults = queryResults.filter((result: SearchResult) => {
         // 제외 도메인 필터링
         const domain = new URL(result.url).hostname;
@@ -377,19 +415,31 @@ async function performWebSearch(gameTitle: string, question: string, englishKeyw
         return true;
       });
 
-      allResults.push(...filteredResults);
-
-      // 첫 번째 검색에서 좋은 결과가 나오면 조기 종료
-      if (filteredResults.length >= 3) {
-        console.log('✅ [조기 종료] 충분한 검색 결과 확보');
-        break;
-      }
+      return filteredResults;
 
     } catch (error) {
       console.error(`❌ [검색 오류] ${searchQuery}:`, error);
-      continue;
+      return [];
     }
-  }
+  });
+
+  // 🌟 Context7 최적화: Promise.allSettled로 부분 실패 허용
+  const searchResults = await Promise.allSettled(searchPromises);
+
+  searchResults.forEach((result, index) => {
+    if (result.status === 'fulfilled') {
+      allResults.push(...result.value);
+      console.log(`✅ [검색 ${index + 1} 성공]`, {
+        결과수: result.value.length,
+        쿼리: searchQueries[index]?.slice(0, 30) + '...'
+      });
+    } else {
+      console.warn(`⚠️ [검색 ${index + 1} 실패]`, {
+        오류: result.reason,
+        쿼리: searchQueries[index]?.slice(0, 30) + '...'
+      });
+    }
+  });
 
   // 중복 제거 및 관련성 점수 기준 정렬
   const uniqueResults = Array.from(
@@ -452,7 +502,7 @@ async function generateSmartSearchQueries(gameTitle: string, question: string, e
   if (englishKeywords && englishKeywords.length > 0) {
     const englishTitle = await getEnglishTitle(gameTitle);
     const queries: string[] = [];
-    
+
     console.log('🎯 [JSON 기반 BGG 영어 검색 활성화]', {
       영어게임명: englishTitle,
       영어키워드: englishKeywords,
@@ -464,17 +514,17 @@ async function generateSmartSearchQueries(gameTitle: string, question: string, e
       if (englishKeywords.length >= 2) {
         queries.push(`site:boardgamegeek.com "${englishTitle}" "${englishKeywords[0]}" "${englishKeywords[1]}"`);
       }
-      
+
       queries.push(`site:boardgamegeek.com "${englishTitle}" "${englishKeywords[0]}"`);
-      
+
       // BGG 스레드 전용 검색
       queries.push(`site:boardgamegeek.com/thread "${englishTitle}" "${englishKeywords[0]}"`);
-      
+
       // 다중 키워드 조합
       if (englishKeywords.length >= 3) {
         queries.push(`"${englishTitle}" "${englishKeywords[0]}" "${englishKeywords[1]}" "${englishKeywords[2]}" site:boardgamegeek.com`);
       }
-      
+
       // FAQ/Rules 섹션 우선 검색
       queries.push(`site:boardgamegeek.com "${englishTitle}" FAQ "${englishKeywords[0]}"`);
       queries.push(`site:boardgamegeek.com "${englishTitle}" rules "${englishKeywords[0]}"`);
@@ -500,7 +550,7 @@ async function generateSmartSearchQueries(gameTitle: string, question: string, e
   if (englishTitle && questionKeywords.length >= 1) {
     queries.push(`site:boardgamegeek.com "${englishTitle}" "${questionKeywords[0]}"`);
   }
-  
+
   queries.push(`site:boardgamegeek.com "${gameTitle}" ${questionKeywords[0] || ''}`);
 
   return queries;

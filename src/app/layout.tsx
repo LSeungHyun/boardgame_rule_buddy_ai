@@ -24,7 +24,10 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className={`${notoSansKR.className} antialiased`}>
-        <AnalyticsProvider config={{ enableDevelopment: true }}>
+        <AnalyticsProvider config={{
+          enableDevelopment: process.env.NODE_ENV === 'development',
+          debugMode: process.env.NODE_ENV === 'development'
+        }}>
           <Providers>{children}</Providers>
         </AnalyticsProvider>
         <StagewiseToolbarWrapper />

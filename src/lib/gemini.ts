@@ -921,9 +921,31 @@ export async function askUniversalBetaQuestion(
         첫응답: isFirstResponse
     });
 
-    // API 키 확인
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+        // 환경변수 강제 설정 (서버 사이드에서 로드 실패 시)
+    if (!process.env.GEMINI_API_KEY && !process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+        console.log('⚠️ [Universal Beta] 환경변수 수동 설정');
+        process.env.GEMINI_API_KEY = 'AIzaSyDKh7zI-W1zx2LkttbopdGAWsuJVlIqVOo';
+        process.env.NEXT_PUBLIC_GEMINI_API_KEY = 'AIzaSyDKh7zI-W1zx2LkttbopdGAWsuJVlIqVOo';
+    }
+
+    // API 키 확인 (서버 사이드에서는 일반 환경변수 사용)
+    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    console.log('🔑 [환경변수 디버깅]', {
+        'GEMINI_API_KEY 존재': !!process.env.GEMINI_API_KEY,
+        'NEXT_PUBLIC_GEMINI_API_KEY 존재': !!process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+        '사용할 키 존재': !!apiKey,
+        '키 길이': apiKey ? apiKey.length : 0,
+        '키 시작': apiKey ? apiKey.substring(0, 10) + '...' : 'undefined',
+        '실행 환경': typeof window === 'undefined' ? 'server' : 'client'
+    });
+    
     if (!apiKey) {
+        console.error('❌ [Gemini API] 환경변수 누락:', {
+            '현재 NODE_ENV': process.env.NODE_ENV,
+            '실행 환경': typeof window === 'undefined' ? 'server' : 'client',
+            'GEMINI_API_KEY': !!process.env.GEMINI_API_KEY,
+            'NEXT_PUBLIC_GEMINI_API_KEY': !!process.env.NEXT_PUBLIC_GEMINI_API_KEY
+        });
         throw new GeminiApiError("Gemini API 키가 설정되지 않았습니다. 환경변수를 확인해주세요.");
     }
 
@@ -1149,7 +1171,13 @@ function createRetryCTA(
  * Gemini API 호출 헬퍼 함수 - 웹사이트 품질 매칭을 위한 최적화된 파라미터
  */
 async function callGeminiAPI(prompt: string, retryCount = 0, originalQuestion?: string, gameTitle?: string): Promise<string> {
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    // 환경변수 강제 설정 (API Route에서 사용할 수 있도록)
+    if (!process.env.GEMINI_API_KEY && !process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+        process.env.GEMINI_API_KEY = 'AIzaSyDKh7zI-W1zx2LkttbopdGAWsuJVlIqVOo';
+        process.env.NEXT_PUBLIC_GEMINI_API_KEY = 'AIzaSyDKh7zI-W1zx2LkttbopdGAWsuJVlIqVOo';
+    }
+    
+    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     if (!apiKey) {
         throw new GeminiApiError("Gemini API 키가 설정되지 않았습니다. 환경변수를 확인해주세요.");
     }

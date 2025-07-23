@@ -10,7 +10,7 @@ import { GameSelectionSuspense, ChatScreenSuspense, DebugPageSuspense } from '@/
 import { Game, ChatMessage, ResearchStage, ConversationState, GameContext, UniversalBetaState, GeminiContent } from '@/types/game';
 import { fetchGames, GameFilters } from '@/features/games/api';
 import { errorHandler, AppError } from '@/lib/error-handler';
-import { askGameQuestionWithContextTracking, askUniversalBetaQuestion } from '@/lib/gemini';
+import { askGameQuestionWithContextTracking } from '@/lib/gemini';
 import {
   usePageView,
   useGameSelectionTracking,
@@ -20,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GameQuickActions } from '@/components/ui/game-quick-actions';
+import { ClarityTest } from '@/components/ui/clarity-test';
 
 // 🚀 성능 최적화 상수 - Context7 호환성
 const SEARCH_DEBOUNCE_DELAY = 300; // 디바운싱 지연시간 (ms)
@@ -291,12 +292,26 @@ export default function Home() {
 
         const newGeminiHistory = [...geminiChatHistory, userGeminiMessage];
 
-        // 첫 번째 API 호출 (베타 면책조항 포함)
-        const aiResponse = await askUniversalBetaQuestion(
-          gameName,
-          newGeminiHistory,
-          true // 첫 번째 응답
-        );
+        // 첫 번째 API 호출 (베타 면책조항 포함) - API Route 사용
+        const response = await fetch('/api/universal-beta', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            gameName,
+            chatHistory: newGeminiHistory,
+            isFirstResponse: true
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'API 호출 실패');
+        }
+
+        const responseData = await response.json();
+        const aiResponse = responseData.response;
 
         // AI 응답을 Gemini 히스토리에 추가
         const aiGeminiMessage: GeminiContent = {
@@ -339,12 +354,26 @@ export default function Home() {
 
         const newGeminiHistory = [...geminiChatHistory, userGeminiMessage];
 
-        // API 호출 (전체 컨텍스트 포함)
-        const aiResponse = await askUniversalBetaQuestion(
-          universalBetaState.gameContext.gameName,
-          newGeminiHistory,
-          false // 후속 응답
-        );
+        // API 호출 (전체 컨텍스트 포함) - API Route 사용
+        const response = await fetch('/api/universal-beta', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            gameName: universalBetaState.gameContext.gameName,
+            chatHistory: newGeminiHistory,
+            isFirstResponse: false
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'API 호출 실패');
+        }
+
+        const responseData = await response.json();
+        const aiResponse = responseData.response;
 
         // AI 응답을 Gemini 히스토리에 추가
         const aiGeminiMessage: GeminiContent = {
@@ -567,34 +596,37 @@ export default function Home() {
   }
 
   return (
-    <GameSelectionSuspense>
-      <div className="min-h-screen">
-        {/* Universal Beta 진입 버튼 추가 */}
-        <div className="fixed top-4 right-4 z-50">
-          <Button
-            onClick={handleUniversalBetaToggle}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-6 py-2 rounded-lg shadow-lg"
-          >
-            🌟 Universal Beta
-          </Button>
-        </div>
+    <>
+      <GameSelectionSuspense>
+        <div className="min-h-screen">
+          {/* Universal Beta 진입 버튼 추가 */}
+          <div className="fixed top-4 right-4 z-50">
+            <Button
+              onClick={handleUniversalBetaToggle}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-6 py-2 rounded-lg shadow-lg"
+            >
+              🌟 Universal Beta
+            </Button>
+          </div>
 
-        <GameSelection
-          search={{
-            term: searchTerm,
-            setTerm: handleSearchTermChange,
-            isSearching
-          }}
-          ui={{
-            isLoading,
-            error: loadingError
-          }}
-          data={{
-            games,
-            onSelectGame: handleGameSelect
-          }}
-        />
-      </div>
-    </GameSelectionSuspense>
+          <GameSelection
+            search={{
+              term: searchTerm,
+              setTerm: handleSearchTermChange,
+              isSearching
+            }}
+            ui={{
+              isLoading,
+              error: loadingError
+            }}
+            data={{
+              games,
+              onSelectGame: handleGameSelect
+            }}
+          />
+        </div>
+      </GameSelectionSuspense>
+      <ClarityTest />
+    </>
   );
 }
