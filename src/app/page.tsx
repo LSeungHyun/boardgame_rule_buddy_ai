@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GameQuickActions } from '@/components/ui/game-quick-actions';
 import { ClarityTest } from '@/components/ui/clarity-test';
+import { useFeedbackModal } from '@/components/feedback/FeedbackModal';
 
 // 🚀 성능 최적화 상수 - Context7 호환성
 const SEARCH_DEBOUNCE_DELAY = 300; // 디바운싱 지연시간 (ms)
@@ -48,6 +49,9 @@ export default function Home() {
     gameContext: null,
     sessionId: ''
   });
+
+  // MVP 피드백 시스템
+  const { showFeedback, FeedbackModalComponent } = useFeedbackModal();
 
   // Gemini API용 채팅 히스토리 (contents 포맷)
   const [geminiChatHistory, setGeminiChatHistory] = useState<GeminiContent[]>([]);
@@ -252,7 +256,7 @@ export default function Home() {
     setCurrentPage('chat');
   }, [selectedGame, analytics, engagementTracking]);
 
-  // Universal Beta 메시지 전송 핸들러 - Context7 최적화
+  // Universal Beta 메시지 전송 핸들러 - 신뢰도 체크 통합
   const handleUniversalBetaSendMessage = useCallback(async (content: string) => {
     if (!universalBetaState.isActive) return;
 
@@ -272,16 +276,43 @@ export default function Home() {
 
     try {
       if (universalBetaState.conversationState === 'awaiting_game') {
-        // Step 2: 사용자가 게임명 제공
+        // Step 1: 사용자가 게임명 제공 → 신뢰도 체크 시작
         const gameName = content.trim();
 
-        console.log('🎮 [Universal Beta] 게임명 설정:', gameName);
+        console.log('🎮 [Universal Beta] 게임명 수신, 신뢰도 체크 시작:', gameName);
 
-        // Context7 패턴: 객체를 함수 내부에서 생성
+        // 신뢰도 체크 상태 업데이트
+        setUniversalBetaState(prev => ({
+          ...prev,
+          isCheckingConfidence: true
+        }));
+
+        // Step 2: 신뢰도 체크 API 호출
+        console.log('🔍 [Confidence Check] API 호출 중...');
+        const confidenceResponse = await fetch('/api/check-confidence', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            gameName
+          })
+        });
+
+        if (!confidenceResponse.ok) {
+          const errorData = await confidenceResponse.json();
+          throw new Error(errorData.error || '신뢰도 체크 실패');
+        }
+
+        const confidenceResult = await confidenceResponse.json();
+        console.log('✅ [Confidence Check] 완료:', confidenceResult);
+
+        // Step 3: 게임 컨텍스트 생성 (신뢰도 결과 포함)
         const gameContext: GameContext = {
           gameName,
           setAt: new Date(),
-          turnNumber: 1
+          turnNumber: 1,
+          confidenceResult
         };
 
         // Gemini 채팅 히스토리에 사용자 메시지 추가
@@ -292,7 +323,7 @@ export default function Home() {
 
         const newGeminiHistory = [...geminiChatHistory, userGeminiMessage];
 
-        // 첫 번째 API 호출 (베타 면책조항 포함) - API Route 사용
+        // Step 4: Universal Beta API 호출 (서비스 모드 포함)
         const response = await fetch('/api/universal-beta', {
           method: 'POST',
           headers: {
@@ -301,7 +332,8 @@ export default function Home() {
           body: JSON.stringify({
             gameName,
             chatHistory: newGeminiHistory,
-            isFirstResponse: true
+            isFirstResponse: true,
+            serviceMode: confidenceResult.serviceMode
           })
         });
 
@@ -311,7 +343,17 @@ export default function Home() {
         }
 
         const responseData = await response.json();
-        const aiResponse = responseData.response;
+        let aiResponse = responseData.response;
+
+        // Step 5: 베타 모드일 때만 면책조항 추가
+        if (confidenceResult.serviceMode === 'beta') {
+          console.log('⚠️ [Beta Mode] 베타 면책조항 추가');
+          // 기존 응답에서 베타 면책조항이 이미 포함되어 있으므로 그대로 사용
+        } else {
+          console.log('👑 [Expert Mode] 전문가 모드로 동작');
+          // 전문가 모드에서는 베타 면책조항 없이 답변 제공
+          // 기존 응답에서 베타 관련 내용을 제거하거나 별도 처리 가능
+        }
 
         // AI 응답을 Gemini 히스토리에 추가
         const aiGeminiMessage: GeminiContent = {
@@ -321,11 +363,13 @@ export default function Home() {
 
         setGeminiChatHistory([...newGeminiHistory, aiGeminiMessage]);
 
-        // 상태 업데이트
+        // Step 6: 상태 업데이트 (신뢰도 체크 완료, 서비스 모드 설정)
         setUniversalBetaState(prev => ({
           ...prev,
           conversationState: 'awaiting_command',
-          gameContext
+          gameContext,
+          isCheckingConfidence: false,
+          currentServiceMode: confidenceResult.serviceMode
         }));
 
         // AI 메시지를 UI에 추가
@@ -336,7 +380,11 @@ export default function Home() {
 
         setMessages(prev => [...prev, aiMessage]);
 
-        console.log('✅ [Universal Beta] 게임 설정 완료:', gameName);
+        console.log('✅ [Universal Beta] 게임 설정 완료:', {
+          게임명: gameName,
+          신뢰도점수: confidenceResult.confidenceScore,
+          서비스모드: confidenceResult.serviceMode
+        });
 
       } else {
         // Step 4: 후속 질문 처리 (awaiting_command 또는 in_conversation)
@@ -545,6 +593,19 @@ export default function Home() {
 
       {/* 채팅 화면 */}
       <div className="max-w-4xl mx-auto">
+        {/* 신뢰도 체크 중일 때 특별한 로딩 메시지 표시 */}
+        {universalBetaState.isCheckingConfidence && (
+          <div className="mb-4 p-4 bg-amber-500/10 border border-amber-400/20 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-amber-400"></div>
+              <div>
+                <div className="text-amber-300 font-medium">🔍 AI 신뢰도 체크 중...</div>
+                <div className="text-amber-400/80 text-sm">이 게임에 대한 AI의 전문성을 평가하고 있습니다</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <ChatScreen
           game={{ id: 'universal', title: universalBetaState.gameContext?.gameName || 'Universal Beta', description: 'Universal Rule Master Beta Mode' } as Game}
           onGoBack={handleBackToSelection}
@@ -570,7 +631,7 @@ export default function Home() {
   if (currentPage === 'debug') {
     return (
       <DebugPageSuspense>
-        <TranslationDebugger onBack={handleBackToSelection} />
+        <TranslationDebugger onGoBack={handleBackToSelection} />
       </DebugPageSuspense>
     );
   }
@@ -600,13 +661,56 @@ export default function Home() {
       <GameSelectionSuspense>
         <div className="min-h-screen">
           {/* Universal Beta 진입 버튼 추가 */}
-          <div className="fixed top-4 right-4 z-50">
+          <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
             <Button
               onClick={handleUniversalBetaToggle}
               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-6 py-2 rounded-lg shadow-lg"
             >
               🌟 Universal Beta
             </Button>
+
+            {/* MVP 피드백 테스트 버튼들 */}
+            <div className="flex flex-col gap-1">
+              <Button
+                onClick={() => showFeedback('game_not_found', {
+                  searchTerm: searchTerm || null,
+                  currentPage: 'game_selection',
+                  timestamp: new Date().toISOString(),
+                  gamesFound: games.length,
+                  hasActiveSearch: !!searchTerm.trim()
+                })}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+              >
+                🔍 게임 못 찾음
+              </Button>
+
+              <Button
+                onClick={() => showFeedback('ui_issue', {
+                  page: 'home',
+                  component: 'game_selection',
+                  timestamp: new Date().toISOString()
+                }, 'UI 문제 신고', '화면이나 버튼에 문제가 있나요?')}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+              >
+                🐛 UI 문제
+              </Button>
+
+              <Button
+                onClick={() => showFeedback('feature_request', {
+                  currentFeature: 'game_search',
+                  userType: 'regular_user'
+                }, '기능 개선 요청', '어떤 기능이 추가되었으면 좋겠나요?')}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+              >
+                💡 기능 요청
+              </Button>
+            </div>
           </div>
 
           <GameSelection
@@ -627,6 +731,9 @@ export default function Home() {
         </div>
       </GameSelectionSuspense>
       <ClarityTest />
+
+      {/* MVP 피드백 모달 */}
+      {FeedbackModalComponent}
     </>
   );
 }
