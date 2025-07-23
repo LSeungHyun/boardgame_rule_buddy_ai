@@ -5,11 +5,11 @@
 
 // 다이어그램 컴포넌트
 export { InteractiveDiagram } from '../interactive-diagram';
-export { VisualDiagram } from '../visual-diagram';
-export { DiagramTemplates } from '../diagram-templates';
+export { default as VisualDiagram } from '../visual-diagram';
+export { GAME_DIAGRAM_TEMPLATES, generatePlayerSpecificDiagram, getGameViewBox } from '../diagram-templates';
 
 // 보드 레이아웃 컴포넌트
-export { InteractiveBoardLayout } from '../interactive-board-layout';
+export { default as InteractiveBoardLayout } from '../interactive-board-layout';
 
 // 아코디언 관련 컴포넌트
 export { AccordionSection } from '../accordion-section';

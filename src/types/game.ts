@@ -13,13 +13,21 @@ export interface Game {
 // 리서치 단계 타입 추가
 export type ResearchStage = 'analyzing' | 'searching' | 'processing' | 'summarizing' | 'generating_logic' | 'generating_text' | 'generating_review' | 'completed';
 
-// Universal Rule Master (Beta) 관련 타입 정의
+// Universal Beta 대화 상태 타입
 export type ConversationState = 'awaiting_game' | 'awaiting_command' | 'in_conversation';
+
+// 신뢰도 체크 관련 타입 추가
+export interface ConfidenceCheckResult {
+    confidenceScore: number;
+    serviceMode: 'expert' | 'beta';
+}
 
 export interface GameContext {
     gameName: string;
     setAt: Date;
     turnNumber: number;
+    // 신뢰도 체크 결과 추가
+    confidenceResult?: ConfidenceCheckResult;
 }
 
 export interface UniversalBetaState {
@@ -27,6 +35,9 @@ export interface UniversalBetaState {
     conversationState: ConversationState;
     gameContext: GameContext | null;
     sessionId: string;
+    // 신뢰도 체크 상태 추가
+    isCheckingConfidence?: boolean;
+    currentServiceMode?: 'expert' | 'beta';
 }
 
 // 채팅 메시지 타입 (Gemini API contents 포맷과 호환)
@@ -42,18 +53,35 @@ export interface ChatMessage {
         reasoning: string[];
     };
     // V2 분석 결과 추가
-    analysisV2?: {
-        type: 'rule' | 'strategy' | 'exception';
-        requiresResearch: boolean;
-        confidence: number;
-        explanation?: string;
-    };
+    analysisV2?: QuestionAnalysisV2;
     // 대화 맥락 추적 관련 메타데이터
     contextMetadata?: {
         turnNumber: number;
         sessionId: string;
         gameContext?: string;
     };
+}
+
+// 통합된 대화 시스템을 위한 새로운 타입
+export type UnifiedConversationState = 'awaiting_game_name' | 'in_conversation';
+
+export interface UnifiedGameContext {
+    gameName: string;
+    gameId?: string | number;  // 365게임의 경우 ID 존재
+    setAt: Date;
+    turnNumber: number;
+    confidenceResult: ConfidenceCheckResult;
+    isFromDatabase: boolean;  // 365게임 DB에서 가져온 게임인지 여부
+}
+
+export interface UnifiedChatState {
+    conversationState: UnifiedConversationState;
+    gameContext: UnifiedGameContext | null;
+    sessionId: string;
+    isCheckingConfidence: boolean;
+    serviceMode: 'expert' | 'beta' | null;
+    messages: ChatMessage[];
+    geminiChatHistory: GeminiContent[];
 }
 
 // Gemini API contents 포맷

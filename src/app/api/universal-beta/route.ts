@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         debugEnvironmentVariables();
 
         const body = await request.json();
-        const { gameName, chatHistory, isFirstResponse } = body;
+        const { gameName, chatHistory, isFirstResponse, serviceMode } = body;
 
         // 입력 검증
         if (!gameName || typeof gameName !== 'string') {
@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
         console.log('🌟 [Universal Beta API] 요청 수신:', {
             게임명: gameName,
             히스토리수: chatHistory.length,
-            첫응답: isFirstResponse
+            첫응답: isFirstResponse,
+            서비스모드: serviceMode
         });
 
         // API 키가 없는 경우 임시 환경변수 설정 (디버깅 목적)
@@ -60,7 +61,8 @@ export async function POST(request: NextRequest) {
         const response = await askUniversalBetaQuestion(
             gameName,
             chatHistory as GeminiContent[],
-            Boolean(isFirstResponse)
+            Boolean(isFirstResponse),
+            serviceMode
         );
 
         console.log('✅ [Universal Beta API] 응답 생성 완료');

@@ -6,6 +6,18 @@
 // API 엔드포인트
 export const API_ENDPOINTS = {
   FEEDBACK: '/api/feedback',
+  CHECK_CONFIDENCE: '/api/check-confidence',
+} as const;
+
+// AI 신뢰도 체크 시스템
+export const CONFIDENCE_CHECK = {
+  THRESHOLD: 80,                    // 전문가 모드 임계값 (80점 이상)
+  MIN_SCORE: 1,                     // 최소 신뢰도 점수
+  MAX_SCORE: 100,                   // 최대 신뢰도 점수
+  SERVICE_MODES: {
+    EXPERT: 'expert' as const,      // 전문가 모드
+    BETA: 'beta' as const,          // 베타 모드
+  },
 } as const;
 
 // 응답 타입 정의
@@ -23,7 +35,7 @@ export const ICON_NAMES = {
   EGG: 'egg',
   FOOD: 'food',
   TROPHY: 'trophy',
-  
+
   // 일반적인 아이콘
   INFO: 'info',
   WARNING: 'warning',
@@ -31,7 +43,7 @@ export const ICON_NAMES = {
   RULE: 'rule',
   STRATEGY: 'strategy',
   SETUP: 'setup',
-  
+
   // 기본 아이콘
   DEFAULT: 'default',
 } as const;
@@ -70,3 +82,4 @@ export const STYLE_CLASSES = {
 export type ResponseType = typeof RESPONSE_TYPES[keyof typeof RESPONSE_TYPES];
 export type IconName = typeof ICON_NAMES[keyof typeof ICON_NAMES];
 export type FeedbackState = typeof FEEDBACK_STATES[keyof typeof FEEDBACK_STATES];
+export type ServiceMode = typeof CONFIDENCE_CHECK.SERVICE_MODES[keyof typeof CONFIDENCE_CHECK.SERVICE_MODES];

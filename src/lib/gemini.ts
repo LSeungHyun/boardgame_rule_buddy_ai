@@ -913,7 +913,8 @@ ${gameContext}
 export async function askUniversalBetaQuestion(
     gameName: string,
     chatHistory: GeminiContent[],
-    isFirstResponse: boolean = false
+    isFirstResponse: boolean = false,
+    serviceMode?: 'expert' | 'beta'
 ): Promise<string> {
     console.log('🌟 [Universal Beta] 베타 모드 질문 처리 시작:', {
         게임: gameName,
@@ -921,7 +922,7 @@ export async function askUniversalBetaQuestion(
         첫응답: isFirstResponse
     });
 
-        // 환경변수 강제 설정 (서버 사이드에서 로드 실패 시)
+    // 환경변수 강제 설정 (서버 사이드에서 로드 실패 시)
     if (!process.env.GEMINI_API_KEY && !process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
         console.log('⚠️ [Universal Beta] 환경변수 수동 설정');
         process.env.GEMINI_API_KEY = 'AIzaSyDKh7zI-W1zx2LkttbopdGAWsuJVlIqVOo';
@@ -938,7 +939,7 @@ export async function askUniversalBetaQuestion(
         '키 시작': apiKey ? apiKey.substring(0, 10) + '...' : 'undefined',
         '실행 환경': typeof window === 'undefined' ? 'server' : 'client'
     });
-    
+
     if (!apiKey) {
         console.error('❌ [Gemini API] 환경변수 누락:', {
             '현재 NODE_ENV': process.env.NODE_ENV,
@@ -950,7 +951,7 @@ export async function askUniversalBetaQuestion(
     }
 
     // 베타 시스템 프롬프트 + 게임 컨텍스트 생성
-    const gameContextPrompt = createGameContextPrompt(gameName, isFirstResponse);
+    const gameContextPrompt = createGameContextPrompt(gameName, isFirstResponse, serviceMode);
     const fullSystemPrompt = universalBetaSystemPrompt + '\n' + gameContextPrompt;
 
     // 시스템 프롬프트를 첫 번째 메시지로 추가
@@ -1176,7 +1177,7 @@ async function callGeminiAPI(prompt: string, retryCount = 0, originalQuestion?: 
         process.env.GEMINI_API_KEY = 'AIzaSyDKh7zI-W1zx2LkttbopdGAWsuJVlIqVOo';
         process.env.NEXT_PUBLIC_GEMINI_API_KEY = 'AIzaSyDKh7zI-W1zx2LkttbopdGAWsuJVlIqVOo';
     }
-    
+
     const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     if (!apiKey) {
         throw new GeminiApiError("Gemini API 키가 설정되지 않았습니다. 환경변수를 확인해주세요.");

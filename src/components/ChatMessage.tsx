@@ -52,7 +52,7 @@ function isSetupGuideContent(question?: string, answer?: string): boolean {
 
     const questionText = (question || '').toLowerCase();
     const answerText = (answer || '').toLowerCase();
-    
+
     // 질문이나 답변에 셋업 관련 키워드가 포함되어 있는지 확인
     const hasSetupKeyword = setupKeywords.some(keyword =>
         questionText.includes(keyword) || answerText.includes(keyword) ||
@@ -82,6 +82,17 @@ export default function ChatMessage({ message, game, userQuestion, onQuestionCli
     // 환영 메시지는 피드백 제외
     const isWelcomeMessage = message.role === 'assistant' &&
         (message.content.includes('룰 마스터입니다') || message.content.includes('무엇이든 물어보세요'));
+
+    // 첫 번째 게임 답변인지 확인 (게임 전문 룰마스터 소개 메시지 또는 Universal Rule Master Beta 첫 답변)
+    const isFirstGameAnswer = message.role === 'assistant' && (
+        // Expert 모드: 게임 전문 룰마스터 소개
+        (message.content.includes('전문 룰 마스터') &&
+            (message.content.includes('정확하고 상세한 답변') || message.content.includes('게임 규칙과 메커니즘'))) ||
+        // Beta 모드: Universal Rule Master (Beta) 첫 답변
+        (message.content.includes('Universal Rule Master (Beta)') &&
+            message.content.includes('베타 서비스 안내') &&
+            message.content.includes('도움을 드릴 수 있어서 기쁩니다'))
+    );
 
     // 메시지 ID 생성 (실제 구현에서는 고유한 ID를 사용해야 함)
     const messageId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
@@ -192,8 +203,8 @@ export default function ChatMessage({ message, game, userQuestion, onQuestionCli
                 )}
             </div>
 
-            {/* 환영 메시지 아래 퀵 액션 버튼들 */}
-            {message.role === 'assistant' && isWelcomeMessage && game && onQuestionClick && (
+            {/* 환영 메시지와 첫 번째 게임 답변 아래 퀵 액션 버튼들 */}
+            {message.role === 'assistant' && (isWelcomeMessage || isFirstGameAnswer) && game && onQuestionClick && (
                 <div className="mt-4 w-full max-w-md lg:max-w-2xl">
                     <GameQuickActions
                         game={game}
@@ -202,15 +213,7 @@ export default function ChatMessage({ message, game, userQuestion, onQuestionCli
                 </div>
             )}
 
-            {/* 관련 질문 추천 (AI 답변 아래에 별도로 표시) - 현재 비활성화됨 */}
-            {false && message.role === 'assistant' && !isWelcomeMessage && recommendedQuestions.length > 0 && onQuestionClick && (
-                <div className="mt-4 max-w-md lg:max-w-2xl">
-                    <QuestionRecommendations
-                        questions={recommendedQuestions}
-                        onQuestionClick={onQuestionClick}
-                    />
-                </div>
-            )}
+
         </div>
     );
 } 

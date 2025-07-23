@@ -108,16 +108,57 @@ export const fetchGameById = async (gameId: number): Promise<Game | null> => {
 };
 
 export const searchGames = async (searchTerm: string, limit?: number): Promise<Game[]> => {
-    if (!searchTerm.trim() || searchTerm.trim().length < MIN_SEARCH_LENGTH) {
-        return [];
-    }
+    return fetchGames({ searchTerm, limit });
+};
 
+/**
+ * 게임명으로 정확히 일치하는 게임을 찾습니다.
+ * 대소문자 구분 없이 검색하며, 공백을 제거하여 비교합니다.
+ */
+export const findGameByExactName = async (gameName: string): Promise<Game | null> => {
     try {
-        return await fetchGames({
-            searchTerm: searchTerm.trim(),
-            limit: limit || DEFAULT_SEARCH_LIMIT
+        const normalizedSearchName = gameName.trim().toLowerCase().replace(/\s+/g, '');
+
+        // 모든 게임 목록을 가져옵니다 (캐싱 가능)
+        const { data, error } = await supabase
+            .from('games')
+            .select('*')
+            .not('game_id', 'is', null);
+
+        if (error) {
+            throw errorHandler.database(
+                '게임 데이터를 조회할 수 없습니다',
+                error.code,
+                { gameName, originalError: error }
+            );
+        }
+
+        if (!data || data.length === 0) {
+            return null;
+        }
+
+        // 정확히 일치하는 게임 찾기 (대소문자, 공백 무시)
+        const exactMatch = data.find(game => {
+            const normalizedTitle = game.title.toLowerCase().replace(/\s+/g, '');
+            return normalizedTitle === normalizedSearchName;
         });
+
+        if (!exactMatch) {
+            return null;
+        }
+
+        return {
+            id: exactMatch.game_id.toString(),
+            gameId: exactMatch.game_id,
+            title: exactMatch.title,
+            difficulty: exactMatch.difficulty,
+            description: exactMatch.description || '',
+            imageUrl: `https://picsum.photos/400/300?random=${exactMatch.game_id}`,
+            publisher: exactMatch.publisher || '',
+            isActive: true,
+            createdAt: exactMatch.created_at,
+        };
     } catch (error) {
-        throw errorHandler.handle(error, { function: 'searchGames', searchTerm });
+        throw errorHandler.handle(error, { function: 'findGameByExactName', gameName });
     }
 }; 

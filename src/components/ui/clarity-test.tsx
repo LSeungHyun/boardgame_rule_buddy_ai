@@ -15,6 +15,7 @@ export const ClarityTest: React.FC = () => {
 
     const [testResults, setTestResults] = useState<Record<string, boolean>>({});
     const [clarityStatus, setClarityStatus] = useState<string>('확인 중...');
+    const [isExpanded, setIsExpanded] = useState<boolean>(false); // 토글 상태 추가
 
     // 프로덕션 환경에서는 렌더링하지 않음
     if (process.env.NODE_ENV === 'production') {
@@ -101,13 +102,39 @@ export const ClarityTest: React.FC = () => {
         return '🧪';
     };
 
+    // 접힌 상태일 때 작은 토글 버튼만 표시
+    if (!isExpanded) {
+        return (
+            <div className="fixed bottom-4 right-4 z-50">
+                <Button
+                    onClick={() => setIsExpanded(true)}
+                    size="sm"
+                    variant="outline"
+                    className="bg-background border shadow-lg hover:shadow-xl transition-shadow"
+                >
+                    🧪
+                </Button>
+            </div>
+        );
+    }
+
     return (
         <div className="fixed bottom-4 right-4 z-50">
             <Card className="w-80 shadow-lg">
                 <CardHeader>
-                    <CardTitle className="text-sm">
-                        🧪 Clarity 테스트 패널
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm">
+                            🧪 Clarity 테스트 패널
+                        </CardTitle>
+                        <Button
+                            onClick={() => setIsExpanded(false)}
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 hover:bg-gray-100"
+                        >
+                            ✕
+                        </Button>
+                    </div>
                     <div className="text-xs space-y-1">
                         <div className="flex justify-between">
                             <span>Clarity 상태:</span>

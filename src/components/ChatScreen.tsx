@@ -129,7 +129,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
     };
 
     return (
-        <div className="flex flex-col h-screen pb-20 md:pb-0">
+        <div className="flex flex-col h-screen">
             {/* 헤더 (이전과 동일) */}
             <header className="glass-chat border-b border-amber-400/30 shadow-xl backdrop-blur-md">
                 <div className="flex items-center justify-between p-4">

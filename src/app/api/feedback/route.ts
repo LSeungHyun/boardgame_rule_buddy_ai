@@ -46,12 +46,8 @@ export async function POST(request: NextRequest) {
           answer: validatedData.answer,
           feedback_type: validatedData.feedback_type,
           feedback_reason: validatedData.feedback_reason,
-          created_at: validatedData.timestamp,
-          // 추가 메타데이터
-          user_agent: request.headers.get('user-agent'),
-          ip_address: request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown'
+          created_at: validatedData.timestamp
+          // 참고: user_agent, ip_address는 feedback_logs 테이블에 없음
         }
       ])
       .select();

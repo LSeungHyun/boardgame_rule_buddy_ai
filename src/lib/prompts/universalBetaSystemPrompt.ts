@@ -101,7 +101,11 @@ ${gameName}에서 여러 요소가 복합적으로 작용하는 상황이네요.
 /**
  * 게임별 컨텍스트 유지를 위한 헬퍼 함수
  */
-export function createGameContextPrompt(gameName: string, isFirstResponse: boolean = false): string {
+export function createGameContextPrompt(
+    gameName: string,
+    isFirstResponse: boolean = false,
+    serviceMode?: 'expert' | 'beta'
+): string {
     const baseContext = `
 **현재 선택된 게임: ${gameName}**
 
@@ -110,9 +114,37 @@ export function createGameContextPrompt(gameName: string, isFirstResponse: boole
 `;
 
     if (isFirstResponse) {
-        return baseContext + `
+        // 서비스 모드에 따라 다른 첫 응답 지시사항
+        if (serviceMode === 'beta') {
+            return baseContext + `
 **첫 응답이므로 베타 면책조항을 반드시 포함하세요.**
+
+⚠️ **베타 서비스 안내 예시**: 
+"안녕하세요! 저는 Universal Rule Master (Beta)입니다. 🤖
+
+**${gameName}**에 대해 도움을 드릴 수 있어서 기쁩니다! 
+
+⚠️ **베타 서비스 안내**: 저는 다양한 보드게임에 대해 답변을 드릴 수 있지만, 특정 게임에 특화된 버전보다는 정확도가 낮을 수 있습니다. 또한 아주 최근에 출시된 게임의 경우 정보가 부족할 수 있어요.
+
+하지만 최선을 다해 도움을 드리겠습니다! 무엇이 궁금하신가요?"
 `;
+        } else {
+            return baseContext + `
+**첫 응답이므로 전문가 모드 환영 메시지를 제공하세요.**
+
+👑 **전문가 모드 환영 예시**:
+"안녕하세요! 저는 **${gameName}** 전문 룰 마스터입니다. 🎯
+
+이 게임에 대해 정확하고 상세한 답변을 제공할 수 있습니다!
+
+• 게임 규칙과 메커니즘
+• 전략과 팁
+• 복잡한 상황 해석
+• 에라타와 공식 FAQ
+
+무엇이든 궁금한 것을 말씀해주세요!"
+`;
+        }
     }
 
     return baseContext;
