@@ -2,20 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 보드게임 룰 마스터 테마 색상 정의 */
+/* AI 룰 마스터 2024 모던 테마 색상 정의 */
 :root {
-  /* 기본 보드게임 테이블 색상 */
-  --game-table-dark: #2d1b0e;
-  --game-table-medium: #4a3425;
-  --game-table-light: #6b4e3d;
-  --game-wood: #8b6f4a;
-  --game-gold: #d4af37;
-  --game-gold-light: #f4d03f;
-  --game-green: #2d5016;
-  --game-green-light: #4a7c59;
-  --game-red: #8b2635;
-  --game-blue: #1e3a8a;
-  --game-purple: #7c3aed;
+  /* Core Brand Colors - Deep Tech Trust 팔레트 */
+  --primary: #4C5578;        /* Future Dusk - 신뢰감과 전문성 */
+  --primary-light: #6B7A9C;  /* Future Dusk Light */
+  --primary-dark: #3A4258;   /* Future Dusk Dark */
+  
+  --secondary: #71ADBA;      /* Retro Blue - 차분한 안정감 */
+  --secondary-light: #8FC4D1; /* Retro Blue Light */
+  --secondary-dark: #5A8A95;  /* Retro Blue Dark */
+  
+  --accent: #FF654F;         /* Neon Flare - 에너지와 혁신 */
+  --accent-light: #FF8C7A;   /* Neon Flare Light */
+  --accent-dark: #E5432A;    /* Neon Flare Dark */
+  
+  /* Neutral Modern Colors */
+  --surface-dark: #0F1419;   /* Deep Dark Background */
+  --surface-medium: #1E2328; /* Elevated Surface */
+  --surface-light: #2A3138;  /* Card Background */
+  --surface-hover: #3A404A;  /* Hover State */
+  
+  /* Text Colors */
+  --text-primary: #F8FAFC;   /* Pure White */
+  --text-secondary: #CBD5E1; /* Cool Gray */
+  --text-muted: #94A3B8;     /* Muted Gray */
+  --text-inverse: #1E293B;   /* Dark on Light */
+  
+  /* Success & Status Colors */
+  --success: #10B981;        /* Emerald Green */
+  --warning: #F59E0B;        /* Amber */
+  --error: #EF4444;          /* Red */
+  --info: var(--secondary);
 }
 
 /* 리서치 상태 애니메이션 */
@@ -53,43 +71,42 @@
   animation: gameCardGlow 2s ease-in-out infinite;
 }
 
-/* 보드게임 테마 배경 */
+/* AI 룰마스터 2024 모던 테마 배경 */
 body {
   font-family: 'Noto Sans KR', sans-serif;
   background: linear-gradient(135deg,
-      var(--game-table-dark) 0%,
-      var(--game-table-medium) 25%,
-      var(--game-table-dark) 50%,
-      var(--game-table-medium) 75%,
-      var(--game-table-dark) 100%);
+      var(--surface-dark) 0%,
+      var(--surface-medium) 25%,
+      var(--surface-dark) 50%,
+      var(--surface-medium) 75%,
+      var(--surface-dark) 100%);
   background-attachment: fixed;
   min-height: 100vh;
-  color: #f5f5dc;
-  /* 베이지 톤 텍스트 */
+  color: var(--text-primary);
 }
 
-/* 글래스모피즘 효과 - 보드게임 테이블 느낌 */
+/* 모던 글래스모피즘 효과 - AI 테크 느낌 */
 .glass {
-  background: rgba(139, 111, 74, 0.15);
+  background: rgba(76, 85, 120, 0.15);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  box-shadow: 0 8px 32px rgba(45, 27, 14, 0.3);
+  border: 1px solid rgba(113, 173, 186, 0.2);
+  box-shadow: 0 8px 32px rgba(15, 20, 25, 0.3);
 }
 
 .glass-card {
-  background: rgba(75, 52, 37, 0.25);
+  background: rgba(30, 35, 40, 0.25);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.15);
-  box-shadow: 0 4px 20px rgba(45, 27, 14, 0.4);
+  border: 1px solid rgba(76, 85, 120, 0.15);
+  box-shadow: 0 4px 20px rgba(15, 20, 25, 0.4);
 }
 
 .glass-chat {
-  background: rgba(45, 27, 14, 0.8);
+  background: rgba(30, 35, 40, 0.8);
   backdrop-filter: blur(15px);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(113, 173, 186, 0.2);
 }
 
-/* 호버 효과 - 보드게임 카드 느낌 */
+/* 호버 효과 - 모던 AI 카드 느낌 */
 .hover-lift {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -97,52 +114,52 @@ body {
 .hover-lift:hover {
   transform: translateY(-3px) scale(1.02);
   box-shadow:
-    0 10px 30px rgba(212, 175, 55, 0.2),
-    0 5px 15px rgba(45, 27, 14, 0.3);
+    0 10px 30px rgba(113, 173, 186, 0.2),
+    0 5px 15px rgba(76, 85, 120, 0.3);
 }
 
 /* 게임 카드 특별 호버 */
 .game-card {
   background: linear-gradient(145deg,
-      rgba(75, 52, 37, 0.3) 0%,
-      rgba(107, 78, 61, 0.2) 100%);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+      rgba(30, 35, 40, 0.3) 0%,
+      rgba(42, 49, 56, 0.2) 100%);
+  border: 1px solid rgba(76, 85, 120, 0.2);
   transition: all 0.3s ease;
 }
 
 .game-card:hover {
   background: linear-gradient(145deg,
-      rgba(212, 175, 55, 0.1) 0%,
-      rgba(139, 111, 74, 0.3) 100%);
-  border: 1px solid var(--game-gold);
+      rgba(76, 85, 120, 0.1) 0%,
+      rgba(113, 173, 186, 0.3) 100%);
+  border: 1px solid var(--secondary);
   transform: translateY(-2px);
   box-shadow:
-    0 8px 25px rgba(212, 175, 55, 0.3),
-    0 4px 12px rgba(45, 27, 14, 0.4);
+    0 8px 25px rgba(113, 173, 186, 0.3),
+    0 4px 12px rgba(76, 85, 120, 0.4);
 }
 
-/* 스크롤바 - 보드게임 테마 */
+/* 스크롤바 - 모던 AI 테마 */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(45, 27, 14, 0.3);
+  background: rgba(15, 20, 25, 0.3);
   border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg,
-      var(--game-gold) 0%,
-      var(--game-wood) 100%);
+      var(--secondary) 0%,
+      var(--primary) 100%);
   border-radius: 4px;
   transition: background 0.2s ease;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg,
-      var(--game-gold-light) 0%,
-      var(--game-gold) 100%);
+      var(--secondary-light) 0%,
+      var(--secondary) 100%);
 }
 
 /* AI 응답의 마크다운 스타일링 - 보드게임 매뉴얼 느낌 */
@@ -194,38 +211,38 @@ body {
   border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
-/* 버튼 스타일 - 보드게임 주사위/토큰 느낌 */
+/* 버튼 스타일 - 모던 AI 테크 느낌 */
 .btn-game-primary {
   background: linear-gradient(145deg,
-      var(--game-gold) 0%,
-      var(--game-wood) 100%);
-  color: var(--game-table-dark);
-  border: 2px solid var(--game-gold-light);
+      var(--secondary) 0%,
+      var(--primary) 100%);
+  color: var(--text-primary);
+  border: 2px solid var(--secondary-light);
   font-weight: 600;
-  text-shadow: 1px 1px 1px rgba(45, 27, 14, 0.3);
+  text-shadow: 1px 1px 1px rgba(15, 20, 25, 0.3);
   transition: all 0.3s ease;
 }
 
 .btn-game-primary:hover {
   background: linear-gradient(145deg,
-      var(--game-gold-light) 0%,
-      var(--game-gold) 100%);
+      var(--secondary-light) 0%,
+      var(--secondary) 100%);
   box-shadow:
-    0 6px 20px rgba(212, 175, 55, 0.4),
-    0 3px 8px rgba(45, 27, 14, 0.3);
+    0 6px 20px rgba(113, 173, 186, 0.4),
+    0 3px 8px rgba(76, 85, 120, 0.3);
   transform: translateY(-2px);
 }
 
 .btn-game-secondary {
-  background: rgba(75, 52, 37, 0.8);
-  color: var(--game-gold-light);
-  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: rgba(30, 35, 40, 0.8);
+  color: var(--secondary-light);
+  border: 1px solid rgba(113, 173, 186, 0.4);
   transition: all 0.3s ease;
 }
 
 .btn-game-secondary:hover {
-  background: rgba(212, 175, 55, 0.2);
-  border: 1px solid var(--game-gold);
+  background: rgba(113, 173, 186, 0.2);
+  border: 1px solid var(--secondary);
 }
 
 /* 입력 필드 - 게임 점수판 느낌 */

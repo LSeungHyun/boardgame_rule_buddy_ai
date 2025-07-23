@@ -38,6 +38,13 @@ export default function Home() {
   // 페이지뷰 추적
   usePageView(currentPage === 'selection' ? '/' : currentPage === 'chat' ? '/chat' : '/debug');
 
+  // 스크롤 위치 초기화 - 페이지 시작 시 최상단으로
+  useEffect(() => {
+    if (currentPage === 'selection') {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [currentPage]);
+
   useEffect(() => {
     const loadGames = async () => {
       try {
