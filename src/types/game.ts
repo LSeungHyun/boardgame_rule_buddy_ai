@@ -13,6 +13,23 @@ export interface Game {
 // 리서치 단계 타입 추가
 export type ResearchStage = 'analyzing' | 'searching' | 'processing' | 'summarizing' | 'generating_logic' | 'generating_text' | 'generating_review' | 'completed';
 
+// Universal Rule Master (Beta) 관련 타입 정의
+export type ConversationState = 'awaiting_game' | 'awaiting_command' | 'in_conversation';
+
+export interface GameContext {
+    gameName: string;
+    setAt: Date;
+    turnNumber: number;
+}
+
+export interface UniversalBetaState {
+    isActive: boolean;
+    conversationState: ConversationState;
+    gameContext: GameContext | null;
+    sessionId: string;
+}
+
+// 채팅 메시지 타입 (Gemini API contents 포맷과 호환)
 export interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
@@ -35,11 +52,14 @@ export interface ChatMessage {
     contextMetadata?: {
         turnNumber: number;
         sessionId: string;
-        topic: string;
-        isContextuallyRelevant: boolean;
-        referencedTurns?: number[];
-        errorCorrected?: boolean;
+        gameContext?: string;
     };
+}
+
+// Gemini API contents 포맷
+export interface GeminiContent {
+    role: 'user' | 'model';
+    parts: Array<{ text: string }>;
 }
 
 // 검색 관련 상태와 핸들러를 그룹화

@@ -1,9 +1,11 @@
 import { systemPrompt } from './prompts';
+import { universalBetaSystemPrompt, createGameContextPrompt } from './prompts/universalBetaSystemPrompt';
 import { QuestionAnalyzer } from './question-analyzer';
 import { ResearchLimiter } from './research-limiter';
 import { researchCache } from './research-cache';
 import { enhancedTranslator } from './enhanced-translator'; // 🚨 Enhanced Translator 사용
 import type { QuestionAnalysisV2 } from './question-analyzer';
+import type { GeminiContent } from '@/types/game';
 
 // 대화 맥락 추적 시스템 통합
 import { ConversationHistoryManager } from './conversation-history-manager';
@@ -11,12 +13,12 @@ import { ContextAnalyzer } from './context-analyzer';
 import { IntentRecognizer } from './intent-recognizer';
 import { ConsistencyValidator } from './consistency-validator';
 import { ErrorRecoverySystem } from './error-recovery-system';
-import type { 
-  ConversationContext, 
-  QuestionHistoryItem, 
-  ContextAnalysis, 
-  IntentAnalysis,
-  ConsistencyCheck
+import type {
+    ConversationContext,
+    QuestionHistoryItem,
+    ContextAnalysis,
+    IntentAnalysis,
+    ConsistencyCheck
 } from '@/types';
 
 /**
@@ -38,11 +40,11 @@ function getGameIdFromTitle(gameTitle: string): number | null {
         'wingspan: asia': 148,
         // 필요에 따라 추가
     };
-    
+
     const normalizedTitle = gameTitle.toLowerCase().trim()
         .replace(/\s*:\s*/g, ' : ')  // 콜론 주변 공백 정규화
         .replace(/\s+/g, ' ');       // 다중 공백 정리
-    
+
     return titleMap[normalizedTitle] || null;
 }
 
@@ -53,7 +55,7 @@ function getGameContext(gameTitle: string): string {
     if (!gameTitle || gameTitle.trim() === '') {
         return '\n📚 **일반 보드게임 질문** - 포괄적 지식으로 답변합니다.\n';
     }
-    
+
     return `
 🎮 **${gameTitle} 전용 룰 마스터 모드 활성화**
 
@@ -165,7 +167,7 @@ export async function askGameQuestion(
 
     // API 요청 구성 - 최적화된 파라미터 적용
     const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-    const payload = { 
+    const payload = {
         contents: chatHistory,
         generationConfig: {
             temperature: 0.1,        // 정확하고 일관된 답변
@@ -200,7 +202,7 @@ export async function askGameQuestion(
         console.log('📋 [기존 함수 API 응답 구조]', {
             candidates: result.candidates?.length || 0,
             firstCandidate: result.candidates?.[0] ? 'exists' : 'missing',
-            content: result.candidates?.[0]?.content ? 'exists' : 'missing', 
+            content: result.candidates?.[0]?.content ? 'exists' : 'missing',
             parts: result.candidates?.[0]?.content?.parts?.length || 0,
             promptFeedback: result.promptFeedback || 'none'
         });
@@ -276,7 +278,7 @@ export async function askGameQuestionWithContextTracking(
 
     // 2. 맥락 분석 수행
     const contextAnalysis = contextAnalyzer.analyzeContext(
-        userQuestion, 
+        userQuestion,
         context?.questionHistory || []
     );
     console.log('🔍 [맥락 분석]', {
@@ -288,13 +290,13 @@ export async function askGameQuestionWithContextTracking(
 
     // 3. 의도 파악
     const intentAnalysis = intentRecognizer.recognizeIntent(
-        userQuestion, 
-        context || { 
-            sessionId, 
-            currentTopic: gameTitle, 
-            topicStartTurn: 1, 
-            questionHistory: [], 
-            lastUpdated: new Date() 
+        userQuestion,
+        context || {
+            sessionId,
+            currentTopic: gameTitle,
+            topicStartTurn: 1,
+            questionHistory: [],
+            lastUpdated: new Date()
         }
     );
     console.log('🎭 [의도 파악]', {
@@ -409,13 +411,13 @@ export async function askGameQuestionWithContextTracking(
     // 8. 게임별 용어 데이터 로드 (기존 로직 유지)
     let gameTermsContext = '';
     const gameId = getGameIdFromTitle(gameTitle);
-    
+
     if (gameId === 331) {
         try {
-            let foundTerms: Array<{korean: string, english: string, context?: string}> = [];
+            let foundTerms: Array<{ korean: string, english: string, context?: string }> = [];
             const questionKeywords = userQuestion.split(' ').filter(word => word.length > 1);
             let translatedCount = 0;
-            
+
             questionKeywords.forEach(keyword => {
                 const result = enhancedTranslator.translate(keyword, gameTitle);
                 if (result) {
@@ -427,14 +429,14 @@ export async function askGameQuestionWithContextTracking(
                     translatedCount++;
                 }
             });
-            
+
             if (foundTerms.length > 0) {
                 gameTermsContext = `
 
 🎯 **아크노바 게임 전용 용어 정보:**
-${foundTerms.slice(0, 10).map(term => 
-    `• **${term.korean}** → **${term.english}** (특화 매핑)`
-).join('\n')}
+${foundTerms.slice(0, 10).map(term =>
+                    `• **${term.korean}** → **${term.english}** (특화 매핑)`
+                ).join('\n')}
 
 📖 **이 용어들을 참고하여 정확한 아크노바 룰 설명을 제공하세요.**
 `;
@@ -462,10 +464,10 @@ ${foundTerms.slice(0, 10).map(term =>
 사용자 의도: ${intentAnalysis.primaryIntent}
 
 **최근 대화 히스토리:**
-${recentHistory.map((item, index) => 
-    `${index + 1}. Q: ${item.question.slice(0, 100)}${item.question.length > 100 ? '...' : ''}
+${recentHistory.map((item, index) =>
+            `${index + 1}. Q: ${item.question.slice(0, 100)}${item.question.length > 100 ? '...' : ''}
    A: ${item.answer.slice(0, 150)}${item.answer.length > 150 ? '...' : ''}`
-).join('\n\n')}
+        ).join('\n\n')}
 
 **맥락 기반 답변 지침:**
 - 이전 대화 내용을 참고하여 일관성 있는 답변을 제공하세요
@@ -511,7 +513,7 @@ ${sources.slice(0, 3).map((url, i) => `${i + 1}. ${url}`).join('\n')}`;
         });
 
         const aiAnswer = await callGeminiAPI(enhancedPrompt, 0, userQuestion, gameTitle);
-        
+
         // 11. 일관성 검증
         let consistencyCheck: ConsistencyCheck | undefined;
         if (context) {
@@ -532,8 +534,8 @@ ${sources.slice(0, 3).map((url, i) => `${i + 1}. ${url}`).join('\n')}`;
             question: userQuestion,
             answer: aiAnswer,
             topic: contextAnalysis.currentTopic,
-            confidence: consistencyCheck?.confidenceLevel === 'high' ? 0.9 : 
-                       consistencyCheck?.confidenceLevel === 'medium' ? 0.7 : 0.5,
+            confidence: consistencyCheck?.confidenceLevel === 'high' ? 0.9 :
+                consistencyCheck?.confidenceLevel === 'medium' ? 0.7 : 0.5,
             wasResearched: researchUsed,
             contextAnalysis,
             intentAnalysis,
@@ -599,7 +601,7 @@ export async function askGameQuestionWithSmartResearch(
     // 1. 강제 리서치 마커 확인
     const isForceResearch = userQuestion.includes('[FORCE_RESEARCH]');
     const cleanQuestion = userQuestion.replace('[FORCE_RESEARCH]', '').trim();
-    
+
     if (isForceResearch) {
         console.log('🚨 [강제 리서치] 퀵버튼 게임요약/셋업가이드 - 무조건 리서치 실행');
     }
@@ -614,7 +616,7 @@ export async function askGameQuestionWithSmartResearch(
         const limiter = new ResearchLimiter();
         limiter.recordQuestionAsked();
         shouldResearch = limiter.canPerformResearch();
-        
+
         console.log('🎯 [강제 리서치 판단]', {
             타입: '퀵버튼 강제 리서치',
             할당량확인: shouldResearch ? '가능' : '초과',
@@ -688,7 +690,7 @@ export async function askGameQuestionWithSmartResearch(
                         // Enhanced Translator로 영어 키워드 추출
                         const searchQuery = enhancedTranslator.generateSearchQueries(userQuestion, gameTitle);
                         englishKeywords = searchQuery.keywords;
-                        
+
                         console.log('🔍 [Enhanced Translator 영어 키워드 추출 성공]', {
                             게임ID: gameId,
                             원본질문: userQuestion,
@@ -745,18 +747,18 @@ export async function askGameQuestionWithSmartResearch(
     // 4. 게임별 용어 데이터 로드 (최적화된 버전)
     let gameTermsContext = '';
     const gameId = getGameIdFromTitle(gameTitle);
-    
+
     if (gameId === 331) {
         // 아크노바인 경우에만 특화 용어 검색 실행
         try {
             console.log('🎯 [아크노바 용어 검색] 아크노바 전용 용어 매핑 시작');
-            
-            let foundTerms: Array<{korean: string, english: string, context?: string}> = [];
-            
+
+            let foundTerms: Array<{ korean: string, english: string, context?: string }> = [];
+
             // 질문에서 핵심 키워드 추출해서 번역
             const questionKeywords = userQuestion.split(' ').filter(word => word.length > 1);
             let translatedCount = 0;
-            
+
             questionKeywords.forEach(keyword => {
                 const result = enhancedTranslator.translate(keyword, gameTitle);
                 if (result) {
@@ -768,14 +770,14 @@ export async function askGameQuestionWithSmartResearch(
                     translatedCount++;
                 }
             });
-            
+
             if (foundTerms.length > 0) {
                 gameTermsContext = `
 
 🎯 **아크노바 게임 전용 용어 정보:**
-${foundTerms.slice(0, 10).map(term => 
-    `• **${term.korean}** → **${term.english}** (특화 매핑)`
-).join('\n')}
+${foundTerms.slice(0, 10).map(term =>
+                    `• **${term.korean}** → **${term.english}** (특화 매핑)`
+                ).join('\n')}
 
 📖 **이 용어들을 참고하여 정확한 아크노바 룰 설명을 제공하세요.**
 `;
@@ -838,7 +840,7 @@ ${sources.slice(0, 3).map((url, i) => `${i + 1}. ${url}`).join('\n')}`;
     } else {
         // 범용적인 게임 컨텍스트 제공
         const gameContext = getGameContext(gameTitle);
-        
+
         enhancedPrompt += `
 
 ⚠️ **일반 답변 모드**: 웹 리서치 정보 없이 Gemini의 보드게임 전문 지식으로 답변합니다.
@@ -864,7 +866,7 @@ ${gameContext}
 
         // 중단 감지를 위해 원본 질문과 게임 제목 전달
         const aiAnswer = await callGeminiAPI(enhancedPrompt, 0, userQuestion, gameTitle);
-        
+
         console.log('✅ [완료] 최종 답변이 생성되었습니다:', {
             리서치사용: researchUsed,
             캐시사용: fromCache,
@@ -902,17 +904,144 @@ ${gameContext}
 }
 
 /**
+ * Universal Rule Master (Beta) 전용 API 호출 함수
+ * @param gameName 사용자가 선택한 게임 이름
+ * @param chatHistory 전체 채팅 히스토리 (Gemini contents 포맷)
+ * @param isFirstResponse 첫 번째 응답인지 여부
+ * @returns AI 답변 문자열
+ */
+export async function askUniversalBetaQuestion(
+    gameName: string,
+    chatHistory: GeminiContent[],
+    isFirstResponse: boolean = false
+): Promise<string> {
+    console.log('🌟 [Universal Beta] 베타 모드 질문 처리 시작:', {
+        게임: gameName,
+        히스토리수: chatHistory.length,
+        첫응답: isFirstResponse
+    });
+
+    // API 키 확인
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    if (!apiKey) {
+        throw new GeminiApiError("Gemini API 키가 설정되지 않았습니다. 환경변수를 확인해주세요.");
+    }
+
+    // 베타 시스템 프롬프트 + 게임 컨텍스트 생성
+    const gameContextPrompt = createGameContextPrompt(gameName, isFirstResponse);
+    const fullSystemPrompt = universalBetaSystemPrompt + '\n' + gameContextPrompt;
+
+    // 시스템 프롬프트를 첫 번째 메시지로 추가
+    const systemMessage: GeminiContent = {
+        role: 'user',
+        parts: [{ text: fullSystemPrompt }]
+    };
+
+    // 전체 contents 구성 (시스템 프롬프트 + 채팅 히스토리)
+    const contents = [systemMessage, ...chatHistory];
+
+    console.log('🎯 [Universal Beta] API 호출 준비:', {
+        전체메시지수: contents.length,
+        시스템프롬프트길이: fullSystemPrompt.length,
+        게임컨텍스트: gameName
+    });
+
+    // API 호출 설정
+    const payload = {
+        contents,
+        generationConfig: {
+            temperature: 0.2,        // 베타 모드에서는 약간 높은 창의성
+            topK: 50,               // 더 다양한 토큰 고려
+            topP: 0.95,             // 고품질 토큰 선택
+            maxOutputTokens: 4096,  // 충분한 답변 길이
+            candidateCount: 1,      // 일관성 확보
+        }
+    };
+
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            console.error('🚫 [Universal Beta API 요청 실패]', {
+                status: response.status,
+                statusText: response.statusText
+            });
+
+            throw new GeminiApiError(
+                `API 요청 실패: ${response.status} ${response.statusText}`,
+                response.status,
+                response.statusText
+            );
+        }
+
+        const result: GeminiResponse = await response.json();
+
+        // 토큰 사용량 로깅
+        logTokenUsage(result.usageMetadata, fullSystemPrompt);
+
+        console.log('📋 [Universal Beta API 응답 구조]', {
+            candidates: result.candidates?.length || 0,
+            finishReason: result.candidates?.[0]?.finishReason || 'none',
+            promptFeedback: result.promptFeedback || 'none'
+        });
+
+        // 프롬프트가 차단된 경우
+        if (result.promptFeedback && result.promptFeedback.blockReason) {
+            console.warn('⚠️ [Universal Beta 응답 차단]', result.promptFeedback.blockReason);
+            return `죄송합니다. 답변 생성이 제한되었습니다. (사유: ${result.promptFeedback.blockReason})`;
+        }
+
+        // 정상 응답 처리
+        if (result.candidates && result.candidates.length > 0 &&
+            result.candidates[0].content && result.candidates[0].content.parts &&
+            result.candidates[0].content.parts.length > 0) {
+
+            const responseText = result.candidates[0].content.parts[0].text;
+            const finishReason = result.candidates[0].finishReason;
+
+            if (responseText && responseText.trim()) {
+                console.log('✅ [Universal Beta 성공]', {
+                    응답길이: responseText.length,
+                    완료상태: finishReason,
+                    게임: gameName
+                });
+                return responseText;
+            }
+        }
+
+        // 예상치 못한 응답 구조
+        console.error('❌ [Universal Beta 예상치 못한 응답]', JSON.stringify(result, null, 2));
+        return "죄송합니다. Universal Rule Master (Beta)에서 답변을 생성하는 데 문제가 발생했습니다.";
+
+    } catch (error) {
+        if (error instanceof GeminiApiError) {
+            throw error;
+        }
+
+        console.error('❌ [Universal Beta 오류]', error);
+        const errorMessage = error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다";
+        throw new GeminiApiError(`Universal Beta API 호출 오류: ${errorMessage}`);
+    }
+}
+
+/**
  * 토큰 사용량 상세 모니터링
  */
 function logTokenUsage(usageMetadata: any, prompt: string, responseText?: string) {
     const promptTokens = usageMetadata?.promptTokenCount || 0;
     const totalTokens = usageMetadata?.totalTokenCount || 0;
     const responseTokens = totalTokens - promptTokens;
-    
+
     // 응답 길이 예측 (한글 기준 대략적 계산)
     const estimatedResponseLength = responseText ? responseText.length : 0;
     const estimatedTokens = Math.ceil(estimatedResponseLength / 3); // 한글 1글자 ≈ 1.5-2 토큰, 여유있게 3으로 나눔
-    
+
     console.log('📊 [토큰 사용량 분석]', {
         프롬프트토큰: promptTokens,
         응답토큰: responseTokens,
@@ -923,7 +1052,7 @@ function logTokenUsage(usageMetadata: any, prompt: string, responseText?: string
         프롬프트길이: prompt.length,
         응답길이: responseText?.length || 0
     });
-    
+
     // 토큰 한계 경고
     if (totalTokens > 7000) {
         console.warn('⚠️ [토큰 한계 임박]', {
@@ -940,25 +1069,25 @@ function optimizePromptForLength(prompt: string, estimatedResponseLength: number
     // 응답이 길 것으로 예상되는 경우 프롬프트 최적화
     if (estimatedResponseLength > 2000) {
         console.log('🔧 [긴 응답 예상 - 프롬프트 최적화]');
-        
+
         // 프롬프트에 간결성 요청 추가
         const concisenessNote = '\n\n※ 답변은 핵심만 간결하게 제공해주세요.';
-        
+
         // 프롬프트가 너무 길면 축약
         if (prompt.length > 3000) {
             const lines = prompt.split('\n');
-            const essentialLines = lines.filter(line => 
-                line.includes('질문:') || 
-                line.includes('게임:') || 
+            const essentialLines = lines.filter(line =>
+                line.includes('질문:') ||
+                line.includes('게임:') ||
                 line.includes('You are') ||
                 line.trim().length > 50
             );
             return essentialLines.join('\n') + concisenessNote;
         }
-        
+
         return prompt + concisenessNote;
     }
-    
+
     return prompt;
 }
 
@@ -971,12 +1100,12 @@ function createFallbackPrompt(originalPrompt: string): string {
 You are a board game rules expert. Provide a clear, concise answer to this board game question.
 Answer in Korean, be specific and accurate.
 `;
-    
+
     // 원본 프롬프트에서 질문 부분만 추출 (마지막 몇 줄 가정)
     const lines = originalPrompt.split('\n');
     const questionStart = Math.max(0, lines.length - 10); // 마지막 10줄 정도만 사용
     const questionPart = lines.slice(questionStart).join('\n');
-    
+
     return simplifiedSystemPrompt + '\n' + questionPart;
 }
 
@@ -984,16 +1113,16 @@ Answer in Korean, be specific and accurate.
  * 답변 중단 감지 및 재시도 CTA 생성
  */
 function createRetryCTA(
-    finishReason: string, 
-    originalQuestion: string, 
+    finishReason: string,
+    originalQuestion: string,
     gameTitle: string,
     partialResponse?: string
 ): { message: string; cta: string } {
     const baseMessage = "💡 **답변이 중간에 끊어졌습니다.**\n\n";
-    
+
     let reasonMessage = "";
     let ctaMessage = "";
-    
+
     switch (finishReason) {
         case 'MAX_TOKENS':
             reasonMessage = "토큰 한계로 인해 답변이 완성되지 않았습니다.";
@@ -1007,9 +1136,9 @@ function createRetryCTA(
             reasonMessage = "예상치 못한 오류로 답변이 중단되었습니다.";
             ctaMessage = " **다시 시도해보세요**\n\n잠시 후 같은 질문을 다시 해주세요.";
     }
-    
+
     const fullMessage = baseMessage + reasonMessage + "\n\n" + ctaMessage;
-    
+
     return {
         message: fullMessage,
         cta: `다시 질문하기: "${originalQuestion}"`
@@ -1026,14 +1155,14 @@ async function callGeminiAPI(prompt: string, retryCount = 0, originalQuestion?: 
     }
 
     const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-    
+
     // 응답 길이 예측 및 프롬프트 최적화
     const estimatedResponseLength = prompt.length * 2; // 대략적인 예측
     const optimizedPrompt = optimizePromptForLength(prompt, estimatedResponseLength);
     const optimizedChatHistory = [{ role: "user", parts: [{ text: optimizedPrompt }] }];
-    
+
     // 근본적 해결책: maxOutputTokens 증가 (4096 → 6144)
-    const payload = { 
+    const payload = {
         contents: optimizedChatHistory,
         generationConfig: {
             temperature: 0.1,        // 정확하고 일관된 답변을 위한 낮은 온도
@@ -1043,11 +1172,11 @@ async function callGeminiAPI(prompt: string, retryCount = 0, originalQuestion?: 
             candidateCount: 1,      // 단일 후보로 일관성 확보
         }
     };
-    
+
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     let result: GeminiResponse;
-    
+
     try {
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -1063,7 +1192,7 @@ async function callGeminiAPI(prompt: string, retryCount = 0, originalQuestion?: 
                 error: errorText,
                 retryCount
             });
-            
+
             throw new GeminiApiError(
                 `API 요청 실패: ${response.status} ${response.statusText}`,
                 response.status,
@@ -1072,17 +1201,17 @@ async function callGeminiAPI(prompt: string, retryCount = 0, originalQuestion?: 
         }
 
         result = await response.json();
-        
+
     } catch (error) {
         if (error instanceof GeminiApiError) {
             throw error;
         }
-        
+
         console.error('🚫 [네트워크 오류]', {
             error: error instanceof Error ? error.message : '알 수 없는 오류',
             retryCount
         });
-        
+
         throw new GeminiApiError(
             `네트워크 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
         );
@@ -1090,7 +1219,7 @@ async function callGeminiAPI(prompt: string, retryCount = 0, originalQuestion?: 
 
     // 토큰 사용량 상세 모니터링
     logTokenUsage(result.usageMetadata, optimizedPrompt);
-    
+
     // 디버깅을 위한 응답 구조 로깅
     console.log('📋 [API 응답 구조 확인]', {
         candidates: result.candidates?.length || 0,
@@ -1112,7 +1241,7 @@ async function callGeminiAPI(prompt: string, retryCount = 0, originalQuestion?: 
     if (result.candidates && result.candidates.length > 0) {
         const candidate = result.candidates[0];
         const finishReason = candidate.finishReason;
-        
+
         // 중단 감지 및 재시도 CTA 생성
         if (finishReason === 'MAX_TOKENS' || finishReason === 'SAFETY' || (finishReason && finishReason !== 'STOP')) {
             console.warn('⚠️ [답변 중단 감지]', {
@@ -1121,33 +1250,33 @@ async function callGeminiAPI(prompt: string, retryCount = 0, originalQuestion?: 
                 totalTokens: result.usageMetadata?.totalTokenCount,
                 retryCount
             });
-            
+
             // 부분 응답이 있는지 확인
             let partialText = "";
             if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
                 partialText = candidate.content.parts[0].text || "";
             }
-            
+
             // 재시도 CTA 생성
             const retryInfo = createRetryCTA(finishReason, originalQuestion || "", gameTitle || "", partialText);
-            
+
             // 부분 응답이 충분히 긴 경우 부분 + CTA
             if (partialText && partialText.trim().length > 300) {
                 return partialText + "\n\n---\n\n" + retryInfo.message;
             }
-            
+
             // 부분 응답이 짧거나 없는 경우 CTA만
             return retryInfo.message;
         }
-        
+
         // 정상적인 응답 처리
         if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
             const responseText = candidate.content.parts[0].text;
             if (responseText && responseText.trim()) {
                 // 응답 길이에 따른 토큰 사용량 재계산
                 logTokenUsage(result.usageMetadata, optimizedPrompt, responseText);
-                
-                console.log('✅ [API 응답 성공]', { 
+
+                console.log('✅ [API 응답 성공]', {
                     응답길이: responseText.length,
                     finishReason: finishReason,
                     토큰효율성: `${Math.round((responseText.length / (result.usageMetadata?.totalTokenCount || 1)) * 100)}%`
