@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { motion, useInView } from 'framer-motion';
 import ChatScreen from '@/components/ChatScreen';
-import TranslationDebugger from '@/components/TranslationDebugger';
 
-import { ChatScreenSuspense, DebugPageSuspense } from '@/components/ui/suspense-wrapper';
+import { ChatScreenSuspense } from '@/components/ui/suspense-wrapper';
 import {
     ChatMessage,
     ResearchStage,
@@ -154,10 +153,10 @@ const WELCOME_MESSAGE = `안녕하세요! 🎲 저는 **보드게임 룰 마스�
 
 export default function RuleMaster() {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const gameParam = searchParams.get('game');
 
-    // 페이지 상태 관리 (검색 페이지 제거)
-    const [currentPage, setCurrentPage] = useState<'chat' | 'debug'>('chat');
+
 
     // 통합된 대화 상태 관리
     const [chatState, setChatState] = useState<UnifiedChatState>({
@@ -181,7 +180,10 @@ export default function RuleMaster() {
     const engagementTracking = useEngagementTracking();
 
     // 페이지뷰 추적
-    usePageView(currentPage === 'chat' ? '/rulemaster' : '/rulemaster/debug');
+    usePageView('/rulemaster');
+
+    // 게임 파라미터 처리 여부를 추적하는 ref
+    const gameParamProcessed = useRef(false);
 
     // 컴포넌트 마운트 시 환영 메시지 표시 및 게임 파라미터 처리
     useEffect(() => {
@@ -195,8 +197,9 @@ export default function RuleMaster() {
             messages: [welcomeMessage]
         }));
 
-        // 게임 파라미터가 있으면 자동으로 게임명을 입력
-        if (gameParam) {
+        // 게임 파라미터가 있고 아직 처리되지 않았으면 자동으로 게임명을 입력
+        if (gameParam && !gameParamProcessed.current) {
+            gameParamProcessed.current = true;
             // 약간의 지연 후 게임명 자동 입력
             setTimeout(() => {
                 handleSendMessage(gameParam);
@@ -457,18 +460,8 @@ export default function RuleMaster() {
     };
 
     const handleGoBack = () => {
-        setChatState({
-            conversationState: 'awaiting_game_name',
-            gameContext: null,
-            sessionId: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            isCheckingConfidence: false,
-            serviceMode: null,
-            messages: [{
-                role: 'assistant',
-                content: WELCOME_MESSAGE
-            }],
-            geminiChatHistory: []
-        });
+        // 루트 페이지로 이동
+        router.push('/');
     };
 
     return (
@@ -477,129 +470,24 @@ export default function RuleMaster() {
             <BackgroundBlobs />
             <FloatingParticles />
 
-            {/* Enhanced Navigation */}
-            <motion.nav
-                className="fixed top-0 left-0 right-0 z-40 glass-card-premium border-b border-white/10"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-            >
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        {/* Enhanced Logo/Title */}
-                        <motion.div
-                            className="flex items-center space-x-3"
-                            whileHover={{ scale: 1.02 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            <motion.button
-                                onClick={handleGoBack}
-                                className="text-2xl font-bold gradient-text-premium hover:scale-105 transition-all duration-300 relative group"
-                                whileHover={{ y: -1 }}
-                                whileTap={{ scale: 0.98 }}
-                            >
-                                🎲 룰마스터 AI
-
-                                {/* Hover Glow Effect */}
-                                <motion.div
-                                    className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-20 transition-opacity duration-300"
-                                    style={{
-                                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                                        filter: 'blur(20px)',
-                                        transform: 'scale(1.2)',
-                                    }}
-                                />
-                            </motion.button>
-                        </motion.div>
-
-                        {/* Enhanced Page Toggle Buttons */}
-                        <div className="flex items-center space-x-3">
-                            <motion.button
-                                onClick={() => setCurrentPage('chat')}
-                                className={`px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-300 glass-premium relative overflow-hidden group ${currentPage === 'chat'
-                                        ? 'bg-primary-600/20 text-primary-300 border border-primary-400/30 shadow-lg shadow-primary-500/20'
-                                        : 'text-slate-300 hover:text-primary-300 hover:bg-primary-600/10 border border-transparent'
-                                    }`}
-                                whileHover={{ scale: 1.05, y: -1 }}
-                                whileTap={{ scale: 0.98 }}
-                            >
-                                {/* Background Effect */}
-                                <motion.div
-                                    className="absolute inset-0 rounded-2xl"
-                                    animate={{
-                                        background: currentPage === 'chat'
-                                            ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))'
-                                            : 'transparent'
-                                    }}
-                                    transition={{ duration: 0.3 }}
-                                />
-
-                                <span className="relative z-10">💬 채팅</span>
-                            </motion.button>
-
-                            <motion.button
-                                onClick={() => setCurrentPage('debug')}
-                                className={`px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-300 glass-premium relative overflow-hidden group ${currentPage === 'debug'
-                                        ? 'bg-secondary-600/20 text-secondary-300 border border-secondary-400/30 shadow-lg shadow-secondary-500/20'
-                                        : 'text-slate-300 hover:text-secondary-300 hover:bg-secondary-600/10 border border-transparent'
-                                    }`}
-                                whileHover={{ scale: 1.05, y: -1 }}
-                                whileTap={{ scale: 0.98 }}
-                            >
-                                {/* Background Effect */}
-                                <motion.div
-                                    className="absolute inset-0 rounded-2xl"
-                                    animate={{
-                                        background: currentPage === 'debug'
-                                            ? 'linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(14, 116, 144, 0.1))'
-                                            : 'transparent'
-                                    }}
-                                    transition={{ duration: 0.3 }}
-                                />
-
-                                <span className="relative z-10">🔧 디버그</span>
-                            </motion.button>
-                        </div>
-                    </div>
-                </div>
-            </motion.nav>
-
             {/* Enhanced Main Content */}
-            <main className="pt-16 relative z-10">
-                <AnimatePresence mode="wait">
-                    {currentPage === 'chat' ? (
-                        <motion.div
-                            key="chat"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-                        >
-                            <ChatScreenSuspense>
-                                <ChatScreen
-                                    game={game}
-                                    onGoBack={handleGoBack}
-                                    messages={chatState.messages}
-                                    onSendMessage={handleSendMessage}
-                                    isLoading={isLoading}
-                                    onQuestionClick={handleQuestionClick}
-                                />
-                            </ChatScreenSuspense>
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="debug"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-                        >
-                            <DebugPageSuspense>
-                                <TranslationDebugger />
-                            </DebugPageSuspense>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+            <main className="relative z-10">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                >
+                    <ChatScreenSuspense>
+                        <ChatScreen
+                            game={game}
+                            onGoBack={handleGoBack}
+                            messages={chatState.messages}
+                            onSendMessage={handleSendMessage}
+                            isLoading={isLoading}
+                            onQuestionClick={handleQuestionClick}
+                        />
+                    </ChatScreenSuspense>
+                </motion.div>
             </main>
 
             {/* 개발 환경 전용 - Clarity 테스트 패널 */}

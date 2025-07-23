@@ -67,7 +67,7 @@ function isSetupGuideContent(question?: string, answer?: string): boolean {
     return hasSetupKeyword && hasMarkdownStructure;
 }
 
-export default function ChatMessage({ message, game, userQuestion, onQuestionClick }: ChatMessageProps) {
+export default function ChatMessage({ message, game, userQuestion, messageIndex, onQuestionClick }: ChatMessageProps) {
     const isUser = message.role === 'user';
     const [showSources, setShowSources] = useState(false);
     const [recommendedQuestions, setRecommendedQuestions] = useState<RecommendedQuestion[]>([]);
@@ -145,7 +145,7 @@ export default function ChatMessage({ message, game, userQuestion, onQuestionCli
                         <AnswerDisplay content={message.content} />
                     )
                 ) : (
-                    <p className="font-medium text-amber-900 leading-relaxed">
+                    <p className="font-medium text-amber-100 leading-relaxed">
                         {message.content.replace('[FORCE_RESEARCH]', '').trim()}
                     </p>
                 )}
@@ -192,8 +192,9 @@ export default function ChatMessage({ message, game, userQuestion, onQuestionCli
                     </div>
                 )}
 
-                {/* 피드백 버튼 (실질적인 답변에만) */}
-                {message.role === 'assistant' && !isWelcomeMessage && (
+                {/* 피드백 버튼 (실질적인 답변에만, 첫 번째와 두 번째 AI 답변 제외) */}
+                {message.role === 'assistant' && !isWelcomeMessage && 
+                 messageIndex !== undefined && messageIndex > 3 && (
                     <FeedbackButtons
                         messageId={messageId}
                         gameId={game?.id || 'unknown-game'}

@@ -127,6 +127,7 @@ export interface ChatMessageProps {
     message: ChatMessage;
     game?: Game;           // 현재 선택된 게임 정보
     userQuestion?: string; // 해당 답변에 대한 사용자 질문
+    messageIndex?: number; // 메시지 순서 인덱스
     onQuestionClick?: (question: string) => void; // 추천 질문 클릭 핸들러
 }
 

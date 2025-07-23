@@ -25,6 +25,7 @@ export { BetaBanner, UserGuideSection } from './beta-banner';
 // 개별 컴포넌트 직접 내보내기
 export { Button } from './button';
 export { Input } from './input';
+export { SendButton } from './send-button';
 export { Card, CardHeader, CardContent, CardTitle } from './card';
 export { Badge } from './badge';
 export { Skeleton, GameCardSkeleton, ChatMessageSkeleton, SearchBarSkeleton, HeaderSkeleton } from './skeleton';

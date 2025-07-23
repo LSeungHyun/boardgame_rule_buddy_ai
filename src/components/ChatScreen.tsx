@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChatMessage from './ChatMessage';
+import { SendButton } from '@/components/ui/send-button';
 import { ChatScreenProps, ResearchStage } from '@/types/game';
 
 // ✨ Enhanced Research Stage Configuration
@@ -197,6 +198,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                                     message={msg}
                                     game={game}
                                     userQuestion={userQuestion}
+                                    messageIndex={index}
                                     onQuestionClick={(question) => {
                                         if (!isLoading) {
                                             setInput(question);
@@ -344,7 +346,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
             >
-                <form onSubmit={handleSubmit} className="p-4 md:p-6 flex gap-4">
+                <form onSubmit={handleSubmit} className="p-4 md:p-6 flex gap-3">
                     {/* Enhanced Input Field */}
                     <div className="flex-1 relative">
                         {/* Input Glow Effect */}
@@ -381,67 +383,13 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                         />
                     </div>
 
-                    {/* Enhanced Submit Button */}
-                    <motion.button
+                    {/* New SendButton Component */}
+                    <SendButton
+                        isEnabled={!!input.trim()}
+                        isLoading={isLoading}
+                        isInputFocused={isInputFocused}
                         type="submit"
-                        disabled={!input.trim() || isLoading}
-                        className={`
-                            px-6 py-4 rounded-2xl font-semibold transition-all duration-300 
-                            glass-card-premium hover-premium btn-ripple
-                            disabled:opacity-40 disabled:cursor-not-allowed
-                            relative overflow-hidden min-w-[120px]
-                            ${input.trim() && !isLoading ? 'shadow-lg shadow-primary-500/20' : ''}
-                        `}
-                        whileHover={input.trim() && !isLoading ? { scale: 1.05, y: -2 } : {}}
-                        whileTap={input.trim() && !isLoading ? { scale: 0.98 } : {}}
-                        style={{
-                            background: input.trim() && !isLoading
-                                ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2))'
-                                : 'var(--glass-dark)',
-                        }}
-                    >
-                        {/* Button Background Effect */}
-                        <motion.div
-                            className="absolute inset-0 rounded-2xl"
-                            animate={{
-                                background: input.trim() && !isLoading && isInputFocused
-                                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3))'
-                                    : 'transparent'
-                            }}
-                            transition={{ duration: 0.3 }}
-                        />
-
-                        <span className="flex items-center justify-center gap-2 relative z-10">
-                            {isLoading ? (
-                                <>
-                                    <motion.div
-                                        className="w-4 h-4 border-2 border-slate-600 border-t-primary-400 rounded-full"
-                                        animate={{ rotate: 360 }}
-                                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                    />
-                                    <span className="text-slate-300">처리중</span>
-                                </>
-                            ) : (
-                                <>
-                                    <motion.span
-                                        animate={{
-                                            scale: input.trim() ? [1, 1.2, 1] : 1
-                                        }}
-                                        transition={{
-                                            duration: 1,
-                                            repeat: input.trim() ? Infinity : 0,
-                                            ease: "easeInOut"
-                                        }}
-                                    >
-                                        ⚡
-                                    </motion.span>
-                                    <span className={input.trim() ? 'text-primary-300' : 'text-slate-500'}>
-                                        전송
-                                    </span>
-                                </>
-                            )}
-                        </span>
-                    </motion.button>
+                    />
                 </form>
             </motion.footer>
         </div>

@@ -3,7 +3,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { Send } from 'lucide-react';
 import WelcomeGuideModal from '@/components/WelcomeGuideModal';
+import { SendButton } from '@/components/ui/send-button';
 
 // 🎨 Enhanced Floating Particles Component
 const FloatingParticles = () => {
@@ -180,33 +182,48 @@ const PremiumInput = ({ value, onChange, onKeyPress, onSubmit }: {
           transition={{ duration: 0.4 }}
         />
 
-        <motion.input
-          ref={inputRef}
-          type="text"
-          placeholder="게임 이름을 입력하세요 (예: 루미큐브, 카탄, 스플렌더, 윙스팬)"
-          value={value}
-          onChange={onChange}
-          onKeyPress={onKeyPress}
-          onFocus={handleFocus}
-          onBlur={() => setIsFocused(false)}
-          className={`
-            w-full pl-6 md:pl-8 pr-20 md:pr-24 py-6 md:py-8 
-            text-lg md:text-xl rounded-3xl
-            glass-card-premium focus-premium gpu-accelerated
-            placeholder:text-slate-400/70 text-slate-100
-            transition-all duration-500 ease-out
-            border-2 ${isFocused ? 'border-primary-400/40' : 'border-transparent'}
-            ${isFocused ? 'shadow-2xl' : 'shadow-lg'}
-            relative z-10
-          `}
-          style={{
-            background: isFocused
-              ? 'linear-gradient(135deg, var(--glass-heavy), var(--glass-medium))'
-              : 'var(--glass-medium)',
-            backdropFilter: 'blur(20px) saturate(150%)',
-          }}
-          autoFocus
-        />
+        <div className="relative flex items-center">
+          <motion.input
+            ref={inputRef}
+            type="text"
+            placeholder="게임 이름을 입력하세요 (예: 루미큐브, 카탄, 스플렌더, 윙스팬)"
+            value={value}
+            onChange={onChange}
+            onKeyPress={onKeyPress}
+            onFocus={handleFocus}
+            onBlur={() => setIsFocused(false)}
+            className={`
+              w-full pl-6 md:pl-8 pr-20 md:pr-24 py-6 md:py-8 
+              text-lg md:text-xl rounded-3xl
+              glass-card-premium focus-premium gpu-accelerated
+              placeholder:text-slate-400/70 text-slate-100
+              transition-all duration-500 ease-out
+              border-2 ${isFocused ? 'border-primary-400/40' : 'border-transparent'}
+              ${isFocused ? 'shadow-2xl' : 'shadow-lg'}
+              relative z-10
+            `}
+            style={{
+              background: isFocused
+                ? 'linear-gradient(135deg, var(--glass-heavy), var(--glass-medium))'
+                : 'var(--glass-medium)',
+              backdropFilter: 'blur(20px) saturate(150%)',
+            }}
+            autoFocus
+          />
+
+          {/* Send Button */}
+          <div className="absolute right-4 md:right-6 z-20">
+            <SendButton
+              isEnabled={!!value.trim()}
+              isLoading={false}
+              isInputFocused={isFocused}
+              onClick={onSubmit}
+              type="button"
+              aria-label="게임 검색"
+              className="shadow-xl"
+            />
+          </div>
+        </div>
 
         {/* Enhanced Focus Ring */}
         <motion.div
@@ -230,13 +247,14 @@ const PremiumInput = ({ value, onChange, onKeyPress, onSubmit }: {
         animate={{ opacity: 1 }}
         transition={{ delay: 2.2, duration: 0.8 }}
       >
-        <p className="text-slate-300/80 text-sm md:text-base">
-          게임 이름을 입력하고{' '}
-          <kbd className="px-3 py-1 glass-premium rounded-lg text-xs md:text-sm font-mono">
-            Enter
-          </kbd>
-          를 누르세요
-        </p>
+                  <p className="text-slate-300/80 text-sm md:text-base">
+            보드게임 이름을 입력하고{' '}
+            <span className="inline-flex items-center gap-1">
+              <span className="text-primary-300">전송 버튼</span>
+              <Send className="w-4 h-4 text-primary-300" />
+            </span>
+            을 클릭하세요
+          </p>
       </motion.div>
     </motion.div>
   );
@@ -254,7 +272,7 @@ const ValueCard = ({ item, index }: {
   return (
     <motion.div
       ref={ref}
-      className="glass-card-premium rounded-3xl p-8 text-center group cursor-pointer relative overflow-hidden"
+      className="glass-card-premium rounded-3xl p-4 md:p-8 text-center group relative overflow-hidden"
       initial={{ opacity: 0, y: 50, rotateY: -15 }}
       animate={isInView ? {
         opacity: 1,
@@ -269,12 +287,6 @@ const ValueCard = ({ item, index }: {
         delay: 1.4 + index * 0.15,
         duration: 0.8,
         ease: [0.23, 1, 0.32, 1]
-      }}
-      whileHover={{
-        y: -8,
-        scale: 1.03,
-        rotateY: 5,
-        transition: { duration: 0.3 }
       }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
@@ -328,7 +340,7 @@ const ValueCard = ({ item, index }: {
 
       {/* Content */}
       <motion.h3
-        className="text-xl md:text-2xl font-bold mb-4 text-slate-200 relative z-10"
+        className="text-lg md:text-2xl font-bold mb-4 text-slate-200 relative z-10 whitespace-nowrap"
         animate={{
           color: isHovered ? item.color : '#e2e8f0',
         }}
@@ -338,7 +350,7 @@ const ValueCard = ({ item, index }: {
       </motion.h3>
 
       <motion.p
-        className="text-sm md:text-base text-slate-300/90 leading-relaxed relative z-10"
+        className="text-xs md:text-base text-slate-300/90 leading-relaxed relative z-10 break-keep"
         animate={{
           y: isHovered ? -2 : 0,
         }}
@@ -389,7 +401,7 @@ export default function Home() {
     }
   ];
 
-  const exampleGames = ['카탄', '스플렌더', '윙스팬', '아그리콜라', '글룸헤이븐', '아즈울'];
+
 
   // Welcome Modal Logic (Enhanced)
   useEffect(() => {
@@ -437,9 +449,7 @@ export default function Home() {
     }
   };
 
-  const handleExampleGameClick = (game: string) => {
-    setGameName(game);
-  };
+
 
   return (
     <div className="min-h-screen relative overflow-hidden gpu-accelerated">
@@ -519,7 +529,7 @@ export default function Home() {
 
         {/* Enhanced Value Cards Grid - Moved outside header to avoid parallax blur */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 max-w-6xl mx-auto"
+          className="grid grid-cols-3 gap-4 md:gap-8 mb-16 max-w-6xl mx-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2, duration: 0.8 }}
@@ -529,61 +539,7 @@ export default function Home() {
           ))}
         </motion.div>
 
-        {/* Enhanced Example Games */}
-        <motion.div
-          className="mt-16 text-center"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.5, duration: 0.8 }}
-        >
-          <motion.p
-            className="text-slate-400/80 text-base md:text-lg mb-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 2.7, duration: 0.6 }}
-          >
-            이런 게임들을 물어보세요! 👇
-          </motion.p>
 
-          <div className="flex flex-wrap justify-center gap-4">
-            {exampleGames.map((game, index) => (
-              <motion.button
-                key={game}
-                onClick={() => handleExampleGameClick(game)}
-                className="px-6 py-3 glass-card-premium rounded-2xl text-sm md:text-base hover-premium gpu-accelerated group relative overflow-hidden"
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{
-                  delay: 2.8 + index * 0.1,
-                  duration: 0.6,
-                  ease: [0.23, 1, 0.32, 1]
-                }}
-                whileHover={{
-                  scale: 1.05,
-                  y: -3,
-                  transition: { duration: 0.2 }
-                }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {/* Button Background Effect */}
-                <motion.div
-                  className="absolute inset-0 rounded-2xl"
-                  initial={{ scale: 0, opacity: 0 }}
-                  whileHover={{
-                    scale: 1,
-                    opacity: 0.1,
-                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)'
-                  }}
-                  transition={{ duration: 0.3 }}
-                />
-
-                <span className="text-slate-300 group-hover:text-primary-300 transition-colors duration-300 relative z-10 font-medium">
-                  {game}
-                </span>
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
       </div>
 
       {/* Enhanced Welcome Guide Modal */}

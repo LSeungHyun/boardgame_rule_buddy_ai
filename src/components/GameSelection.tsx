@@ -95,9 +95,10 @@ export default function GameSelection({
                     </motion.p>
                 </motion.div>
 
-                {/* 핵심 가치 카드 - 모바일 최적화 */}
+                {/* 핵심 가치 카드 - 모바일 최적화 (가로 한 줄) */}
                 <motion.div
-                    className="hidden md:grid md:grid-cols-3 gap-4 mb-8 max-w-4xl mx-auto"
+                    className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-8 max-w-4xl mx-auto w-full"
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1, duration: 0.6 }}
@@ -109,19 +110,19 @@ export default function GameSelection({
                     ].map((value, index) => (
                         <motion.div
                             key={index}
-                            className="glass-card rounded-xl p-6 text-center group hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10"
+                            className="glass-card rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-6 text-center group hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10 flex flex-col justify-between min-h-[120px] sm:min-h-[140px] md:min-h-[180px]"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 1.2 + index * 0.1, duration: 0.5 }}
                             whileHover={{ y: -5 }}
                         >
-                            <div className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">
+                            <div className="text-lg sm:text-xl md:text-3xl mb-1 sm:mb-2 group-hover:scale-110 transition-transform duration-300">
                                 {value.icon}
                             </div>
-                            <h3 className="text-lg font-bold text-amber-100 mb-2 group-hover:text-yellow-300 transition-colors">
+                            <h3 className="text-xs sm:text-sm md:text-lg font-bold text-amber-100 mb-1 group-hover:text-yellow-300 transition-colors line-clamp-1">
                                 {value.title}
                             </h3>
-                            <p className="text-sm text-amber-200/80 group-hover:text-amber-200 transition-colors">
+                            <p className="text-xs sm:text-xs md:text-sm text-amber-200/80 group-hover:text-amber-200 transition-colors leading-tight line-clamp-2 sm:line-clamp-3">
                                 {value.desc}
                             </p>
                         </motion.div>
