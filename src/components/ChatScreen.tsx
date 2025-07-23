@@ -1,19 +1,20 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ChatMessage from './ChatMessage';
 import { ChatScreenProps, ResearchStage } from '@/types/game';
 
-// ✨ 전략 1 적용: AI의 '사고 과정'을 보여주기 위해 단계를 세분화하고 진행률을 재분배합니다.
-const researchStageConfig: Record<ResearchStage, { progress: number; text: string }> = {
-    analyzing: { progress: 10, text: '질문 분석 중...' },
-    searching: { progress: 25, text: '관련 규칙 검색 중...' },
-    processing: { progress: 45, text: '정보 처리 중...' },
-    summarizing: { progress: 65, text: '정보 요약 및 정리 중...' },
-    generating_logic: { progress: 80, text: '답변의 핵심 논리를 구상하고 있습니다...' },
-    generating_text: { progress: 90, text: '논리에 맞춰 문장을 생성하고 있습니다...' },
-    generating_review: { progress: 95, text: '생성된 답변을 최종 검토하고 있습니다...' },
-    completed: { progress: 100, text: '답변 완성!' },
+// ✨ Enhanced Research Stage Configuration
+const researchStageConfig: Record<ResearchStage, { progress: number; text: string; icon: string }> = {
+    analyzing: { progress: 10, text: '질문 분석 중...', icon: '🔍' },
+    searching: { progress: 25, text: '관련 규칙 검색 중...', icon: '📚' },
+    processing: { progress: 45, text: '정보 처리 중...', icon: '⚙️' },
+    summarizing: { progress: 65, text: '정보 요약 및 정리 중...', icon: '📝' },
+    generating_logic: { progress: 80, text: '답변의 핵심 논리를 구상하고 있습니다...', icon: '💭' },
+    generating_text: { progress: 90, text: '논리에 맞춰 문장을 생성하고 있습니다...', icon: '✍️' },
+    generating_review: { progress: 95, text: '생성된 답변을 최종 검토하고 있습니다...', icon: '✅' },
+    completed: { progress: 100, text: '답변 완성!', icon: '🎉' },
 };
 
 export default function ChatScreen({ game, onGoBack, messages, onSendMessage, isLoading }: ChatScreenProps) {
@@ -23,20 +24,19 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [progress, setProgress] = useState(0);
     const [progressText, setProgressText] = useState('');
-    // ✨ 전략 2 적용: 99% 도달 시 시각적 효과를 주기 위한 상태
+    const [progressIcon, setProgressIcon] = useState('');
     const [isFinalizing, setIsFinalizing] = useState(false);
+    const [isInputFocused, setIsInputFocused] = useState(false);
 
-    // ✨ 스크롤 제어를 위한 상태 추가
+    // Enhanced scroll control states
     const [lastMessageCount, setLastMessageCount] = useState(0);
     const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-
-
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    // ✨ 새 메시지가 추가되었을 때만 자동 스크롤 (사용자가 스크롤을 위로 올리지 않은 경우)
+    // Enhanced auto scroll logic
     useEffect(() => {
         if (messages.length > lastMessageCount && shouldAutoScroll) {
             scrollToBottom();
@@ -44,16 +44,14 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
         }
     }, [messages.length, lastMessageCount, shouldAutoScroll]);
 
-    // ✨ 사용자가 수동으로 스크롤할 때 자동 스크롤 비활성화
+    // Enhanced scroll handler
     useEffect(() => {
-        const chatContainer = document.querySelector('.custom-scrollbar');
+        const chatContainer = document.querySelector('.premium-chat-scroll');
         if (!chatContainer) return;
 
         const handleScroll = () => {
             const { scrollTop, scrollHeight, clientHeight } = chatContainer as HTMLElement;
             const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
-
-            // 사용자가 맨 아래에 있으면 자동 스크롤 활성화, 아니면 비활성화
             setShouldAutoScroll(isAtBottom);
         };
 
@@ -61,56 +59,51 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
         return () => chatContainer.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // ✨ 컴포넌트 마운트 시 lastMessageCount 초기화
     useEffect(() => {
         setLastMessageCount(messages.length);
     }, []);
 
+    // Enhanced research stage effects
     useEffect(() => {
-        setIsFinalizing(false); // 단계가 바뀌면 일단 Finalizing 상태 해제
+        setIsFinalizing(false);
 
         if (showResearchStatus) {
             const config = researchStageConfig[researchStage];
             if (config) {
                 setProgress(config.progress);
                 setProgressText(config.text);
+                setProgressIcon(config.icon);
             }
         }
 
-        // ✨ 전략 2 적용: 최종 '검토' 단계에 진입하면 95%부터 99%까지 천천히 움직입니다.
         if (researchStage === 'generating_review') {
             const interval = setInterval(() => {
                 setProgress(prev => {
                     if (prev >= 99) {
                         clearInterval(interval);
-                        setIsFinalizing(true); // 99% 도달 시 Finalizing 상태 활성화
-                        setProgressText("답변을 완성하고 있습니다..."); // '거의 다 완료됨' 메시지 표시
+                        setIsFinalizing(true);
+                        setProgressText("답변을 완성하고 있습니다...");
                         return 99;
                     }
                     return prev + 1;
                 });
-            }, 500); // 0.5초마다 1%씩 증가
+            }, 500);
 
             return () => clearInterval(interval);
         }
 
     }, [researchStage, showResearchStatus]);
 
-
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (input.trim() && !isLoading) {
-            // ✨ 메시지 전송 시 자동 스크롤 강제 활성화
             setShouldAutoScroll(true);
 
-            // 리서치 상태 시뮬레이션
             setShowResearchStatus(true);
             setResearchStage('analyzing');
-            
+
             onSendMessage(input);
-            
-            // 답변을 기다리는 동안의 진행 시뮬레이션
+
             setTimeout(() => {
                 setShowResearchStatus(false);
                 setProgress(0);
@@ -121,130 +114,336 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
     };
 
     return (
-        <div className="flex flex-col h-screen">
-            {/* 헤더 (이전과 동일) */}
-            <header className="glass-chat border-b border-amber-400/30 shadow-xl backdrop-blur-md">
-                <div className="flex items-center justify-between p-4">
-                    <button
+        <div className="flex flex-col h-screen relative">
+            {/* Enhanced Header */}
+            <motion.header
+                className="glass-card-premium border-b border-white/10 shadow-2xl relative z-10"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+            >
+                <div className="flex items-center justify-between p-4 md:p-6">
+                    {/* Enhanced Back Button */}
+                    <motion.button
                         onClick={onGoBack}
-                        className="p-2 rounded-full hover:bg-amber-500/20 transition-all duration-200 group min-w-[44px] min-h-[44px] flex items-center justify-center"
+                        className="p-3 rounded-2xl glass-premium hover-premium transition-all duration-300 group min-w-[48px] min-h-[48px] flex items-center justify-center relative overflow-hidden"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-amber-300 group-hover:text-yellow-300 group-hover:scale-110 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <motion.div
+                            className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary-500/20 to-secondary-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        />
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-6 w-6 text-slate-300 group-hover:text-primary-300 transition-colors duration-300 relative z-10"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
-                    </button>
-                    <div className="text-center">
-                        <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent drop-shadow-sm">
+                    </motion.button>
+
+                    {/* Enhanced Title */}
+                    <motion.div
+                        className="text-center"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.2, duration: 0.6 }}
+                    >
+                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold gradient-text-premium drop-shadow-sm">
                             📖 {game?.title || '룰마스터 AI'}
                         </h2>
-                        <p className="text-xs text-amber-300/80 font-medium">룰 마스터</p>
-                    </div>
-                    <div className="w-10"></div>
+                        <motion.p
+                            className="text-xs md:text-sm text-slate-400 font-medium mt-1"
+                            animate={{ opacity: [0.6, 1, 0.6] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                            AI 룰 어시스턴트
+                        </motion.p>
+                    </motion.div>
+
+                    {/* Spacer */}
+                    <div className="w-12"></div>
                 </div>
-            </header>
+            </motion.header>
 
-            {/* 메인 채팅 영역 */}
-            <main className="flex-1 p-4 overflow-y-auto custom-scrollbar space-y-4">
-                {messages.map((msg, index) => {
-                    // AI 답변에 대응하는 사용자 질문 찾기
-                    let userQuestion: string | undefined;
-                    if (msg.role === 'assistant' && index > 0) {
-                        // 이전 메시지가 사용자 질문인지 확인
-                        const previousMessage = messages[index - 1];
-                        if (previousMessage.role === 'user') {
-                            userQuestion = previousMessage.content;
+            {/* Enhanced Chat Area */}
+            <main className="flex-1 p-4 md:p-6 overflow-y-auto premium-chat-scroll space-y-6 relative">
+                {/* Chat Messages */}
+                <AnimatePresence>
+                    {messages.map((msg, index) => {
+                        let userQuestion: string | undefined;
+                        if (msg.role === 'assistant' && index > 0) {
+                            const previousMessage = messages[index - 1];
+                            if (previousMessage.role === 'user') {
+                                userQuestion = previousMessage.content;
+                            }
                         }
-                    }
 
-                    return (
-                        <ChatMessage
-                            key={index}
-                            message={msg}
-                            game={game}
-                            userQuestion={userQuestion}
-                            onQuestionClick={(question) => {
-                                if (!isLoading) {
-                                    setInput(question);
-                                    // 자동으로 질문 전송
-                                    setTimeout(() => {
-                                        const form = document.querySelector('form');
-                                        if (form) {
-                                            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                        return (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                                transition={{
+                                    duration: 0.5,
+                                    ease: [0.23, 1, 0.32, 1],
+                                    delay: index * 0.05
+                                }}
+                            >
+                                <ChatMessage
+                                    message={msg}
+                                    game={game}
+                                    userQuestion={userQuestion}
+                                    onQuestionClick={(question) => {
+                                        if (!isLoading) {
+                                            setInput(question);
+                                            setTimeout(() => {
+                                                const form = document.querySelector('form');
+                                                if (form) {
+                                                    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                                                }
+                                            }, 100);
                                         }
-                                    }, 100);
-                                }
-                            }}
-                        />
-                    );
-                })}
+                                    }}
+                                />
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
 
-                {/* ✨ 개선된 프로그레스 바 UI */}
-                {isLoading && showResearchStatus && (
-                    <div className="flex justify-start">
-                        <div className="glass-card border border-amber-400/40 text-amber-100 rounded-2xl px-4 py-3 w-full max-w-md shadow-lg">
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="font-medium text-sm text-amber-200">{progressText}</span>
-                                <span className="font-bold text-sm text-yellow-300">{progress}%</span>
-                            </div>
-                            <div className="w-full bg-amber-900/50 rounded-full h-2.5 overflow-hidden">
-                                <div
-                                    // ✨ 전략 2 적용: isFinalizing 상태일 때 반짝이는 애니메이션(animate-pulse) 추가
-                                    className={`bg-gradient-to-r from-yellow-400 to-amber-500 h-2.5 rounded-full shadow-lg transition-all duration-500 ease-out ${isFinalizing ? 'animate-pulse' : ''}`}
-                                    style={{ width: `${progress}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                {/* Enhanced Research Progress */}
+                <AnimatePresence>
+                    {isLoading && showResearchStatus && (
+                        <motion.div
+                            className="flex justify-start"
+                            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                        >
+                            <div className="glass-card-premium border border-primary-400/30 rounded-3xl px-6 py-4 w-full max-w-md shadow-2xl relative overflow-hidden">
+                                {/* Background Glow */}
+                                <motion.div
+                                    className="absolute inset-0 rounded-3xl"
+                                    style={{
+                                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
+                                        filter: 'blur(20px)',
+                                    }}
+                                    animate={{
+                                        opacity: [0.3, 0.6, 0.3],
+                                    }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                />
 
-                {isLoading && !showResearchStatus && (
-                    <div className="flex justify-start">
-                        <div className="glass-card border border-amber-400/40 text-amber-100 rounded-2xl px-4 py-3 flex items-center max-w-xs shadow-lg">
-                            <span className="text-xl mr-3">🎲</span>
-                            <div>
-                                <span className="font-medium">답변 생성 중</span>
-                                <div className="flex space-x-1 mt-1">
-                                    <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
-                                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
-                                    <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                                <div className="relative z-10">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <div className="flex items-center space-x-2">
+                                            <motion.span
+                                                className="text-lg"
+                                                animate={{ rotate: [0, 360] }}
+                                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                            >
+                                                {progressIcon}
+                                            </motion.span>
+                                            <span className="font-medium text-sm text-slate-200">{progressText}</span>
+                                        </div>
+                                        <motion.span
+                                            className="font-bold text-sm text-primary-300"
+                                            animate={{ scale: [1, 1.1, 1] }}
+                                            transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+                                        >
+                                            {progress}%
+                                        </motion.span>
+                                    </div>
+
+                                    {/* Enhanced Progress Bar */}
+                                    <div className="w-full bg-slate-800/50 rounded-full h-3 overflow-hidden border border-slate-700/50">
+                                        <motion.div
+                                            className={`h-3 rounded-full shadow-lg transition-all duration-500 ease-out ${isFinalizing
+                                                    ? 'bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-400 animate-pulse'
+                                                    : 'bg-gradient-to-r from-primary-500 to-secondary-500'
+                                                }`}
+                                            style={{ width: `${progress}%` }}
+                                            animate={{
+                                                backgroundPosition: isFinalizing ? ['0% 50%', '100% 50%', '0% 50%'] : '0% 50%'
+                                            }}
+                                            transition={{
+                                                duration: 2,
+                                                repeat: isFinalizing ? Infinity : 0,
+                                                ease: "easeInOut"
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Enhanced Loading State */}
+                <AnimatePresence>
+                    {isLoading && !showResearchStatus && (
+                        <motion.div
+                            className="flex justify-start"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.4 }}
+                        >
+                            <div className="glass-card-premium border border-primary-400/30 rounded-3xl px-6 py-4 flex items-center max-w-xs shadow-2xl">
+                                <motion.span
+                                    className="text-2xl mr-4"
+                                    animate={{
+                                        rotate: [0, 5, -5, 0],
+                                        scale: [1, 1.1, 1]
+                                    }}
+                                    transition={{
+                                        duration: 2,
+                                        repeat: Infinity,
+                                        ease: "easeInOut"
+                                    }}
+                                >
+                                    🎲
+                                </motion.span>
+                                <div>
+                                    <span className="font-medium text-slate-200">답변 생성 중</span>
+                                    <div className="flex space-x-1 mt-2">
+                                        {[0, 1, 2].map((i) => (
+                                            <motion.div
+                                                key={i}
+                                                className="w-2 h-2 bg-primary-400 rounded-full"
+                                                animate={{
+                                                    scale: [1, 1.2, 1],
+                                                    opacity: [0.4, 1, 0.4]
+                                                }}
+                                                transition={{
+                                                    duration: 1,
+                                                    repeat: Infinity,
+                                                    delay: i * 0.2,
+                                                    ease: "easeInOut"
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 <div ref={messagesEndRef} />
             </main>
 
-            {/* 입력 영역 (이전과 동일) */}
-            <footer className="glass-chat border-t border-amber-400/30 backdrop-blur-md">
-                <form onSubmit={handleSubmit} className="p-4 flex gap-3">
-                    <input
-                        type="text"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="🎲 보드게임 규칙에 대해 궁금한 점을 물어보세요..."
-                        className="flex-1 input-game rounded-xl px-4 py-3 placeholder:text-amber-200/60 placeholder:font-medium"
-                        disabled={isLoading}
-                    />
-                    <button
+            {/* Enhanced Input Area */}
+            <motion.footer
+                className="glass-card-premium border-t border-white/10 relative z-10"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.6 }}
+            >
+                <form onSubmit={handleSubmit} className="p-4 md:p-6 flex gap-4">
+                    {/* Enhanced Input Field */}
+                    <div className="flex-1 relative">
+                        {/* Input Glow Effect */}
+                        <motion.div
+                            className="absolute inset-0 rounded-2xl"
+                            style={{
+                                background: isInputFocused
+                                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))'
+                                    : 'transparent',
+                                filter: 'blur(20px)',
+                                transform: 'scale(1.02)',
+                            }}
+                            animate={{
+                                opacity: isInputFocused ? 1 : 0,
+                            }}
+                            transition={{ duration: 0.3 }}
+                        />
+
+                        <input
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onFocus={() => setIsInputFocused(true)}
+                            onBlur={() => setIsInputFocused(false)}
+                            placeholder="🎲 보드게임 규칙에 대해 궁금한 점을 물어보세요..."
+                            className={`
+                                w-full glass-card-premium focus-premium rounded-2xl px-6 py-4 
+                                placeholder:text-slate-400/70 text-slate-100 text-base
+                                transition-all duration-300 relative z-10
+                                border-2 ${isInputFocused ? 'border-primary-400/40' : 'border-transparent'}
+                                disabled:opacity-50 disabled:cursor-not-allowed
+                            `}
+                            disabled={isLoading}
+                        />
+                    </div>
+
+                    {/* Enhanced Submit Button */}
+                    <motion.button
                         type="submit"
                         disabled={!input.trim() || isLoading}
-                        className="btn-game-primary px-6 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200"
+                        className={`
+                            px-6 py-4 rounded-2xl font-semibold transition-all duration-300 
+                            glass-card-premium hover-premium btn-ripple
+                            disabled:opacity-40 disabled:cursor-not-allowed
+                            relative overflow-hidden min-w-[120px]
+                            ${input.trim() && !isLoading ? 'shadow-lg shadow-primary-500/20' : ''}
+                        `}
+                        whileHover={input.trim() && !isLoading ? { scale: 1.05, y: -2 } : {}}
+                        whileTap={input.trim() && !isLoading ? { scale: 0.98 } : {}}
+                        style={{
+                            background: input.trim() && !isLoading
+                                ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2))'
+                                : 'var(--glass-dark)',
+                        }}
                     >
-                        {isLoading ? (
-                            <span className="flex items-center gap-2">
-                                <div className="w-4 h-4 border-2 border-amber-900/30 border-t-amber-900 rounded-full animate-spin"></div>
-                                처리중
-                            </span>
-                        ) : (
-                            <span className="flex items-center gap-2">
-                                ⚡ 전송
-                            </span>
-                        )}
-                    </button>
+                        {/* Button Background Effect */}
+                        <motion.div
+                            className="absolute inset-0 rounded-2xl"
+                            animate={{
+                                background: input.trim() && !isLoading && isInputFocused
+                                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3))'
+                                    : 'transparent'
+                            }}
+                            transition={{ duration: 0.3 }}
+                        />
+
+                        <span className="flex items-center justify-center gap-2 relative z-10">
+                            {isLoading ? (
+                                <>
+                                    <motion.div
+                                        className="w-4 h-4 border-2 border-slate-600 border-t-primary-400 rounded-full"
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                    />
+                                    <span className="text-slate-300">처리중</span>
+                                </>
+                            ) : (
+                                <>
+                                    <motion.span
+                                        animate={{
+                                            scale: input.trim() ? [1, 1.2, 1] : 1
+                                        }}
+                                        transition={{
+                                            duration: 1,
+                                            repeat: input.trim() ? Infinity : 0,
+                                            ease: "easeInOut"
+                                        }}
+                                    >
+                                        ⚡
+                                    </motion.span>
+                                    <span className={input.trim() ? 'text-primary-300' : 'text-slate-500'}>
+                                        전송
+                                    </span>
+                                </>
+                            )}
+                        </span>
+                    </motion.button>
                 </form>
-            </footer>
+            </motion.footer>
         </div>
     );
 }

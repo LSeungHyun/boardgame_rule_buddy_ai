@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import ChatScreen from '@/components/ChatScreen';
 import TranslationDebugger from '@/components/TranslationDebugger';
 
@@ -27,6 +28,120 @@ import { ClarityTest } from '@/components/ui/clarity-test';
 import { useFeedbackModal } from '@/components/feedback/FeedbackModal';
 import { API_ENDPOINTS, CONFIDENCE_CHECK } from '@/lib/constants';
 import { findGameByExactName } from '@/features/games/api';
+
+// 🎨 Enhanced Floating Particles Component (루트 페이지와 동일)
+const FloatingParticles = () => {
+    const particlesRef = useRef<HTMLDivElement>(null);
+
+    const particleCount = useMemo(() => {
+        if (typeof window !== 'undefined') {
+            return window.innerWidth < 768 ? 10 : 20;
+        }
+        return 20;
+    }, []);
+
+    useEffect(() => {
+        const container = particlesRef.current;
+        if (!container) return;
+
+        // Create particles with varying sizes and speeds
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'floating-particle gpu-accelerated';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (12 + Math.random() * 8) + 's';
+
+            // Varying particle sizes
+            const size = 3 + Math.random() * 3;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+
+            container.appendChild(particle);
+        }
+
+        return () => {
+            container.innerHTML = '';
+        };
+    }, [particleCount]);
+
+    return (
+        <div
+            ref={particlesRef}
+            className="fixed inset-0 pointer-events-none overflow-hidden z-0"
+        />
+    );
+};
+
+// 🌊 Enhanced Dynamic Background Blobs (루트 페이지와 동일)
+const BackgroundBlobs = () => {
+    return (
+        <div className="fixed inset-0 overflow-hidden z-0">
+            {/* Primary Blob */}
+            <motion.div
+                className="absolute w-80 h-80 rounded-full opacity-15"
+                style={{
+                    background: 'radial-gradient(circle, #6366f1, transparent 70%)',
+                    filter: 'blur(60px)',
+                }}
+                animate={{
+                    x: [0, 120, -30, 0],
+                    y: [0, -80, 40, 0],
+                    scale: [1, 1.2, 0.9, 1],
+                }}
+                transition={{
+                    duration: 25,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                }}
+                initial={{ top: '20%', left: '15%' }}
+            />
+
+            {/* Secondary Blob */}
+            <motion.div
+                className="absolute w-72 h-72 rounded-full opacity-12"
+                style={{
+                    background: 'radial-gradient(circle, #06b6d4, transparent 70%)',
+                    filter: 'blur(70px)',
+                }}
+                animate={{
+                    x: [0, -100, 60, 0],
+                    y: [0, 60, -40, 0],
+                    scale: [1, 0.8, 1.1, 1],
+                }}
+                transition={{
+                    duration: 20,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 5,
+                }}
+                initial={{ top: '60%', right: '20%' }}
+            />
+
+            {/* Accent Blob */}
+            <motion.div
+                className="absolute w-64 h-64 rounded-full opacity-10"
+                style={{
+                    background: 'radial-gradient(circle, #f43f5e, transparent 70%)',
+                    filter: 'blur(80px)',
+                }}
+                animate={{
+                    x: [0, 80, -60, 0],
+                    y: [0, -60, 30, 0],
+                    scale: [1, 1.3, 0.8, 1],
+                }}
+                transition={{
+                    duration: 30,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 10,
+                }}
+                initial={{ bottom: '30%', left: '60%' }}
+            />
+        </div>
+    );
+};
 
 // 환영 메시지 상수
 const WELCOME_MESSAGE = `안녕하세요! 🎲 저는 **보드게임 룰 마스터**입니다.
@@ -357,64 +472,134 @@ export default function RuleMaster() {
     };
 
     return (
-        <div className="relative min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-            {/* 메인 페이지 네비게이션 */}
-            <nav className="fixed top-0 left-0 right-0 z-40 bg-black/20 backdrop-blur-sm border-b border-white/10">
+        <div className="min-h-screen relative overflow-hidden gpu-accelerated">
+            {/* Enhanced Background Effects */}
+            <BackgroundBlobs />
+            <FloatingParticles />
+
+            {/* Enhanced Navigation */}
+            <motion.nav
+                className="fixed top-0 left-0 right-0 z-40 glass-card-premium border-b border-white/10"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+            >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
-                        {/* 로고/타이틀 */}
-                        <div className="flex items-center space-x-3">
-                            <button
+                        {/* Enhanced Logo/Title */}
+                        <motion.div
+                            className="flex items-center space-x-3"
+                            whileHover={{ scale: 1.02 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <motion.button
                                 onClick={handleGoBack}
-                                className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent hover:from-blue-300 hover:to-purple-400 transition-all duration-300"
+                                className="text-2xl font-bold gradient-text-premium hover:scale-105 transition-all duration-300 relative group"
+                                whileHover={{ y: -1 }}
+                                whileTap={{ scale: 0.98 }}
                             >
                                 🎲 룰마스터 AI
-                            </button>
-                        </div>
 
-                        {/* 페이지 전환 버튼 */}
-                        <div className="flex items-center space-x-2">
-                            <button
+                                {/* Hover Glow Effect */}
+                                <motion.div
+                                    className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-20 transition-opacity duration-300"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                        filter: 'blur(20px)',
+                                        transform: 'scale(1.2)',
+                                    }}
+                                />
+                            </motion.button>
+                        </motion.div>
+
+                        {/* Enhanced Page Toggle Buttons */}
+                        <div className="flex items-center space-x-3">
+                            <motion.button
                                 onClick={() => setCurrentPage('chat')}
-                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${currentPage === 'chat'
-                                    ? 'bg-blue-600 text-white shadow-lg'
-                                    : 'text-blue-200 hover:text-white hover:bg-blue-600/30'
+                                className={`px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-300 glass-premium relative overflow-hidden group ${currentPage === 'chat'
+                                        ? 'bg-primary-600/20 text-primary-300 border border-primary-400/30 shadow-lg shadow-primary-500/20'
+                                        : 'text-slate-300 hover:text-primary-300 hover:bg-primary-600/10 border border-transparent'
                                     }`}
+                                whileHover={{ scale: 1.05, y: -1 }}
+                                whileTap={{ scale: 0.98 }}
                             >
-                                💬 채팅
-                            </button>
-                            <button
+                                {/* Background Effect */}
+                                <motion.div
+                                    className="absolute inset-0 rounded-2xl"
+                                    animate={{
+                                        background: currentPage === 'chat'
+                                            ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))'
+                                            : 'transparent'
+                                    }}
+                                    transition={{ duration: 0.3 }}
+                                />
+
+                                <span className="relative z-10">💬 채팅</span>
+                            </motion.button>
+
+                            <motion.button
                                 onClick={() => setCurrentPage('debug')}
-                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${currentPage === 'debug'
-                                    ? 'bg-purple-600 text-white shadow-lg'
-                                    : 'text-purple-200 hover:text-white hover:bg-purple-600/30'
+                                className={`px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-300 glass-premium relative overflow-hidden group ${currentPage === 'debug'
+                                        ? 'bg-secondary-600/20 text-secondary-300 border border-secondary-400/30 shadow-lg shadow-secondary-500/20'
+                                        : 'text-slate-300 hover:text-secondary-300 hover:bg-secondary-600/10 border border-transparent'
                                     }`}
+                                whileHover={{ scale: 1.05, y: -1 }}
+                                whileTap={{ scale: 0.98 }}
                             >
-                                🔧 디버그
-                            </button>
+                                {/* Background Effect */}
+                                <motion.div
+                                    className="absolute inset-0 rounded-2xl"
+                                    animate={{
+                                        background: currentPage === 'debug'
+                                            ? 'linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(14, 116, 144, 0.1))'
+                                            : 'transparent'
+                                    }}
+                                    transition={{ duration: 0.3 }}
+                                />
+
+                                <span className="relative z-10">🔧 디버그</span>
+                            </motion.button>
                         </div>
                     </div>
                 </div>
-            </nav>
+            </motion.nav>
 
-            {/* 메인 컨텐츠 */}
-            <main className="pt-16">
-                {currentPage === 'chat' ? (
-                    <ChatScreenSuspense>
-                        <ChatScreen
-                            game={game}
-                            onGoBack={handleGoBack}
-                            messages={chatState.messages}
-                            onSendMessage={handleSendMessage}
-                            isLoading={isLoading}
-                            onQuestionClick={handleQuestionClick}
-                        />
-                    </ChatScreenSuspense>
-                ) : (
-                    <DebugPageSuspense>
-                        <TranslationDebugger />
-                    </DebugPageSuspense>
-                )}
+            {/* Enhanced Main Content */}
+            <main className="pt-16 relative z-10">
+                <AnimatePresence mode="wait">
+                    {currentPage === 'chat' ? (
+                        <motion.div
+                            key="chat"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                        >
+                            <ChatScreenSuspense>
+                                <ChatScreen
+                                    game={game}
+                                    onGoBack={handleGoBack}
+                                    messages={chatState.messages}
+                                    onSendMessage={handleSendMessage}
+                                    isLoading={isLoading}
+                                    onQuestionClick={handleQuestionClick}
+                                />
+                            </ChatScreenSuspense>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="debug"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                        >
+                            <DebugPageSuspense>
+                                <TranslationDebugger />
+                            </DebugPageSuspense>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </main>
 
             {/* 개발 환경 전용 - Clarity 테스트 패널 */}
