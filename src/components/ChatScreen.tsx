@@ -5,29 +5,30 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ChatMessage from './ChatMessage';
 import { SendButton } from '@/components/ui/send-button';
 import { ChatScreenProps, ResearchStage } from '@/types/game';
+import { Loader2, Brain, Search, Cog, FileText, Lightbulb, PenTool, CheckCircle, Sparkles } from 'lucide-react';
 
 // ✨ Enhanced Research Stage Configuration
-const researchStageConfig: Record<ResearchStage, { progress: number; text: string; icon: string }> = {
-    analyzing: { progress: 10, text: '질문 분석 중...', icon: '🔍' },
-    searching: { progress: 25, text: '관련 규칙 검색 중...', icon: '📚' },
-    processing: { progress: 45, text: '정보 처리 중...', icon: '⚙️' },
-    summarizing: { progress: 65, text: '정보 요약 및 정리 중...', icon: '📝' },
-    generating_logic: { progress: 80, text: '답변의 핵심 논리를 구상하고 있습니다...', icon: '💭' },
-    generating_text: { progress: 90, text: '논리에 맞춰 문장을 생성하고 있습니다...', icon: '✍️' },
-    generating_review: { progress: 95, text: '생성된 답변을 최종 검토하고 있습니다...', icon: '✅' },
-    completed: { progress: 100, text: '답변 완성!', icon: '🎉' },
+const researchStageConfig: Record<ResearchStage, { progress: number; text: string; icon: React.ComponentType<{ className?: string }> }> = {
+    analyzing: { progress: 10, text: '질문 분석 중...', icon: Search },
+    searching: { progress: 25, text: '관련 규칙 검색 중...', icon: FileText },
+    processing: { progress: 45, text: '정보 처리 중...', icon: Cog },
+    summarizing: { progress: 65, text: '정보 요약 및 정리 중...', icon: Brain },
+    generating_logic: { progress: 80, text: '답변의 핵심 논리를 구상하고 있습니다...', icon: Lightbulb },
+    generating_text: { progress: 90, text: '논리에 맞춰 문장을 생성하고 있습니다...', icon: PenTool },
+    generating_review: { progress: 95, text: '생성된 답변을 최종 검토하고 있습니다...', icon: CheckCircle },
+    completed: { progress: 100, text: '답변 완성!', icon: Sparkles },
 };
 
 export default function ChatScreen({ game, onGoBack, messages, onSendMessage, isLoading, headerActions }: ChatScreenProps) {
     const [input, setInput] = useState('');
     const [researchStage, setResearchStage] = useState<ResearchStage>('analyzing');
-    const [showResearchStatus, setShowResearchStatus] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [progress, setProgress] = useState(0);
     const [progressText, setProgressText] = useState('');
-    const [progressIcon, setProgressIcon] = useState('');
+    const [ProgressIcon, setProgressIcon] = useState<React.ComponentType<{ className?: string }>>(Search);
     const [isFinalizing, setIsFinalizing] = useState(false);
     const [isInputFocused, setIsInputFocused] = useState(false);
+    const prevLoadingRef = useRef(isLoading);
 
     // Enhanced scroll control states
     const [lastMessageCount, setLastMessageCount] = useState(0);
@@ -68,16 +69,12 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
     useEffect(() => {
         setIsFinalizing(false);
 
-        if (showResearchStatus) {
+        if (isLoading) {
             const config = researchStageConfig[researchStage];
             if (config) {
-                // 프로그레스바가 즉시 업데이트되도록 강제 설정
                 setProgress(config.progress);
                 setProgressText(config.text);
                 setProgressIcon(config.icon);
-                
-                // 디버깅을 위한 로그
-                console.log(`🔄 Progress updated: ${config.progress}% - ${config.text}`);
             }
         }
 
@@ -97,76 +94,181 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
             return () => clearInterval(interval);
         }
 
-    }, [researchStage, showResearchStatus]);
+    }, [researchStage, isLoading]);
 
     // Smart auto-progress that adapts to actual response time
     useEffect(() => {
-        if (!isLoading || !showResearchStatus) return;
+        if (!isLoading) return;
 
         const stages: ResearchStage[] = ['analyzing', 'searching', 'processing', 'summarizing', 'generating_logic', 'generating_text', 'generating_review'];
         const currentIndex = stages.indexOf(researchStage);
         
         if (currentIndex < stages.length - 1) {
-            // 더 빠른 진행 속도로 실제 응답 시간에 맞춤
-            const baseDelay = 800; // 기본 800ms
-            const randomDelay = Math.random() * 400; // 0-400ms 추가
+            const baseDelay = 800;
+            const randomDelay = Math.random() * 400;
             const totalDelay = baseDelay + randomDelay;
             
-                         const timeout = setTimeout(() => {
-                 setResearchStage(stages[currentIndex + 1]);
-                 // 단계 변경 후 스크롤 유지
-                 setTimeout(() => {
-                     if (shouldAutoScroll) {
-                         scrollToBottom();
-                     }
-                 }, 50);
-             }, totalDelay);
+            const timeout = setTimeout(() => {
+                setResearchStage(stages[currentIndex + 1]);
+            }, totalDelay);
 
             return () => clearTimeout(timeout);
         }
-    }, [isLoading, showResearchStatus, researchStage]);
+    }, [isLoading, researchStage]);
 
     // Complete progress bar when loading finishes
     useEffect(() => {
-        if (!isLoading && showResearchStatus) {
-            // 답변이 완료되면 즉시 completed 상태로 변경
+        const prevLoading = prevLoadingRef.current;
+        prevLoadingRef.current = isLoading;
+
+        // 이전에 로딩 중이었고 지금 로딩이 끝난 경우에만 완료 상태 표시
+        if (prevLoading && !isLoading) {
             setResearchStage('completed');
             setProgress(100);
             setProgressText('답변 완성!');
-            setProgressIcon('🎉');
+            setProgressIcon(Sparkles);
             
-            // 완료 표시 후 리셋
-            setTimeout(() => {
-                setShowResearchStatus(false);
+            const timeout = setTimeout(() => {
                 setProgress(0);
                 setResearchStage('analyzing');
-            }, 1500); // 완료 상태를 1.5초간 표시
+            }, 1500);
+
+            return () => clearTimeout(timeout);
         }
-    }, [isLoading, showResearchStatus]);
+    }, [isLoading]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (input.trim() && !isLoading) {
             setShouldAutoScroll(true);
 
-            // 먼저 메시지를 보내고 나서 프로그레스바 시작
+            // 새로운 질문 시작 시 즉시 초기 상태로 리셋
+            setResearchStage('analyzing');
+            setProgress(0);
+            setIsFinalizing(false);
+
             onSendMessage(input);
             setInput('');
             
-                         // 사용자 메시지가 UI에 나타난 후 프로그레스바 시작
-             setTimeout(() => {
-                 setShowResearchStatus(true);
-                 setResearchStage('analyzing');
-                 // 프로그레스바가 나타난 후 스크롤 재조정
-                 setTimeout(() => {
-                     scrollToBottom();
-                 }, 100);
-             }, 50);
+            setTimeout(() => {
+                if (shouldAutoScroll) {
+                    scrollToBottom();
+                }
+            }, 100);
         }
     };
 
     return (
         <div className="flex flex-col h-screen relative">
+            {/* 중앙 로딩 오버레이 */}
+            <AnimatePresence>
+                {isLoading && (
+                    <motion.div
+                        className="fixed inset-0 z-50 flex items-center justify-center"
+                        style={{
+                            background: 'rgba(0, 0, 0, 0.6)',
+                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                        <motion.div
+                            className="relative rounded-3xl px-8 py-6 max-w-sm w-full mx-4 shadow-2xl border border-amber-400/30"
+                            style={{
+                                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2))',
+                            }}
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                        >
+                            {/* 배경 글로우 효과 */}
+                            <motion.div
+                                className="absolute inset-0 rounded-3xl"
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15))',
+                                }}
+                                animate={{
+                                    opacity: [0.3, 0.6, 0.3],
+                                }}
+                                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                            />
+
+                            <div className="relative z-10">
+                                {/* 상단 아이콘과 제목 */}
+                                <div className="flex items-center justify-center mb-4">
+                                    <motion.div
+                                        className="p-3 rounded-2xl bg-amber-500/20 border border-amber-400/40"
+                                        animate={{ 
+                                            scale: [1, 1.1, 1],
+                                            rotate: researchStage === 'processing' ? [0, 360] : 0
+                                        }}
+                                        transition={{ 
+                                            scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+                                            rotate: { duration: 2, repeat: Infinity, ease: "linear" }
+                                        }}
+                                    >
+                                        <ProgressIcon className="w-6 h-6 text-amber-200" />
+                                    </motion.div>
+                                </div>
+
+                                {/* 룰버디 생각 중 텍스트 */}
+                                <div className="text-center mb-4">
+                                    <h3 className="text-lg font-bold text-amber-100 mb-1">
+                                        🤖 룰버디가 생각하고 있어요
+                                    </h3>
+                                    <p className="text-sm text-amber-200/80">
+                                        최고의 답변을 위해 열심히 연구 중입니다
+                                    </p>
+                                </div>
+
+                                {/* 진행 상태 */}
+                                <div className="flex justify-between items-center mb-3">
+                                    <span className="font-medium text-sm text-slate-200">{progressText}</span>
+                                    <motion.span
+                                        className="font-bold text-sm text-primary-300"
+                                        animate={{ scale: [1, 1.1, 1] }}
+                                        transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+                                    >
+                                        {progress}%
+                                    </motion.span>
+                                </div>
+
+                                {/* 진행률 바 */}
+                                <div className="w-full bg-slate-800/50 rounded-full h-3 overflow-hidden border border-slate-700/50">
+                                    <motion.div
+                                        className={`h-3 rounded-full shadow-lg transition-all duration-800 ease-out ${isFinalizing
+                                                ? 'bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-400 animate-pulse'
+                                                : 'bg-gradient-to-r from-blue-500 to-purple-500'
+                                            }`}
+                                        style={{ 
+                                            width: `${progress}%`,
+                                            minWidth: progress > 0 ? '2px' : '0px'
+                                        }}
+                                        animate={{
+                                            background: isFinalizing 
+                                                ? ['linear-gradient(to right, #3b82f6, #a855f7)', 'linear-gradient(to right, #a855f7, #3b82f6)']
+                                                : undefined
+                                        }}
+                                        transition={{ 
+                                            background: { duration: 1, repeat: Infinity, ease: "easeInOut" }
+                                        }}
+                                    />
+                                </div>
+
+                                {/* 하단 힌트 텍스트 */}
+                                <div className="text-center mt-4">
+                                    <p className="text-xs text-amber-300/60">
+                                        잠시만 기다려 주세요 ✨
+                                    </p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Enhanced Header */}
             <motion.header
                 className="glass-card border-b border-amber-400/20 shadow-2xl relative z-10 hover:border-amber-400/30 transition-all duration-300"
@@ -174,7 +276,6 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
                 style={{
-                    backdropFilter: 'blur(20px) saturate(150%)',
                     background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(217, 119, 6, 0.05))',
                 }}
             >
@@ -244,7 +345,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                                     delay: index * 0.05
                                 }}
                             >
-                                                                 <ChatMessage
+                                <ChatMessage
                                      message={msg}
                                      game={game}
                                      userQuestion={userQuestion}
@@ -270,72 +371,6 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                     })}
                 </AnimatePresence>
 
-                {/* Enhanced Research Progress */}
-                <AnimatePresence>
-                    {isLoading && showResearchStatus && (
-                        <motion.div
-                            className="flex justify-start"
-                            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-                        >
-                            <div className="glass-card-premium border border-primary-400/30 rounded-3xl px-6 py-4 w-full max-w-md shadow-2xl relative overflow-hidden">
-                                {/* Background Glow */}
-                                <motion.div
-                                    className="absolute inset-0 rounded-3xl"
-                                    style={{
-                                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
-                                        filter: 'blur(20px)',
-                                    }}
-                                    animate={{
-                                        opacity: [0.3, 0.6, 0.3],
-                                    }}
-                                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                                />
-
-                                <div className="relative z-10">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <div className="flex items-center space-x-2">
-                                            <motion.span
-                                                className="text-lg"
-                                                animate={{ rotate: [0, 360] }}
-                                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                            >
-                                                {progressIcon}
-                                            </motion.span>
-                                            <span className="font-medium text-sm text-slate-200">{progressText}</span>
-                                        </div>
-                                        <motion.span
-                                            className="font-bold text-sm text-primary-300"
-                                            animate={{ scale: [1, 1.1, 1] }}
-                                            transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-                                        >
-                                            {progress}%
-                                        </motion.span>
-                                    </div>
-
-                                                                         {/* Enhanced Progress Bar */}
-                                     <div className="w-full bg-slate-800/50 rounded-full h-3 overflow-hidden border border-slate-700/50">
-                                         <div
-                                             className={`h-3 rounded-full shadow-lg transition-all duration-800 ease-out ${isFinalizing
-                                                     ? 'bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-400 animate-pulse'
-                                                     : 'bg-gradient-to-r from-blue-500 to-purple-500'
-                                                 }`}
-                                             style={{ 
-                                                 width: `${progress}%`,
-                                                 minWidth: progress > 0 ? '2px' : '0px'
-                                             }}
-                                         />
-                                     </div>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-
-
                 <div ref={messagesEndRef} />
             </main>
 
@@ -344,8 +379,6 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                 className="border-t border-amber-400/20 relative z-10 shadow-2xl"
                 style={{
                     background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.15))',
-                    backdropFilter: 'none',
-                    WebkitBackdropFilter: 'none',
                 }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -354,8 +387,6 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                 <form onSubmit={handleSubmit} className="p-4 md:p-6 flex gap-3">
                     {/* Enhanced Input Field */}
                     <div className="flex-1 relative">
-
-
                         <input
                             type="text"
                             value={input}
@@ -375,8 +406,6 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                                 background: isInputFocused
                                     ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.15))'
                                     : 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1))',
-                                backdropFilter: 'none',
-                                WebkitBackdropFilter: 'none',
                             }}
                             disabled={isLoading}
                         />
