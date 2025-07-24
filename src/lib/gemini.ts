@@ -53,14 +53,15 @@ function getGameIdFromTitle(gameTitle: string): number | null {
  */
 function getGameContext(gameTitle: string): string {
     if (!gameTitle || gameTitle.trim() === '') {
-        return '\n📚 **일반 보드게임 질문** - 포괄적 지식으로 답변합니다.\n';
+        return '\n📚 **일반 보드게임 질문** - RuleBuddy가 포괄적 지식으로 답변합니다.\n';
     }
 
     return `
-🎮 **${gameTitle} 전용 룰 마스터 모드 활성화**
+🎮 **${gameTitle} 전용 RuleBuddy 모드 활성화**
 
 ⚠️ **중요**: 사용자가 "${gameTitle}" 게임을 선택했습니다. 
 모든 질문은 "${gameTitle}" 게임에 관한 것으로 해석하고 답변하세요.
+자기소개할 때는 "${gameTitle} 전문 RuleBuddy"라고 하세요.
 
 **답변 원칙:**
 1. 사용자가 게임 이름을 언급하지 않아도 "${gameTitle}"에 대한 질문으로 간주
@@ -904,11 +905,14 @@ ${gameContext}
 }
 
 /**
- * Universal Rule Master (Beta) 전용 API 호출 함수
- * @param gameName 사용자가 선택한 게임 이름
- * @param chatHistory 전체 채팅 히스토리 (Gemini contents 포맷)
- * @param isFirstResponse 첫 번째 응답인지 여부
- * @returns AI 답변 문자열
+ * RuleBuddy(Beta) 전용 API 호출 함수
+ * 
+ * 기존 시스템과 완전히 분리된 베타 서비스
+ * @param userQuestion 사용자 질문
+ * @param gameName 게임 이름
+ * @param isFirstResponse 첫 번째 응답 여부 (면책조항 포함용)
+ * @param serviceMode 'beta' 또는 'expert' 모드
+ * @returns AI 응답
  */
 export async function askUniversalBetaQuestion(
     gameName: string,
@@ -1040,7 +1044,7 @@ export async function askUniversalBetaQuestion(
 
         // 예상치 못한 응답 구조
         console.error('❌ [Universal Beta 예상치 못한 응답]', JSON.stringify(result, null, 2));
-        return "죄송합니다. Universal Rule Master (Beta)에서 답변을 생성하는 데 문제가 발생했습니다.";
+        return "죄송합니다. RuleBuddy(Beta)에서 답변을 생성하는 데 문제가 발생했습니다.";
 
     } catch (error) {
         if (error instanceof GeminiApiError) {

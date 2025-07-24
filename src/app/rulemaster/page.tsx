@@ -145,7 +145,7 @@ const BackgroundBlobs = () => {
 };
 
 // 환영 메시지 상수
-const WELCOME_MESSAGE = `안녕하세요! 🎲 저는 **보드게임 룰 마스터**입니다.
+const WELCOME_MESSAGE = `안녕하세요! 🎲 저는 RuleBuddy(Beta)입니다.🤖
 
 어떤 보드게임에 대해 알려드릴까요? 게임 이름을 입력해주세요.
 

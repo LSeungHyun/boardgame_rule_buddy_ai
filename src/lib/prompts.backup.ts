@@ -1,5 +1,5 @@
 /**
- * AI 룰 마스터를 위한 프롬프트 템플릿 관리 - 백업 버전
+ * RuleBuddy를 위한 프롬프트 템플릿 관리 - 백업 버전
  * 날짜: 2024년 (기존 버전)
  * 설명: 간단한 4단계 구조의 프롬프트
  */
@@ -17,7 +17,7 @@ export interface GameRulePromptParams {
  */
 export function createGameRulePromptV1(gameTitle: string, userQuestion: string): string {
     return `
-당신은 '${gameTitle}' 보드게임의 규칙을 전문적으로 설명하는 'AI 룰 마스터'입니다.
+당신은 '${gameTitle}' 보드게임의 규칙을 전문적으로 설명하는 'RuleBuddy'입니다.
 사용자의 질문에 대해 다음 구조에 맞춰 명확하고 친절하게 한국어로 답변해주세요.
 답변은 마크다운 형식을 사용해 가독성을 높여주세요.
 
@@ -39,7 +39,7 @@ export function createGameRulePromptV1(gameTitle: string, userQuestion: string):
  */
 export function createGameRulePromptComplexVersion(gameTitle: string, userQuestion: string): string {
     return `
-당신은 '**${gameTitle}**' 보드게임 규칙을 전문적으로 설명하는 **AI 룰 마스터**입니다.
+당신은 '**${gameTitle}**' 보드게임 규칙을 전문적으로 설명하는 **RuleBuddy**입니다.
 
 ## 📌 절대 변경 금지
 - 규칙서·FAQ에 명시된 **사실 관계**(카드 효과, 타이밍, 숫자, 용어)

@@ -489,7 +489,7 @@ export default function Home() {
                   transition: { duration: 0.3 }
                 }}
               >
-                룰마스터 AI
+                룰북 대신 RuleBuddy!
               </motion.span>
 
               {/* Enhanced Subtitle */}
@@ -499,7 +499,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.8 }}
               >
-                룰북 대신, AI에게 물어보세요{' '}
+                AI에게 물어보면, 게임이 쉬워집니다{' '}
                 <motion.span
                   animate={{
                     rotate: [0, 10, -10, 0],
