@@ -8,6 +8,8 @@ import WelcomeGuideModal from '@/components/WelcomeGuideModal';
 import { SendButton } from '@/components/ui/send-button';
 import { FloatingFeedbackFAB } from '@/components/ui/floating-feedback-fab';
 import { useUnifiedFeedback } from '@/components/feedback/UnifiedFeedbackModal';
+import { GameCorrectionModal } from '@/components/ui/game-correction-modal';
+import { useGameCorrection } from '@/hooks/use-game-correction';
 
 // 🎨 Enhanced Floating Particles Component
 const FloatingParticles = () => {
@@ -124,11 +126,12 @@ const BackgroundBlobs = () => {
 };
 
 // 🎯 Premium Interactive Input Component
-const PremiumInput = ({ value, onChange, onKeyPress, onSubmit }: {
+const PremiumInput = ({ value, onChange, onKeyPress, onSubmit, isLoading }: {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onSubmit: () => void;
+  isLoading?: boolean;
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
@@ -194,6 +197,7 @@ const PremiumInput = ({ value, onChange, onKeyPress, onSubmit }: {
             onKeyPress={onKeyPress}
             onFocus={handleFocus}
             onBlur={() => setIsFocused(false)}
+            disabled={isLoading}
             className={`
               w-full pl-6 md:pl-8 pr-20 md:pr-24 py-6 md:py-8 
               text-lg md:text-xl rounded-3xl
@@ -202,6 +206,7 @@ const PremiumInput = ({ value, onChange, onKeyPress, onSubmit }: {
               transition-all duration-500 ease-out
               border-2 ${isFocused ? 'border-primary-400/40' : 'border-transparent'}
               ${isFocused ? 'shadow-2xl' : 'shadow-lg'}
+              ${isLoading ? 'opacity-75 cursor-not-allowed' : ''}
               relative z-10
             `}
             style={{
@@ -216,8 +221,8 @@ const PremiumInput = ({ value, onChange, onKeyPress, onSubmit }: {
           {/* Send Button */}
           <div className="absolute right-4 md:right-6 z-20">
             <SendButton
-              isEnabled={!!value.trim()}
-              isLoading={false}
+              isEnabled={!!value.trim() && !isLoading}
+              isLoading={isLoading}
               isInputFocused={isFocused}
               onClick={onSubmit}
               type="button"
@@ -239,6 +244,19 @@ const PremiumInput = ({ value, onChange, onKeyPress, onSubmit }: {
           transition={{ duration: 0.3 }}
         />
 
+        {/* 로딩 상태 표시 */}
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-3xl backdrop-blur-sm"
+          >
+            <div className="flex items-center gap-2 text-white">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm">게임을 찾고 있어요...</span>
+            </div>
+          </motion.div>
+        )}
 
       </div>
 
@@ -379,6 +397,10 @@ export default function Home() {
   const router = useRouter();
   const [gameName, setGameName] = useState('');
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState<boolean>(false);
+  
+  // 오타 교정 기능 추가
+  const { isChecking, correctionResult, checkGameCorrection, clearCorrection } = useGameCorrection();
+  const [showCorrectionModal, setShowCorrectionModal] = useState(false);
 
   // 통합 피드백 시스템
   const { showFeedback, FeedbackModalComponent, isOpen: isFeedbackOpen } = useUnifiedFeedback();
@@ -442,16 +464,63 @@ export default function Home() {
     setIsWelcomeModalOpen(false);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyPress = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && gameName.trim()) {
+      await handleSubmit();
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!gameName.trim()) return;
+
+    try {
+      // 1. 오타 교정 체크
+      const result = await checkGameCorrection(gameName.trim());
+      
+      // 2. 교정이 필요없으면 바로 진행
+      if (!result.needsCorrection) {
+        router.push(`/rulemaster?game=${encodeURIComponent(gameName.trim())}`);
+        return;
+      }
+
+      // 3. 자동 교정 가능한 경우 (높은 신뢰도)
+      if (result.autoCorrection && result.autoCorrection.confidence >= 0.9) {
+        // 매우 높은 신뢰도면 자동 교정하고 바로 진행
+        router.push(`/rulemaster?game=${encodeURIComponent(result.autoCorrection.correctedName)}`);
+        return;
+      }
+
+      // 4. 사용자 확인이 필요한 경우 모달 표시
+      if (result.suggestions.length > 0 || result.autoCorrection) {
+        setShowCorrectionModal(true);
+        return;
+      }
+
+      // 5. 매칭 결과가 없으면 원래 입력으로 진행
+      router.push(`/rulemaster?game=${encodeURIComponent(gameName.trim())}`);
+
+    } catch (error) {
+      console.error('게임 교정 중 오류:', error);
+      // 오류 발생 시 원래 입력으로 진행
       router.push(`/rulemaster?game=${encodeURIComponent(gameName.trim())}`);
     }
   };
 
-  const handleSubmit = () => {
-    if (gameName.trim()) {
-      router.push(`/rulemaster?game=${encodeURIComponent(gameName.trim())}`);
-    }
+  const handleSelectCorrectedGame = (correctedGameName: string) => {
+    setShowCorrectionModal(false);
+    clearCorrection();
+    router.push(`/rulemaster?game=${encodeURIComponent(correctedGameName)}`);
+  };
+
+  const handleProceedWithOriginal = () => {
+    setShowCorrectionModal(false);
+    clearCorrection();
+    router.push(`/rulemaster?game=${encodeURIComponent(gameName.trim())}`);
+  };
+
+  const handleCancelCorrection = () => {
+    setShowCorrectionModal(false);
+    clearCorrection();
   };
 
 
@@ -519,12 +588,13 @@ export default function Home() {
 
             {/* Enhanced Input Section */}
             <div className="mb-12">
-              <PremiumInput
-                value={gameName}
-                onChange={(e) => setGameName(e.target.value)}
-                onKeyPress={handleKeyPress}
-                onSubmit={handleSubmit}
-              />
+                          <PremiumInput
+              value={gameName}
+              onChange={(e) => setGameName(e.target.value)}
+              onKeyPress={handleKeyPress}
+              onSubmit={handleSubmit}
+              isLoading={isChecking}
+            />
             </div>
 
           </motion.div>
@@ -566,6 +636,15 @@ export default function Home() {
 
       {/* 통합 피드백 모달 */}
       {FeedbackModalComponent}
+
+      {/* 게임 교정 모달 */}
+      <GameCorrectionModal
+        isOpen={showCorrectionModal}
+        correctionResult={correctionResult}
+        onSelectGame={handleSelectCorrectedGame}
+        onProceedWithOriginal={handleProceedWithOriginal}
+        onCancel={handleCancelCorrection}
+      />
     </div>
   );
 }

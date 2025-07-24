@@ -147,7 +147,7 @@ export class GameMappingService {
     this.options = {
       maxCacheSize: options.maxCacheSize ?? GAME_MAPPING_CONSTANTS.DEFAULT_CACHE_SIZE,
       cacheTTL: options.cacheTTL ?? GAME_MAPPING_CONSTANTS.DEFAULT_CACHE_TTL,
-      debug: options.debug ?? false,
+      debug: options.debug ?? true, // 디버그 모드 기본 활성화
       autoInitialize: options.autoInitialize ?? true
     };
 
@@ -199,46 +199,72 @@ export class GameMappingService {
     try {
       // 기존 games-list-365.json을 기반으로 데이터 로드
       // 추후 enhanced-games-mapping.json으로 교체 예정
+      this.log('게임 데이터 로드 시도: /data/games-list-365.json');
       const gamesListResponse = await fetch('/data/games-list-365.json');
+      this.log(`Fetch 응답 상태: ${gamesListResponse.status} ${gamesListResponse.statusText}`);
+      
       if (!gamesListResponse.ok) {
-        throw new Error(`HTTP ${gamesListResponse.status}: 게임 리스트 로드 실패`);
+        throw new Error(`HTTP ${gamesListResponse.status}: 게임 리스트 로드 실패 - ${gamesListResponse.statusText}`);
       }
       
       const gamesList = await gamesListResponse.json();
+      this.log(`게임 리스트 로드됨: ${JSON.stringify(gamesList).slice(0, 200)}...`);
+      this.log(`게임 리스트 타입: ${typeof gamesList}`);
       
-      // 기존 포맷을 새 포맷으로 변환
-      const convertedConfig: GameMappingConfig = {
-        metadata: {
-          version: '1.0.0',
-          lastUpdated: new Date().toISOString(),
-          totalGames: Object.keys(gamesList).length,
-          description: 'games-list-365.json에서 변환됨'
-        },
-        games: Object.entries(gamesList).map(([id, title]) => ({
-          id: parseInt(id),
-          titleKorean: title as string,
-          titleEnglish: undefined,
-          aliases: [
-            (title as string).toLowerCase(),
-            (title as string).replace(/\s/g, ''),
-            (title as string).replace(/:/g, ' :')
-          ],
-          hasTermsData: parseInt(id) === 331, // 현재는 아크노바만 용어 데이터 있음
-          category: undefined,
-          complexity: undefined
-        }))
-      };
-
-      if (!isValidGameMappingConfig(convertedConfig)) {
-        throw new Error('로드된 게임 데이터 형식이 올바르지 않습니다');
+      // 데이터 구조 확인
+      if (!gamesList || typeof gamesList !== 'object') {
+        throw new Error('게임 리스트가 올바른 객체 형식이 아닙니다');
       }
-
-      return convertedConfig;
+      
+             // 데이터 형식 확인 및 처리
+       if (gamesList.metadata && Array.isArray(gamesList.games)) {
+         // games-list-365.json 형식 (메타데이터 + 배열 형태 게임 목록)
+         this.log('games-list-365.json 배열 형식 감지됨');
+         const gamesArray = gamesList.games;
+         
+         this.log(`배열에서 ${gamesArray.length}개 게임 발견`);
+         
+         // 기존 포맷을 새 포맷으로 변환
+         const convertedConfig: GameMappingConfig = {
+           metadata: {
+             version: '1.0.0',
+             lastUpdated: new Date().toISOString(),
+             totalGames: gamesArray.length,
+             description: 'games-list-365.json에서 변환됨'
+           },
+           games: gamesArray.map((game: any) => ({
+             id: parseInt(game.id),
+             titleKorean: game.title,
+             titleEnglish: undefined,
+             aliases: [
+               game.title.toLowerCase(),
+               game.title.replace(/\s/g, ''),
+               game.title.replace(/:/g, ' :')
+             ],
+             hasTermsData: parseInt(game.id) === 331, // 현재는 아크노바만 용어 데이터 있음
+             category: undefined,
+             complexity: game.difficulty || undefined
+           }))
+         };
+         
+         this.log(`변환 완료: ${convertedConfig.games.length}개 게임`);
+         return convertedConfig;
+         
+       } else if (gamesList.metadata && gamesList.games && !Array.isArray(gamesList.games)) {
+         // enhanced-games-mapping.json 형식
+         this.log('Enhanced 게임 매핑 형식 감지됨');
+         return gamesList as GameMappingConfig;
+       } else {
+         throw new Error('알 수 없는 게임 데이터 형식입니다');
+       }
+      
       
     } catch (error) {
-      this.log(`데이터 로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      this.log(`데이터 로드 실패: ${errorMessage}`);
+      console.error('[GameMappingService] 상세 오류:', error);
       throw new GameMappingError(
-        '게임 데이터 로드 실패',
+        `게임 데이터 로드 실패: ${errorMessage}`,
         GameMappingErrorType.DATA_LOAD_FAILED
       );
     }

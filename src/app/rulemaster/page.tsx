@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback, useRef, useMemo, Suspense } fr
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, useInView } from 'framer-motion';
 import ChatScreen from '@/components/ChatScreen';
+import { useGameCorrection } from '@/hooks/use-game-correction';
+import { GameCorrectionModal } from '@/components/ui/game-correction-modal';
 
 import { ChatScreenSuspense } from '@/components/ui/suspense-wrapper';
 import {
@@ -185,6 +187,10 @@ function RuleMasterContent() {
         isOpen: isFeedbackOpen 
     } = useUnifiedFeedback();
 
+    // 오타 교정 시스템
+    const { isChecking, correctionResult, checkGameCorrection, clearCorrection } = useGameCorrection();
+    const [showCorrectionModal, setShowCorrectionModal] = useState(false);
+
     // Analytics 훅
     const questionTracking = useQuestionTracking();
     const engagementTracking = useEngagementTracking();
@@ -228,6 +234,36 @@ function RuleMasterContent() {
             상태: chatState.conversationState,
             내용: content.slice(0, 50)
         });
+
+        // 🔧 게임명 입력 시 오타 교정 체크
+        if (chatState.conversationState === 'awaiting_game_name') {
+            const correctionResult = await checkGameCorrection(content.trim());
+            
+            if (correctionResult.needsCorrection) {
+                if (correctionResult.autoCorrection && correctionResult.autoCorrection.confidence >= 0.9) {
+                    // 높은 신뢰도로 자동 교정
+                    const correctedName = correctionResult.autoCorrection.correctedName;
+                    
+                    // 교정 알림 메시지 추가
+                    const correctionMessage: ChatMessage = {
+                        role: 'assistant',
+                        content: `"${content.trim()}" → "${correctedName}"으로 자동 교정되었습니다. ✨`
+                    };
+                    
+                    setChatState(prev => ({
+                        ...prev,
+                        messages: [...prev.messages, correctionMessage]
+                    }));
+                    
+                    // 교정된 이름으로 진행
+                    content = correctedName;
+                } else if (correctionResult.suggestions.length > 0) {
+                    // 사용자 확인 필요한 경우 모달 표시
+                    setShowCorrectionModal(true);
+                    return; // 사용자 선택 대기
+                }
+            }
+        }
 
         const userMessage: ChatMessage = {
             role: 'user',
@@ -463,6 +499,27 @@ function RuleMasterContent() {
         parentGameTitle: null
     } : null;
 
+    // 오타 교정 모달 핸들러
+    const handleSelectCorrectedGame = useCallback((correctedGameName: string) => {
+        setShowCorrectionModal(false);
+        clearCorrection();
+        // 교정된 게임명으로 메시지 재전송
+        handleSendMessage(correctedGameName);
+    }, [handleSendMessage, clearCorrection]);
+
+    const handleProceedWithOriginal = useCallback(() => {
+        setShowCorrectionModal(false);
+        clearCorrection();
+        // 원래 입력으로 진행 (이미 userMessage가 추가되어 있으므로 처리만 계속)
+        // 원래 게임명으로 진행하는 로직이 필요하다면 여기에 추가
+    }, [clearCorrection]);
+
+    const handleCancelCorrection = useCallback(() => {
+        setShowCorrectionModal(false);
+        clearCorrection();
+        setIsLoading(false); // 로딩 상태 해제
+    }, [clearCorrection]);
+
     const handleQuestionClick = (question: string) => {
         handleSendMessage(question);
     };
@@ -535,6 +592,15 @@ function RuleMasterContent() {
 
             {/* 기존 MVP 피드백 모달 (필요시 유지) */}
             {FeedbackModalComponent}
+
+            {/* 게임 교정 모달 */}
+            <GameCorrectionModal
+                isOpen={showCorrectionModal}
+                correctionResult={correctionResult}
+                onSelectGame={handleSelectCorrectedGame}
+                onProceedWithOriginal={handleProceedWithOriginal}
+                onCancel={handleCancelCorrection}
+            />
         </div>
     );
 }

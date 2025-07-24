@@ -166,7 +166,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                     <motion.div
                         className="fixed inset-0 z-50 flex items-center justify-center"
                         style={{
-                            background: 'rgba(0, 0, 0, 0.6)',
+                            background: 'rgba(0, 0, 0, 0.95)',
                         }}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
