@@ -20,7 +20,7 @@ export class GameRepositoryAdapter implements GameRepository {
    */
   private mapToGameEntity(game: Game): GameEntity {
     return {
-      id: game.id,
+      id: game.gameId || parseInt(game.id, 10) || 0, // gameId 우선, 없으면 id를 숫자로 변환
       title: game.title,
       description: game.description,
       difficulty: game.difficulty as GameDifficulty,
@@ -107,7 +107,7 @@ export class GameRepositoryAdapter implements GameRepository {
   async findById(id: number): Promise<GameEntity | null> {
     try {
       const games = await fetchGames({});
-      const game = games.find(g => g.id === id);
+      const game = games.find(g => g.gameId === id || parseInt(g.id, 10) === id);
       return game ? this.mapToGameEntity(game) : null;
     } catch (error) {
       console.error('게임 상세 조회 실패:', error);

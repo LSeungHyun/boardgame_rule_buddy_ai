@@ -38,33 +38,69 @@ function isSimpleQuestion(question?: string, answer?: string): boolean {
 }
 
 /**
- * 셋업 가이드 관련 내용인지 판단하는 함수
- * 셋업 가이드 관련 내용에는 전용 SetupGuideDisplay 컴포넌트를 사용
+ * 셋업 가이드 관련 내용인지 판단하는 함수 (대폭 개선된 버전)
+ * 더 유연하고 포괄적인 조건으로 SetupGuideDisplay 사용률 극대화
  */
 function isSetupGuideContent(question?: string, answer?: string): boolean {
     if (!question && !answer) return false;
 
+    // 확장된 셋업 관련 키워드 (더 포괄적)
     const setupKeywords = [
+        // 기본 셋업 용어
         '셋업', '준비', '게임 준비', '설치', '배치', '세팅', '초기 설정',
         '게임 시작', '시작 전', '준비물', '구성 요소', '보드 준비',
-        '카드 배치', '토큰 배치', '말 배치', '컴포넌트 준비'
+        '카드 배치', '토큰 배치', '말 배치', '컴포넌트 준비',
+        
+        // 🔥 새로 추가된 핵심 키워드들
+        '방법', '셋업 방법', '준비 방법', '게임 방법', '시작 방법',
+        '어떻게', '진행', '설정', '구성', '배열', '놓기', '두기',
+        '시작하기', '준비하기', '설치하기', '배치하기',
+        
+        // 단계별 표현
+        '단계', '순서', '절차', '과정', '진행 순서', '시작 순서',
+        '1단계', '첫 번째', '먼저', '처음에', '가장 먼저',
+        
+        // 게임 구성 요소 관련
+        '타일', '카드', '보드', '말', '피스', '토큰', '마커', '주사위'
     ];
 
-    const questionText = (question || '').toLowerCase();
-    const answerText = (answer || '').toLowerCase();
+    // 더 유연한 텍스트 검사 (대소문자, 공백 무시)
+    const normalizeText = (text: string) => text.replace(/\s+/g, '').toLowerCase();
+    const questionNorm = normalizeText(question || '');
+    const answerNorm = normalizeText(answer || '');
+    const questionOriginal = (question || '').toLowerCase();
+    const answerOriginal = (answer || '').toLowerCase();
 
-    // 질문이나 답변에 셋업 관련 키워드가 포함되어 있는지 확인
-    const hasSetupKeyword = setupKeywords.some(keyword =>
-        questionText.includes(keyword) || answerText.includes(keyword) ||
-        (question || '').includes(keyword) || (answer || '').includes(keyword)
+    // 키워드 매칭 (더 관대한 조건)
+    const hasSetupKeyword = setupKeywords.some(keyword => {
+        const keywordNorm = normalizeText(keyword);
+        return questionNorm.includes(keywordNorm) || 
+               answerNorm.includes(keywordNorm) ||
+               questionOriginal.includes(keyword) || 
+               answerOriginal.includes(keyword);
+    });
+
+    // 🎯 핵심 개선: 마크다운 구조 요구사항 대폭 완화
+    const hasAnyStructure = answer && (
+        // 헤더가 있거나
+        answer.includes('###') || answer.includes('####') || answer.includes('##') ||
+        // 리스트가 있거나  
+        answer.includes('*') || answer.includes('-') || answer.includes('1.') ||
+        // 긴 답변이거나 (200자 이상)
+        answer.length > 200 ||
+        // 단계적 표현이 있으면
+        answer.includes('단계') || answer.includes('순서') || answer.includes('먼저') ||
+        answer.includes('다음') || answer.includes('마지막')
     );
 
-    // 답변에 마크다운 헤더(###, ####)와 리스트가 포함되어 있고 셋업 관련 내용인 경우
-    const hasMarkdownStructure = answer && (
-        answer.includes('###') || answer.includes('####')
-    ) && answer.includes('*');
+    // 🚀 특별 조건: 셋업/준비 관련 질문이면 구조와 관계없이 적용
+    const isDefiniteSetupQuestion = questionOriginal.includes('셋업') || 
+                                    questionOriginal.includes('준비') ||
+                                    questionOriginal.includes('방법') ||
+                                    (questionOriginal.includes('게임') && questionOriginal.includes('시작'));
 
-    return hasSetupKeyword && hasMarkdownStructure;
+    // 최종 판단: 더 관대한 OR 조건
+    return (hasSetupKeyword && hasAnyStructure) || isDefiniteSetupQuestion;
 }
 
 export default function ChatMessage({ message, game, userQuestion, messageIndex, onQuestionClick }: ChatMessageProps) {
@@ -136,7 +172,7 @@ export default function ChatMessage({ message, game, userQuestion, messageIndex,
                     </div>
                 )}
 
-                {/* 메인 메시지 내용 */}
+                {/* 메인 메시지 내용 - 향상된 조건부 렌더링 */}
                 {message.role === 'assistant' ? (
                     isWelcomeMessage || isSimpleQuestion(userQuestion, message.content) ? (
                         <div className="markdown-content prose prose-invert prose-sm max-w-none text-amber-100"
@@ -144,7 +180,28 @@ export default function ChatMessage({ message, game, userQuestion, messageIndex,
                     ) : isSetupGuideContent(userQuestion, message.content) ? (
                         <SetupGuideDisplay content={message.content} />
                     ) : (
-                        <AnswerDisplay content={message.content} />
+                        // 🛡️ 폴백 로직: 혹시 놓친 셋업 관련 내용 최종 검사
+                        (() => {
+                            const contentLower = message.content.toLowerCase();
+                            const questionLower = (userQuestion || '').toLowerCase();
+                            
+                            // 추가 셋업 패턴 감지 (매우 관대한 조건)
+                            const isLikelySetup = 
+                                // 질문에 게임명 + 방법/준비가 있는 경우
+                                (questionLower.includes('방법') || questionLower.includes('준비') || 
+                                 questionLower.includes('셋업') || questionLower.includes('시작')) ||
+                                // 답변이 단계적 구조를 가지는 경우
+                                (contentLower.includes('단계') || contentLower.includes('순서') ||
+                                 message.content.includes('1.') || message.content.includes('2.') ||
+                                 contentLower.includes('먼저') || contentLower.includes('다음')) ||
+                                // 답변이 충분히 길어서 구조화가 도움이 되는 경우
+                                message.content.length > 300;
+                            
+                            // 🎯 조건을 만족하면 SetupGuideDisplay 사용
+                            return isLikelySetup ? 
+                                <SetupGuideDisplay content={message.content} /> :
+                                <AnswerDisplay content={message.content} />;
+                        })()
                     )
                 ) : (
                     <p className="font-medium text-amber-100 leading-relaxed">

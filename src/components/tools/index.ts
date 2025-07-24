@@ -5,4 +5,4 @@
 
 export { default as TranslationDebugger } from '../TranslationDebugger';
 export { default as RuleMasterChat } from '../RuleMasterChat';
-export { default as StagewiseToolbarWrapper } from '../stagewise-toolbar-wrapper';
+export { StagewiseToolbarWrapper } from '../stagewise-toolbar-wrapper';

@@ -52,8 +52,8 @@ export interface ChatMessage {
         score: number;
         reasoning: string[];
     };
-    // V2 분석 결과 추가
-    analysisV2?: QuestionAnalysisV2;
+    // V2 분석 결과 추가 - 추후 구현 예정
+    // analysisV2?: QuestionAnalysisV2;
     // 대화 맥락 추적 관련 메타데이터
     contextMetadata?: {
         turnNumber: number;

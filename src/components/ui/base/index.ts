@@ -53,5 +53,5 @@ export {
 } from '../sheet';
 
 // 알림 컴포넌트
-export { toast, useToast } from '../toast';
+export { toast, useToast } from '../../../hooks/use-toast';
 export { Toaster } from '../toaster';

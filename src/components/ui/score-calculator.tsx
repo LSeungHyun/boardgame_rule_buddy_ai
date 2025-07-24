@@ -4,9 +4,9 @@ import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useScoreCalculatorStore } from '@/lib/stores/score-calculator-store';
 import { GameRules } from '@/types/score-calculator';
-import { ScoreInput } from './score-input';
-import { RealTimeCalculation } from './real-time-calculation';
-import { SimulationMode } from './simulation-mode';
+// import { ScoreInput } from './score-input';
+// import { RealTimeCalculation } from './real-time-calculation';
+// import { SimulationMode } from './simulation-mode';
 import { Button } from './button';
 import { Card } from './card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
@@ -231,21 +231,25 @@ export function ScoreCalculator({ gameRules = sampleGameRules, className }: Scor
         </TabsList>
 
         <TabsContent value="input" className="space-y-4">
-          <ScoreInput gameRules={currentGame} />
+          {/* <ScoreInput gameRules={currentGame} /> */}
         </TabsContent>
 
         <TabsContent value="calculation" className="space-y-4">
-          <RealTimeCalculation 
+          {/* <RealTimeCalculation 
             result={currentResult} 
             gameRules={currentGame}
-          />
+          /> */}
         </TabsContent>
 
-        <TabsContent value="simulation" className="space-y-4">
-          {simulationMode ? (
-            <SimulationMode gameRules={currentGame} />
-          ) : (
-            <Card className="p-6 text-center">
+                  <TabsContent value="simulation" className="space-y-4">
+            {simulationMode ? (
+             <Card className="p-6 text-center">
+               <p className="text-muted-foreground">
+                 시뮬레이션 기능이 곧 추가될 예정입니다
+               </p>
+             </Card>
+            ) : (
+              <Card className="p-6 text-center">
               <p className="text-muted-foreground">
                 시뮬레이션 모드를 활성화하세요
               </p>

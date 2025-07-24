@@ -410,19 +410,14 @@ export default function RuleMaster() {
                     geminiChatHistory: [...newGeminiHistory, aiGeminiMessage]
                 }));
 
-                // Analytics 추적
-                if (questionTracking?.trackAnswerReceived) {
-                    questionTracking.trackAnswerReceived(
-                        chatState.gameContext.gameName,
-                        aiResponse.length
-                    );
-                }
+                // Analytics 추적은 useQuestionTracking 훅이 올바르게 정의된 후 활성화 예정
             }
 
         } catch (error) {
             console.error('❌ [메시지 처리 오류]:', error);
 
-            const errorMessage = await errorHandler(error);
+            const appError = errorHandler.handle(error);
+            const errorMessage = errorHandler.getUserMessage(appError);
 
             setChatState(prev => ({
                 ...prev,
@@ -439,7 +434,10 @@ export default function RuleMaster() {
 
     // 게임 컨텍스트가 있으면 게임 설정
     const game = chatState.gameContext ? {
-        gameId: chatState.gameContext.gameId || chatState.gameContext.gameName,
+        id: chatState.gameContext.gameId?.toString() || chatState.gameContext.gameName,
+        gameId: typeof chatState.gameContext.gameId === 'number' 
+            ? chatState.gameContext.gameId 
+            : (parseInt(chatState.gameContext.gameId?.toString() || '0', 10) || 0),
         title: chatState.gameContext.gameName,
         description: '',
         minPlayers: 0,
