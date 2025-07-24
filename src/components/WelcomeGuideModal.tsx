@@ -322,7 +322,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{ delay: 0.15, duration: 0.4 }}
                                         >
-                                            룰마스터 AI에 오신 것을 환영합니다!
+                                            RuleBuddy에 오신 것을 환영합니다!
                                         </motion.span>
                                         <motion.div
                                             className="inline-flex items-center gap-2 mt-2 px-4 py-2 rounded-full"
