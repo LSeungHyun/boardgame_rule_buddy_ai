@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, useInView } from 'framer-motion';
 import ChatScreen from '@/components/ChatScreen';
@@ -153,7 +153,8 @@ const WELCOME_MESSAGE = `안녕하세요! 🎲 저는 RuleBuddy(Beta)입니다.�
 
 💡 **Tip**: 365개의 인기 게임은 전문가 수준으로, 그 외 게임도 최선을 다해 도와드립니다!`;
 
-export default function RuleMaster() {
+// Suspense로 감싸져야 하는 부분을 별도 컴포넌트로 분리
+function RuleMasterContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const gameParam = searchParams.get('game');
@@ -536,4 +537,25 @@ export default function RuleMaster() {
             {FeedbackModalComponent}
         </div>
     );
-} 
+}
+
+// 로딩 컴포넌트
+function RuleMasterLoading() {
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p className="text-gray-600">로딩 중...</p>
+            </div>
+        </div>
+    );
+}
+
+// 메인 export 함수 - Suspense로 감싸기
+export default function RuleMaster() {
+    return (
+        <Suspense fallback={<RuleMasterLoading />}>
+            <RuleMasterContent />
+        </Suspense>
+    );
+}

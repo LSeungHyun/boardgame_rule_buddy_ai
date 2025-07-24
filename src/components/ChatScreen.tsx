@@ -64,16 +64,20 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
         setLastMessageCount(messages.length);
     }, []);
 
-    // Enhanced research stage effects
+    // Enhanced research stage effects with auto progression
     useEffect(() => {
         setIsFinalizing(false);
 
         if (showResearchStatus) {
             const config = researchStageConfig[researchStage];
             if (config) {
+                // 프로그레스바가 즉시 업데이트되도록 강제 설정
                 setProgress(config.progress);
                 setProgressText(config.text);
                 setProgressIcon(config.icon);
+                
+                // 디버깅을 위한 로그
+                console.log(`🔄 Progress updated: ${config.progress}% - ${config.text}`);
             }
         }
 
@@ -95,22 +99,69 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
 
     }, [researchStage, showResearchStatus]);
 
+    // Smart auto-progress that adapts to actual response time
+    useEffect(() => {
+        if (!isLoading || !showResearchStatus) return;
+
+        const stages: ResearchStage[] = ['analyzing', 'searching', 'processing', 'summarizing', 'generating_logic', 'generating_text', 'generating_review'];
+        const currentIndex = stages.indexOf(researchStage);
+        
+        if (currentIndex < stages.length - 1) {
+            // 더 빠른 진행 속도로 실제 응답 시간에 맞춤
+            const baseDelay = 800; // 기본 800ms
+            const randomDelay = Math.random() * 400; // 0-400ms 추가
+            const totalDelay = baseDelay + randomDelay;
+            
+                         const timeout = setTimeout(() => {
+                 setResearchStage(stages[currentIndex + 1]);
+                 // 단계 변경 후 스크롤 유지
+                 setTimeout(() => {
+                     if (shouldAutoScroll) {
+                         scrollToBottom();
+                     }
+                 }, 50);
+             }, totalDelay);
+
+            return () => clearTimeout(timeout);
+        }
+    }, [isLoading, showResearchStatus, researchStage]);
+
+    // Complete progress bar when loading finishes
+    useEffect(() => {
+        if (!isLoading && showResearchStatus) {
+            // 답변이 완료되면 즉시 completed 상태로 변경
+            setResearchStage('completed');
+            setProgress(100);
+            setProgressText('답변 완성!');
+            setProgressIcon('🎉');
+            
+            // 완료 표시 후 리셋
+            setTimeout(() => {
+                setShowResearchStatus(false);
+                setProgress(0);
+                setResearchStage('analyzing');
+            }, 1500); // 완료 상태를 1.5초간 표시
+        }
+    }, [isLoading, showResearchStatus]);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (input.trim() && !isLoading) {
             setShouldAutoScroll(true);
 
-            setShowResearchStatus(true);
-            setResearchStage('analyzing');
-
+            // 먼저 메시지를 보내고 나서 프로그레스바 시작
             onSendMessage(input);
-
-            setTimeout(() => {
-                setShowResearchStatus(false);
-                setProgress(0);
-                scrollToBottom();
-            }, 1000);
             setInput('');
+            
+                         // 사용자 메시지가 UI에 나타난 후 프로그레스바 시작
+             setTimeout(() => {
+                 setShowResearchStatus(true);
+                 setResearchStage('analyzing');
+                 // 프로그레스바가 나타난 후 스크롤 재조정
+                 setTimeout(() => {
+                     scrollToBottom();
+                 }, 100);
+             }, 50);
         }
     };
 
@@ -193,23 +244,27 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                                     delay: index * 0.05
                                 }}
                             >
-                                <ChatMessage
-                                    message={msg}
-                                    game={game}
-                                    userQuestion={userQuestion}
-                                    messageIndex={index}
-                                    onQuestionClick={(question) => {
-                                        if (!isLoading) {
-                                            setInput(question);
-                                            setTimeout(() => {
-                                                const form = document.querySelector('form');
-                                                if (form) {
-                                                    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-                                                }
-                                            }, 100);
-                                        }
-                                    }}
-                                />
+                                                                 <ChatMessage
+                                     message={msg}
+                                     game={game}
+                                     userQuestion={userQuestion}
+                                     messageIndex={index}
+                                     onQuestionClick={(question) => {
+                                         if (!isLoading) {
+                                             setInput(question);
+                                             setTimeout(() => {
+                                                 const form = document.querySelector('form');
+                                                 if (form) {
+                                                     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                                                 }
+                                                 // 폼 제출 후 스크롤을 맨 아래로 이동
+                                                 setTimeout(() => {
+                                                     scrollToBottom();
+                                                 }, 200);
+                                             }, 100);
+                                         }
+                                     }}
+                                 />
                             </motion.div>
                         );
                     })}
@@ -260,80 +315,26 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                                         </motion.span>
                                     </div>
 
-                                    {/* Enhanced Progress Bar */}
-                                    <div className="w-full bg-slate-800/50 rounded-full h-3 overflow-hidden border border-slate-700/50">
-                                        <motion.div
-                                            className={`h-3 rounded-full shadow-lg transition-all duration-500 ease-out ${isFinalizing
-                                                    ? 'bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-400 animate-pulse'
-                                                    : 'bg-gradient-to-r from-primary-500 to-secondary-500'
-                                                }`}
-                                            style={{ width: `${progress}%` }}
-                                            animate={{
-                                                backgroundPosition: isFinalizing ? ['0% 50%', '100% 50%', '0% 50%'] : '0% 50%'
-                                            }}
-                                            transition={{
-                                                duration: 2,
-                                                repeat: isFinalizing ? Infinity : 0,
-                                                ease: "easeInOut"
-                                            }}
-                                        />
-                                    </div>
+                                                                         {/* Enhanced Progress Bar */}
+                                     <div className="w-full bg-slate-800/50 rounded-full h-3 overflow-hidden border border-slate-700/50">
+                                         <div
+                                             className={`h-3 rounded-full shadow-lg transition-all duration-800 ease-out ${isFinalizing
+                                                     ? 'bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-400 animate-pulse'
+                                                     : 'bg-gradient-to-r from-blue-500 to-purple-500'
+                                                 }`}
+                                             style={{ 
+                                                 width: `${progress}%`,
+                                                 minWidth: progress > 0 ? '2px' : '0px'
+                                             }}
+                                         />
+                                     </div>
                                 </div>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                {/* Enhanced Loading State */}
-                <AnimatePresence>
-                    {isLoading && !showResearchStatus && (
-                        <motion.div
-                            className="flex justify-start"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.4 }}
-                        >
-                            <div className="glass-card-premium border border-primary-400/30 rounded-3xl px-6 py-4 flex items-center max-w-xs shadow-2xl">
-                                <motion.span
-                                    className="text-2xl mr-4"
-                                    animate={{
-                                        rotate: [0, 5, -5, 0],
-                                        scale: [1, 1.1, 1]
-                                    }}
-                                    transition={{
-                                        duration: 2,
-                                        repeat: Infinity,
-                                        ease: "easeInOut"
-                                    }}
-                                >
-                                    🎲
-                                </motion.span>
-                                <div>
-                                    <span className="font-medium text-slate-200">답변 생성 중</span>
-                                    <div className="flex space-x-1 mt-2">
-                                        {[0, 1, 2].map((i) => (
-                                            <motion.div
-                                                key={i}
-                                                className="w-2 h-2 bg-primary-400 rounded-full"
-                                                animate={{
-                                                    scale: [1, 1.2, 1],
-                                                    opacity: [0.4, 1, 0.4]
-                                                }}
-                                                transition={{
-                                                    duration: 1,
-                                                    repeat: Infinity,
-                                                    delay: i * 0.2,
-                                                    ease: "easeInOut"
-                                                }}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+
 
                 <div ref={messagesEndRef} />
             </main>

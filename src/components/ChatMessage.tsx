@@ -91,9 +91,12 @@ export default function ChatMessage({ message, game, userQuestion, messageIndex,
         (message.content.includes('전문 룰 마스터') &&
             (message.content.includes('정확하고 상세한 답변') || message.content.includes('게임 규칙과 메커니즘'))) ||
         // Beta 모드: Universal Rule Master (Beta) 첫 답변
-        (message.content.includes('Universal Rule Master (Beta)') &&
+        (message.content.includes('RuleBuddy(Beta)') &&
             message.content.includes('베타 서비스 안내') &&
-            message.content.includes('도움을 드릴 수 있어서 기쁩니다'))
+            (message.content.includes('도움을 드릴 수 있어서 기쁩니다') || message.content.includes('도움을 드리겠습니다'))) ||
+        // 게임명이 포함된 첫 번째 답변 (더 포괄적인 조건)
+        (messageIndex === 1 && game && game.title && 
+            (message.content.includes(game.title) || message.content.includes('베타 서비스')))
     );
 
     // 메시지 ID 생성 (실제 구현에서는 고유한 ID를 사용해야 함)
