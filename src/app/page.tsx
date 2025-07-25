@@ -552,12 +552,7 @@ export default function Home() {
             >
               <motion.span
                 className="block gradient-text-premium drop-shadow-2xl"
-                style={{ perspective: 1000 }}
-                whileHover={{
-                  rotateX: 5,
-                  rotateY: 5,
-                  transition: { duration: 0.3 }
-                }}
+                style={{ lineHeight: '1.1', paddingBottom: '0.2em' }}
               >
                 룰북 대신 RuleBuddy!
               </motion.span>

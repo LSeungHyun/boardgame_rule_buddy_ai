@@ -29,7 +29,10 @@ export async function GET(request: NextRequest) {
           { status: 400 }
         );
       }
-      bggUrl = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(query)}&type=boardgame&exact=1`;
+      
+      // exact 파라미터를 선택적으로 적용 (기본값: 유연한 검색)
+      const exact = searchParams.get('exact') === '1' ? '&exact=1' : '';
+      bggUrl = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(query)}&type=boardgame${exact}`;
     } else if (type === 'thing') {
       if (!id) {
         return NextResponse.json(

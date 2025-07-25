@@ -81,15 +81,19 @@ export default function ChatMessage({ message, game, userQuestion, messageIndex,
 
     // 환영메시지와 경고메시지 판별 - 실제 메시지 내용에 맞게 수정
     const isWelcomeMessage = message.role === 'assistant' && (
-        // 일반 환영메시지: "안녕하세요! 🎲 저는 RuleBuddy(Beta)입니다"
-        (message.content.includes('안녕하세요!') && message.content.includes('RuleBuddy(Beta)')) ||
+        // 일반 환영메시지: "안녕하세요! 🎲 저는 RuleBuddy입니다"
+        (message.content.includes('안녕하세요!') && (message.content.includes('RuleBuddy(Beta)') || message.content.includes('RuleBuddy입니다'))) ||
         // 최신 게임 경고메시지: "🚨 **최신 게임 안내**"
         (message.content.includes('🚨') && message.content.includes('최신 게임 안내')) ||
         // 기본 환영메시지 (게임명 없이)
         (message.content.includes('어떤 보드게임에 대해 알려드릴까요')) ||
         // 폴백 환영메시지
-        (message.content.includes('RuleBuddy(Beta)') && 
-         (message.content.includes('도와드리겠습니다') || message.content.includes('최선을 다해')))
+        (message.content.includes('RuleBuddy') && 
+         (message.content.includes('도와드리겠습니다') || message.content.includes('최선을 다해'))) ||
+        // 간단한 환영 메시지
+        (message.content.includes('무엇이든 물어보세요') &&
+         !message.content.includes('룰 마스터입니다') &&
+         !message.content.includes('Universal Rule Master (Beta)'))
     );
 
     // 첫 번째 게임 답변인지 확인 (게임 전문 룰마스터 소개 메시지 또는 Universal Rule Master Beta 첫 답변)
@@ -102,7 +106,7 @@ export default function ChatMessage({ message, game, userQuestion, messageIndex,
             message.content.includes('베타 서비스 안내') &&
             (message.content.includes('도움을 드릴 수 있어서 기쁩니다') || message.content.includes('도움을 드리겠습니다'))) ||
         // 게임명이 포함된 첫 번째 답변 (더 포괄적인 조건)
-        (messageIndex === 1 && game && game.title && 
+        (messageIndex === 0 && game && game.title &&
             (message.content.includes(game.title) || message.content.includes('베타 서비스')))
     );
 
@@ -207,15 +211,15 @@ export default function ChatMessage({ message, game, userQuestion, messageIndex,
                 )}
 
                 {/* 피드백 버튼 (실질적인 답변에만, 첫 번째와 두 번째 AI 답변 제외) */}
-                {message.role === 'assistant' && !isWelcomeMessage && 
-                 messageIndex !== undefined && messageIndex > 3 && (
-                    <FeedbackButtons
-                        messageId={messageId}
-                        gameId={game?.id || 'unknown-game'}
-                        question={userQuestion || '질문 정보 없음'}
-                        answer={message.content}
-                    />
-                )}
+                {message.role === 'assistant' && !isWelcomeMessage &&
+                    messageIndex !== undefined && messageIndex > 3 && (
+                        <FeedbackButtons
+                            messageId={messageId}
+                            gameId={game?.id || 'unknown-game'}
+                            question={userQuestion || '질문 정보 없음'}
+                            answer={message.content}
+                        />
+                    )}
             </div>
 
             {/* 퀵액션 제거 - 이제 FloatingQuickActionsFAB으로 대체됨 */}

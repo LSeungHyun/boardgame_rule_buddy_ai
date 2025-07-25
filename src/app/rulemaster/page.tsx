@@ -149,14 +149,7 @@ const BackgroundBlobs = () => {
     );
 };
 
-// 환영 메시지 상수
-const WELCOME_MESSAGE = `안녕하세요! 🎲 저는 RuleBuddy(Beta)입니다.🤖
 
-어떤 보드게임에 대해 알려드릴까요? 게임 이름을 입력해주세요.
-
-예: "카탄", "스플렌더", "윙스팬", "아그리콜라" 등
-
-💡 **Tip**: 다양한 보드게임에 대해 최선을 다해 도와드립니다!`;
 
 // Suspense로 감싸져야 하는 부분을 별도 컴포넌트로 분리
 function RuleMasterContent() {
@@ -209,14 +202,14 @@ function RuleMasterContent() {
     // BGG API 년도 경고 시스템
     const [showYearWarning, setShowYearWarning] = useState(false);
     const currentGameName = chatState.gameContext?.gameName || '';
-    
+
     // 게임 컨텍스트가 확정된 후에만 BGG API 호출
     const shouldCallBggApi = Boolean(
-        chatState.gameContext && 
-        chatState.gameContext.gameName && 
+        chatState.gameContext &&
+        chatState.gameContext.gameName &&
         chatState.conversationState === 'in_conversation'
     );
-    
+
     const yearInfo = useGameYearInfo(shouldCallBggApi ? currentGameName : '');
 
     // Analytics 훅
@@ -229,7 +222,7 @@ function RuleMasterContent() {
     // 게임 파라미터 처리 여부를 추적하는 ref
     const gameParamProcessed = useRef(false);
 
-    // 🚀 새로운 초기화 플로우 - 게임 파라미터와 함께 진입
+    // 컴포넌트 마운트 시 게임 파라미터 처리
     useEffect(() => {
         // 새로운 세션 시작 시 최초 응답 상태 초기화
         setIsFirstResponse(true);
@@ -249,7 +242,13 @@ function RuleMasterContent() {
             // 게임 파라미터가 없으면 기본 환영 메시지 표시
             const defaultWelcomeMessage: ChatMessage = {
                 role: 'assistant',
-                content: WELCOME_MESSAGE
+                content: `안녕하세요! 🎲 저는 RuleBuddy입니다. 🤖
+
+어떤 보드게임에 대해 알려드릴까요? 게임 이름을 입력해주세요.
+
+예: "카탄", "스플렌더", "윙스팬", "아그리콜라" 등
+
+💡 **Tip**: 다양한 보드게임에 대해 최선을 다해 도와드립니다!`
             };
 
             setChatState(prev => ({
