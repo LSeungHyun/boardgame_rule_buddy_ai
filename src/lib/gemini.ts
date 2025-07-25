@@ -415,7 +415,7 @@ export async function askGameQuestionWithContextTracking(
 
     if (gameId === 331) {
         try {
-            let foundTerms: Array<{ korean: string, english: string, context?: string }> = [];
+            const foundTerms: Array<{ korean: string, english: string, context?: string }> = [];
             const questionKeywords = userQuestion.split(' ').filter(word => word.length > 1);
             let translatedCount = 0;
 
@@ -754,7 +754,7 @@ export async function askGameQuestionWithSmartResearch(
         try {
             console.log('🎯 [아크노바 용어 검색] 아크노바 전용 용어 매핑 시작');
 
-            let foundTerms: Array<{ korean: string, english: string, context?: string }> = [];
+            const foundTerms: Array<{ korean: string, english: string, context?: string }> = [];
 
             // 질문에서 핵심 키워드 추출해서 번역
             const questionKeywords = userQuestion.split(' ').filter(word => word.length > 1);

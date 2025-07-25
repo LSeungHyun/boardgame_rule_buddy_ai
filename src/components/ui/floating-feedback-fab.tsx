@@ -50,7 +50,7 @@ export function FloatingFeedbackFAB({
           label: '피드백 주세요',
           icon: MessageCircle,
           ariaLabel: '피드백 보내기',
-          emoji: '💝'
+          emoji: null
         };
     }
   };
@@ -150,20 +150,22 @@ export function FloatingFeedbackFAB({
             </motion.div>
           ) : (
             <>
-              {/* 이모지 */}
-              <motion.span
-                className="text-2xl"
-                animate={{ 
-                  scale: isPulsing ? [1, 1.2, 1] : 1,
-                  rotate: isHovered ? [0, -10, 10, 0] : 0
-                }}
-                transition={{ 
-                  scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-                  rotate: { duration: 0.8, ease: "easeInOut" }
-                }}
-              >
-                {emoji}
-              </motion.span>
+              {/* 이모지 - 조건부 렌더링 */}
+              {emoji && (
+                <motion.span
+                  className="text-2xl"
+                  animate={{ 
+                    scale: isPulsing ? [1, 1.2, 1] : 1,
+                    rotate: isHovered ? [0, -10, 10, 0] : 0
+                  }}
+                  transition={{ 
+                    scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+                    rotate: { duration: 0.8, ease: "easeInOut" }
+                  }}
+                >
+                  {emoji}
+                </motion.span>
+              )}
               {/* 아이콘 */}
               <motion.div
                 animate={{ 
