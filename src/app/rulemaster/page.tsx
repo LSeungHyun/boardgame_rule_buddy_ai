@@ -177,14 +177,17 @@ function RuleMasterContent() {
     const [isLoading, setIsLoading] = useState(false);
     const [researchStage, setResearchStage] = useState<ResearchStage>('analyzing');
 
+    // 최초 로딩 추적 상태 (게임 설정 후 첫 번째 AI 응답인지 확인)
+    const [isFirstResponse, setIsFirstResponse] = useState(true);
+
     // MVP 피드백 시스템 (기존)
     const { showFeedback, FeedbackModalComponent } = useFeedbackModal();
-    
+
     // 통합 피드백 시스템 (새로운)
-    const { 
-        showFeedback: showUnifiedFeedback, 
+    const {
+        showFeedback: showUnifiedFeedback,
         FeedbackModalComponent: UnifiedFeedbackModalComponent,
-        isOpen: isFeedbackOpen 
+        isOpen: isFeedbackOpen
     } = useUnifiedFeedback();
 
     // 오타 교정 시스템
@@ -213,6 +216,9 @@ function RuleMasterContent() {
             messages: [welcomeMessage]
         }));
 
+        // 새로운 세션 시작 시 최초 응답 상태 초기화
+        setIsFirstResponse(true);
+
         // 게임 파라미터가 있고 아직 처리되지 않았으면 자동으로 게임명을 입력
         if (gameParam && !gameParamProcessed.current) {
             gameParamProcessed.current = true;
@@ -238,23 +244,23 @@ function RuleMasterContent() {
         // 🔧 게임명 입력 시 오타 교정 체크
         if (chatState.conversationState === 'awaiting_game_name') {
             const correctionResult = await checkGameCorrection(content.trim());
-            
+
             if (correctionResult.needsCorrection) {
                 if (correctionResult.autoCorrection && correctionResult.autoCorrection.confidence >= 0.9) {
                     // 높은 신뢰도로 자동 교정
                     const correctedName = correctionResult.autoCorrection.correctedName;
-                    
+
                     // 교정 알림 메시지 추가
                     const correctionMessage: ChatMessage = {
                         role: 'assistant',
                         content: `"${content.trim()}" → "${correctedName}"으로 자동 교정되었습니다. ✨`
                     };
-                    
+
                     setChatState(prev => ({
                         ...prev,
                         messages: [...prev.messages, correctionMessage]
                     }));
-                    
+
                     // 교정된 이름으로 진행
                     content = correctedName;
                 } else if (correctionResult.suggestions.length > 0) {
@@ -374,6 +380,9 @@ function RuleMasterContent() {
                     geminiChatHistory: [...newGeminiHistory, aiGeminiMessage]
                 }));
 
+                // 최초 응답 완료 후 상태 업데이트
+                setIsFirstResponse(false);
+
                 console.log('✅ [게임 설정 완료]:', {
                     게임명: gameContext.gameName,
                     신뢰도: confidenceScore,
@@ -472,8 +481,8 @@ function RuleMasterContent() {
     // 게임 컨텍스트가 있으면 게임 설정
     const game = chatState.gameContext ? {
         id: chatState.gameContext.gameId?.toString() || chatState.gameContext.gameName,
-        gameId: typeof chatState.gameContext.gameId === 'number' 
-            ? chatState.gameContext.gameId 
+        gameId: typeof chatState.gameContext.gameId === 'number'
+            ? chatState.gameContext.gameId
             : (parseInt(chatState.gameContext.gameId?.toString() || '0', 10) || 0),
         title: chatState.gameContext.gameName,
         description: '',
@@ -545,31 +554,31 @@ function RuleMasterContent() {
             <motion.div
                 className="absolute inset-0 rounded-2xl bg-gradient-to-r from-pink-500/15 to-rose-500/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             />
-            
+
             {/* 이모지 */}
             <motion.span
                 className="text-xl relative z-10"
-                animate={{ 
+                animate={{
                     scale: [1, 1.2, 1],
                     rotate: [0, -10, 10, 0]
                 }}
-                transition={{ 
+                transition={{
                     scale: { duration: 3, repeat: Infinity, ease: "easeInOut" },
                     rotate: { duration: 1, ease: "easeInOut", repeat: Infinity, repeatDelay: 2 }
                 }}
             >
                 🤔
             </motion.span>
-            
+
             {/* 텍스트 */}
             <motion.div
                 className="flex flex-col items-start relative z-10"
-                animate={{ 
+                animate={{
                     x: [0, 2, 0]
                 }}
-                transition={{ 
-                    duration: 2, 
-                    repeat: Infinity, 
+                transition={{
+                    duration: 2,
+                    repeat: Infinity,
                     ease: "easeInOut",
                     repeatDelay: 1
                 }}
@@ -577,18 +586,18 @@ function RuleMasterContent() {
                 <span className="text-xs text-pink-200/90 font-medium leading-tight">간단히</span>
                 <span className="text-sm text-pink-100 font-semibold leading-tight">어떠셨나요?</span>
             </motion.div>
-            
+
             {/* 아이콘 */}
             <motion.div
                 className="relative z-10"
-                animate={{ 
+                animate={{
                     rotate: [0, -5, 5, 0]
                 }}
-                transition={{ 
-                    duration: 0.8, 
-                    ease: "easeInOut", 
-                    repeat: Infinity, 
-                    repeatDelay: 3 
+                transition={{
+                    duration: 0.8,
+                    ease: "easeInOut",
+                    repeat: Infinity,
+                    repeatDelay: 3
                 }}
             >
                 <svg
@@ -626,6 +635,7 @@ function RuleMasterContent() {
                             isLoading={isLoading}
                             onQuestionClick={handleQuestionClick}
                             headerActions={<HeaderFeedbackButton />}
+                            showFullProgressOverlay={isFirstResponse}
                         />
                     </ChatScreenSuspense>
                 </motion.div>

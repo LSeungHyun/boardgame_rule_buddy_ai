@@ -258,8 +258,8 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
     return (
         <AnimatePresence mode="wait">
             {isOpen && (
-                <Dialog open={isOpen} onOpenChange={() => onClose(false)}>
-                    <DialogContent className="sm:max-w-2xl w-[95vw] max-h-[90vh] overflow-hidden border-0 p-0 bg-transparent shadow-none">
+                <Dialog open={isOpen} onOpenChange={() => {}}>
+                    <DialogContent className="sm:max-w-2xl w-[95vw] max-h-[90vh] overflow-hidden border-0 p-0 bg-transparent shadow-none [&>button]:hidden">
                         <motion.div
                             className="relative rounded-3xl p-3 md:p-4"
                             style={{
@@ -419,70 +419,70 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                             AI 지식 수준
                                         </h3>
                                         <ul className="space-y-2 text-sm text-slate-300/90">
-                                                                        <motion.li
-                                className="flex gap-2.5 items-start p-2 rounded-lg border border-emerald-400/30 bg-emerald-950/15"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.9, duration: 0.3 }}
-                            >
-                                <span className="flex-shrink-0 text-emerald-400 text-sm mt-0.5">✅</span>
-                                <div className="flex-1">
-                                    <div className="text-emerald-200 font-semibold text-sm">
-                                        2023년까지 출시된 게임들
-                                    </div>
-                                    <div className="text-emerald-300/90 text-xs">
-                                        자신있게 정확한 답변을 드려요!
-                                    </div>
-                                </div>
-                            </motion.li>
-                                                                        <motion.li
-                                className="flex gap-2.5 items-start p-2 rounded-lg border-2 border-red-400/40 bg-red-950/20"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 1.0, duration: 0.3 }}
-                            >
-                                <motion.span 
-                                    className="flex-shrink-0 text-red-400 text-sm mt-0.5"
-                                    animate={{ 
-                                        scale: [1, 1.1, 1],
-                                        opacity: [0.8, 1, 0.8] 
-                                    }}
-                                    transition={{ 
-                                        duration: 2, 
-                                        repeat: Infinity, 
-                                        ease: "easeInOut" 
-                                    }}
-                                >
-                                    ⚠️
-                                </motion.span>
-                                <div className="flex-1">
-                                    <div className="text-red-200 font-bold text-sm mb-0.5">
-                                        2024년 이후 출시된 게임들
-                                    </div>
-                                    <div className="text-red-300/90 text-xs">
-                                        아직 학습 중이므로 <strong className="text-red-200">답변 정확도가 낮을 수 있습니다</strong>
-                                    </div>
-                                    <div className="text-red-400/80 text-xs mt-0.5 font-medium">
-                                        피드백을 통해 지속적으로 개선하고 있어요!
-                                    </div>
-                                </div>
-                            </motion.li>
-                                                                        <motion.li
-                                className="flex gap-2.5 items-start p-2 rounded-lg border border-blue-400/30 bg-blue-950/15"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 1.1, duration: 0.3 }}
-                            >
-                                <span className="flex-shrink-0 text-blue-400 text-sm mt-0.5">💫</span>
-                                <div className="flex-1">
-                                    <div className="text-blue-200 font-semibold text-sm">
-                                        함께 성장하는 AI
-                                    </div>
-                                    <div className="text-blue-300/90 text-xs">
-                                        유저분들의 소중한 피드백으로 계속 발전해요!
-                                    </div>
-                                </div>
-                            </motion.li>
+                                            <motion.li
+                                                className="flex gap-2.5 items-start p-2 rounded-lg border border-emerald-400/30 bg-emerald-950/15"
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: 0.9, duration: 0.3 }}
+                                            >
+                                                <span className="flex-shrink-0 text-emerald-400 text-sm mt-0.5">✅</span>
+                                                <div className="flex-1">
+                                                    <div className="text-emerald-200 font-semibold text-sm">
+                                                        2023년까지 출시된 게임들
+                                                    </div>
+                                                    <div className="text-emerald-300/90 text-xs">
+                                                        자신있게 정확한 답변을 드려요!
+                                                    </div>
+                                                </div>
+                                            </motion.li>
+                                            <motion.li
+                                                className="flex gap-2.5 items-start p-2 rounded-lg border-2 border-red-400/40 bg-red-950/20"
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: 1.0, duration: 0.3 }}
+                                            >
+                                                <motion.span
+                                                    className="flex-shrink-0 text-red-400 text-sm mt-0.5"
+                                                    animate={{
+                                                        scale: [1, 1.1, 1],
+                                                        opacity: [0.8, 1, 0.8]
+                                                    }}
+                                                    transition={{
+                                                        duration: 2,
+                                                        repeat: Infinity,
+                                                        ease: "easeInOut"
+                                                    }}
+                                                >
+                                                    ⚠️
+                                                </motion.span>
+                                                <div className="flex-1">
+                                                    <div className="text-red-200 font-bold text-sm mb-0.5">
+                                                        2024년 이후 출시된 게임들
+                                                    </div>
+                                                    <div className="text-red-300/90 text-xs">
+                                                        아직 학습 중이므로 <strong className="text-red-200">답변 정확도가 낮을 수 있습니다</strong>
+                                                    </div>
+                                                    <div className="text-red-400/80 text-xs mt-0.5 font-medium">
+                                                        피드백을 통해 지속적으로 개선하고 있어요!
+                                                    </div>
+                                                </div>
+                                            </motion.li>
+                                            <motion.li
+                                                className="flex gap-2.5 items-start p-2 rounded-lg border border-blue-400/30 bg-blue-950/15"
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: 1.1, duration: 0.3 }}
+                                            >
+                                                <span className="flex-shrink-0 text-blue-400 text-sm mt-0.5">💫</span>
+                                                <div className="flex-1">
+                                                    <div className="text-blue-200 font-semibold text-sm">
+                                                        함께 성장하는 AI
+                                                    </div>
+                                                    <div className="text-blue-300/90 text-xs">
+                                                        유저분들의 소중한 피드백으로 계속 발전해요!
+                                                    </div>
+                                                </div>
+                                            </motion.li>
                                         </ul>
                                     </div>
                                 </motion.div>

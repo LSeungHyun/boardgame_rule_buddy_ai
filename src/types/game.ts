@@ -143,4 +143,5 @@ export interface ChatScreenProps {
     isLoading: boolean;
     onQuestionClick?: (question: string) => void;
     headerActions?: import('react').ReactNode; // 헤더 우측에 표시할 액션 버튼들
+    showFullProgressOverlay?: boolean; // 전체 화면 프로그레스 오버레이 표시 여부 (기본값: true)
 } 

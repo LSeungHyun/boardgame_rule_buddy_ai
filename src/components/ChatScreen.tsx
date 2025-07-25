@@ -19,7 +19,7 @@ const researchStageConfig: Record<ResearchStage, { progress: number; text: strin
     completed: { progress: 100, text: '답변 완성!', icon: Sparkles },
 };
 
-export default function ChatScreen({ game, onGoBack, messages, onSendMessage, isLoading, headerActions }: ChatScreenProps) {
+export default function ChatScreen({ game, onGoBack, messages, onSendMessage, isLoading, headerActions, showFullProgressOverlay = true }: ChatScreenProps) {
     const [input, setInput] = useState('');
     const [researchStage, setResearchStage] = useState<ResearchStage>('analyzing');
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -102,12 +102,12 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
 
         const stages: ResearchStage[] = ['analyzing', 'searching', 'processing', 'summarizing', 'generating_logic', 'generating_text', 'generating_review'];
         const currentIndex = stages.indexOf(researchStage);
-        
+
         if (currentIndex < stages.length - 1) {
             const baseDelay = 800;
             const randomDelay = Math.random() * 400;
             const totalDelay = baseDelay + randomDelay;
-            
+
             const timeout = setTimeout(() => {
                 setResearchStage(stages[currentIndex + 1]);
             }, totalDelay);
@@ -127,7 +127,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
             setProgress(100);
             setProgressText('답변 완성!');
             setProgressIcon(Sparkles);
-            
+
             const timeout = setTimeout(() => {
                 setProgress(0);
                 setResearchStage('analyzing');
@@ -149,7 +149,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
 
             onSendMessage(input);
             setInput('');
-            
+
             setTimeout(() => {
                 if (shouldAutoScroll) {
                     scrollToBottom();
@@ -160,9 +160,9 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
 
     return (
         <div className="flex flex-col h-screen relative">
-            {/* 중앙 로딩 오버레이 */}
+            {/* 중앙 로딩 오버레이 - 최초 응답에만 표시 */}
             <AnimatePresence>
-                {isLoading && (
+                {isLoading && showFullProgressOverlay && (
                     <motion.div
                         className="fixed inset-0 z-50 flex items-center justify-center"
                         style={{
@@ -200,11 +200,11 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                                 <div className="flex items-center justify-center mb-4">
                                     <motion.div
                                         className="p-3 rounded-2xl bg-amber-500/20 border border-amber-400/40"
-                                        animate={{ 
+                                        animate={{
                                             scale: [1, 1.1, 1],
                                             rotate: researchStage === 'processing' ? [0, 360] : 0
                                         }}
-                                        transition={{ 
+                                        transition={{
                                             scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
                                             rotate: { duration: 2, repeat: Infinity, ease: "linear" }
                                         }}
@@ -239,19 +239,19 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                                 <div className="w-full bg-slate-800/50 rounded-full h-3 overflow-hidden border border-slate-700/50">
                                     <motion.div
                                         className={`h-3 rounded-full shadow-lg transition-all duration-800 ease-out ${isFinalizing
-                                                ? 'bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-400 animate-pulse'
-                                                : 'bg-gradient-to-r from-blue-500 to-purple-500'
+                                            ? 'bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-400 animate-pulse'
+                                            : 'bg-gradient-to-r from-blue-500 to-purple-500'
                                             }`}
-                                        style={{ 
+                                        style={{
                                             width: `${progress}%`,
                                             minWidth: progress > 0 ? '2px' : '0px'
                                         }}
                                         animate={{
-                                            background: isFinalizing 
+                                            background: isFinalizing
                                                 ? ['linear-gradient(to right, #3b82f6, #a855f7)', 'linear-gradient(to right, #a855f7, #3b82f6)']
                                                 : undefined
                                         }}
-                                        transition={{ 
+                                        transition={{
                                             background: { duration: 1, repeat: Infinity, ease: "easeInOut" }
                                         }}
                                     />
@@ -346,29 +346,86 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                                 }}
                             >
                                 <ChatMessage
-                                     message={msg}
-                                     game={game}
-                                     userQuestion={userQuestion}
-                                     messageIndex={index}
-                                     onQuestionClick={(question) => {
-                                         if (!isLoading) {
-                                             setInput(question);
-                                             setTimeout(() => {
-                                                 const form = document.querySelector('form');
-                                                 if (form) {
-                                                     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-                                                 }
-                                                 // 폼 제출 후 스크롤을 맨 아래로 이동
-                                                 setTimeout(() => {
-                                                     scrollToBottom();
-                                                 }, 200);
-                                             }, 100);
-                                         }
-                                     }}
-                                 />
+                                    message={msg}
+                                    game={game}
+                                    userQuestion={userQuestion}
+                                    messageIndex={index}
+                                    onQuestionClick={(question) => {
+                                        if (!isLoading) {
+                                            setInput(question);
+                                            setTimeout(() => {
+                                                const form = document.querySelector('form');
+                                                if (form) {
+                                                    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                                                }
+                                                // 폼 제출 후 스크롤을 맨 아래로 이동
+                                                setTimeout(() => {
+                                                    scrollToBottom();
+                                                }, 200);
+                                            }, 100);
+                                        }
+                                    }}
+                                />
                             </motion.div>
                         );
                     })}
+
+                    {/* 간소화된 프로그레스 메시지 - 최초 응답이 아닐 때만 표시 */}
+                    {isLoading && !showFullProgressOverlay && (
+                        <motion.div
+                            className="flex justify-start"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <motion.div
+                                className="max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl rounded-2xl px-4 py-3 shadow-lg border border-amber-400/20"
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1))',
+                                }}
+                            >
+                                <div className="flex items-center space-x-3">
+                                    {/* 아이콘 */}
+                                    <motion.div
+                                        className="flex-shrink-0"
+                                        animate={{
+                                            rotate: researchStage === 'processing' ? [0, 360] : 0
+                                        }}
+                                        transition={{
+                                            rotate: { duration: 2, repeat: Infinity, ease: "linear" }
+                                        }}
+                                    >
+                                        <ProgressIcon className="w-5 h-5 text-amber-400" />
+                                    </motion.div>
+
+                                    {/* 텍스트와 프로그레스 */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <p className="text-sm text-amber-200 truncate pr-2">{progressText}</p>
+                                            <span className="text-xs text-amber-300 font-medium">{progress}%</span>
+                                        </div>
+
+                                        {/* 미니 프로그레스 바 */}
+                                        <div className="w-full bg-amber-900/30 rounded-full h-1.5 overflow-hidden">
+                                            <motion.div
+                                                className="h-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500"
+                                                style={{ width: `${progress}%` }}
+                                                animate={{
+                                                    background: isFinalizing
+                                                        ? ['linear-gradient(to right, #f59e0b, #d97706)', 'linear-gradient(to right, #d97706, #f59e0b)']
+                                                        : undefined
+                                                }}
+                                                transition={{
+                                                    background: { duration: 1, repeat: Infinity, ease: "easeInOut" }
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
                 </AnimatePresence>
 
                 <div ref={messagesEndRef} />
