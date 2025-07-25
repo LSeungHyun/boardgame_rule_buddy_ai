@@ -409,21 +409,21 @@ export default function Home() {
 
   const valueCards = [
     {
-      icon: "🚀",
-      title: "즉시 시작",
-      desc: "복잡한 룰북 없이도 5분 만에 게임 시작하세요",
+      icon: "🎯",
+      title: "정확한 답변",
+      desc: "보드게임 전문 AI가 정확하고 신뢰할 수 있는 규칙 해설",
       color: "#6366f1"
     },
     {
-      icon: "💬",
-      title: "실시간 도움",
-      desc: "게임 중 '이건 뭐지?' 순간에도 바로 해결해드려요",
+      icon: "⚡",
+      title: "빠른 검색",
+      desc: "긴 룰북 찾기 대신 궁금한 점을 바로 질문하고 답변",
       color: "#06b6d4"
     },
     {
-      icon: "📚",
-      title: "완벽한 가이드",
-      desc: "핵심 룰부터 흔한 실수까지 친절하게 안내해드려요",
+      icon: "🤖",
+      title: "24시간 도움",
+      desc: "언제든지 이용 가능한 개인 보드게임 규칙 도우미",
       color: "#f43f5e"
     }
   ];
