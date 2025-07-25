@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Heart } from 'lucide-react';
+import { X, MessageCircle, HelpCircle, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface FloatingFeedbackFABProps {
@@ -27,26 +27,35 @@ export function FloatingFeedbackFAB({
     switch (pageContext) {
       case 'rulemaster':
         return {
-          gradient: 'from-pink-500/80 to-rose-600/80',
-          pulseColor: 'pink-400/40',
-          label: '문의하기'
+          gradient: 'from-pink-500/90 to-rose-500/90',
+          pulseColor: 'pink-400/50',
+          label: '어떠셨나요?',
+          icon: MessageCircle,
+          ariaLabel: '피드백 남기기 - 어떠셨나요?',
+          emoji: '🤔'
         };
       case 'game_selection':
         return {
-          gradient: 'from-emerald-500/80 to-green-600/80',
-          pulseColor: 'emerald-400/40',
-          label: '문의하기'
+          gradient: 'from-amber-500/90 to-orange-500/90',
+          pulseColor: 'amber-400/50',
+          label: '의견 남기기',
+          icon: MessageCircle,
+          ariaLabel: '피드백 보내기',
+          emoji: '💭'
         };
       default:
         return {
-          gradient: 'from-primary/80 to-primary-600/80',
-          pulseColor: 'primary/40',
-          label: '문의하기'
+          gradient: 'from-purple-500/90 to-indigo-500/90',
+          pulseColor: 'purple-400/50',
+          label: '피드백 주세요',
+          icon: MessageCircle,
+          ariaLabel: '피드백 보내기',
+          emoji: '💝'
         };
     }
   };
 
-  const { gradient, pulseColor, label } = getContextStyles();
+  const { gradient, pulseColor, label, icon: ContextIcon, ariaLabel, emoji } = getContextStyles();
 
   const handleClick = () => {
     setIsPulsing(false);
@@ -98,31 +107,33 @@ export function FloatingFeedbackFAB({
         )}
       </AnimatePresence>
 
-      {/* 통합된 FAB 버튼 (하트 + 문의하기) */}
+      {/* 매력적인 피드백 FAB 버튼 */}
       <Button
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={`
           floating-feedback-fab
-          relative px-4 py-3 rounded-full
+          relative px-5 py-3 rounded-full
           bg-gradient-to-br ${gradient}
-          hover:shadow-xl hover:shadow-primary/25
-          border border-white/20
+          hover:shadow-2xl hover:shadow-current/30
+          border-2 border-white/30
           gpu-accelerated
           transition-all duration-300 ease-out
           active:scale-95
-          flex items-center gap-2
+          flex items-center gap-3
+          min-h-[56px] touch-manipulation
+          shadow-lg
         `}
         style={{
-          backdropFilter: 'blur(20px) saturate(150%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(150%)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
         }}
-        aria-label="문의하기"
+        aria-label={ariaLabel}
       >
-        {/* 아이콘과 텍스트 */}
+        {/* 이모지, 아이콘과 텍스트 */}
         <motion.div
-          className="flex items-center gap-2"
+          className="flex items-center gap-3"
           animate={{
             rotate: isModalOpen ? 180 : 0,
             scale: isHovered ? 1.05 : 1
@@ -130,14 +141,56 @@ export function FloatingFeedbackFAB({
           transition={{ duration: 0.3, ease: "easeInOut" }}
         >
           {isModalOpen ? (
-            <X className="w-5 h-5 text-white" />
+            <motion.div
+              initial={{ rotate: 0 }}
+              animate={{ rotate: 180 }}
+              transition={{ duration: 0.3 }}
+            >
+              <X className="w-6 h-6 text-white" />
+            </motion.div>
           ) : (
-            <Heart className="w-5 h-5 text-white" />
+            <>
+              {/* 이모지 */}
+              <motion.span
+                className="text-2xl"
+                animate={{ 
+                  scale: isPulsing ? [1, 1.2, 1] : 1,
+                  rotate: isHovered ? [0, -10, 10, 0] : 0
+                }}
+                transition={{ 
+                  scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+                  rotate: { duration: 0.8, ease: "easeInOut" }
+                }}
+              >
+                {emoji}
+              </motion.span>
+              {/* 아이콘 */}
+              <motion.div
+                animate={{ 
+                  scale: isHovered ? [1, 1.1, 1] : 1,
+                  rotate: isHovered ? [0, -5, 5, 0] : 0
+                }}
+                transition={{ 
+                  scale: { duration: 0.4, ease: "easeInOut" },
+                  rotate: { duration: 0.6, ease: "easeInOut" }
+                }}
+              >
+                <ContextIcon className="w-5 h-5 text-white" />
+              </motion.div>
+            </>
           )}
           {!isModalOpen && (
-            <span className="text-sm font-medium text-white whitespace-nowrap">
-              {label}
-            </span>
+            <motion.div
+              className="flex flex-col items-start"
+              animate={{ 
+                opacity: isHovered ? 1 : 0.95,
+                x: isHovered ? 3 : 0
+              }}
+              transition={{ duration: 0.2 }}
+            >
+              <span className="text-xs text-white/80 leading-tight">터치로 간단히</span>
+              <span className="text-sm font-semibold text-white leading-tight">{label}</span>
+            </motion.div>
           )}
         </motion.div>
 

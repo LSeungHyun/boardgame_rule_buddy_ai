@@ -537,23 +537,70 @@ function RuleMasterContent() {
                 lastAnswerLength: chatState.messages[chatState.messages.length - 1]?.content?.length,
                 sessionDuration: Date.now() - parseInt(chatState.sessionId.split('_')[1])
             })}
-            className="p-3 rounded-2xl glass-card border border-amber-400/20 hover:border-amber-400/40 transition-all duration-300 group min-w-[48px] min-h-[48px] flex items-center justify-center relative overflow-hidden shadow-lg hover:shadow-xl"
-            whileHover={{ scale: 1.05 }}
+            className="px-4 py-2 rounded-2xl glass-card border-2 border-pink-400/30 hover:border-pink-400/50 transition-all duration-300 group min-h-[48px] flex items-center gap-2.5 relative overflow-hidden shadow-lg hover:shadow-xl touch-manipulation bg-gradient-to-r from-pink-500/20 to-rose-500/20"
+            whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            aria-label="피드백 보내기"
+            aria-label="피드백 남기기 - 어떠셨나요?"
         >
             <motion.div
-                className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-500/10 to-amber-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                className="absolute inset-0 rounded-2xl bg-gradient-to-r from-pink-500/15 to-rose-500/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             />
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-amber-200 group-hover:text-amber-100 transition-colors duration-300 relative z-10"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            
+            {/* 이모지 */}
+            <motion.span
+                className="text-xl relative z-10"
+                animate={{ 
+                    scale: [1, 1.2, 1],
+                    rotate: [0, -10, 10, 0]
+                }}
+                transition={{ 
+                    scale: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+                    rotate: { duration: 1, ease: "easeInOut", repeat: Infinity, repeatDelay: 2 }
+                }}
             >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
+                🤔
+            </motion.span>
+            
+            {/* 텍스트 */}
+            <motion.div
+                className="flex flex-col items-start relative z-10"
+                animate={{ 
+                    x: [0, 2, 0]
+                }}
+                transition={{ 
+                    duration: 2, 
+                    repeat: Infinity, 
+                    ease: "easeInOut",
+                    repeatDelay: 1
+                }}
+            >
+                <span className="text-xs text-pink-200/90 font-medium leading-tight">간단히</span>
+                <span className="text-sm text-pink-100 font-semibold leading-tight">어떠셨나요?</span>
+            </motion.div>
+            
+            {/* 아이콘 */}
+            <motion.div
+                className="relative z-10"
+                animate={{ 
+                    rotate: [0, -5, 5, 0]
+                }}
+                transition={{ 
+                    duration: 0.8, 
+                    ease: "easeInOut", 
+                    repeat: Infinity, 
+                    repeatDelay: 3 
+                }}
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-pink-200 group-hover:text-pink-100 transition-colors duration-300"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+            </motion.div>
         </motion.button>
     );
 
