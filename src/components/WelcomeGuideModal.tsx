@@ -261,7 +261,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                 <Dialog open={isOpen} onOpenChange={() => onClose(false)}>
                     <DialogContent className="sm:max-w-2xl w-[95vw] max-h-[90vh] overflow-hidden border-0 p-0 bg-transparent shadow-none">
                         <motion.div
-                            className="relative rounded-3xl p-4 md:p-6 overflow-hidden"
+                            className="relative rounded-3xl p-3 md:p-4"
                             style={{
                                 background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
                                 border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -315,9 +315,9 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.1, duration: 0.4 }}
                                 >
-                                    <DialogTitle className="text-center mb-4">
+                                    <DialogTitle className="text-center mb-3">
                                         <motion.span
-                                            className="block text-2xl md:text-3xl font-bold gradient-text-premium drop-shadow-2xl"
+                                            className="block text-xl md:text-2xl font-bold gradient-text-premium drop-shadow-2xl"
                                             initial={{ opacity: 0, scale: 0.9 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{ delay: 0.15, duration: 0.4 }}
@@ -325,7 +325,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                             RuleBuddy에 오신 것을 환영합니다!
                                         </motion.span>
                                         <motion.div
-                                            className="inline-flex items-center gap-2 mt-2 px-4 py-2 rounded-full"
+                                            className="inline-flex items-center gap-2 mt-1.5 px-3 py-1.5 rounded-full"
                                             style={{
                                                 background: 'rgba(99, 102, 241, 0.1)',
                                                 border: '1px solid rgba(99, 102, 241, 0.2)',
@@ -334,11 +334,11 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{ delay: 0.25, duration: 0.4 }}
                                         >
-                                            <span className="text-sm font-medium text-primary-300">Beta</span>
+                                            <span className="text-xs font-medium text-primary-300">Beta</span>
                                             <motion.span
                                                 animate={{ rotate: [0, 360] }}
                                                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                                className="text-lg"
+                                                className="text-sm"
                                             >
                                                 ⚡
                                             </motion.span>
@@ -351,7 +351,7 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.3, duration: 0.4 }}
                                         >
-                                            <p className="text-base md:text-lg text-slate-300/90 leading-relaxed">
+                                            <p className="text-sm md:text-base text-slate-300/90 leading-relaxed">
                                                 보드게임 규칙이 궁금할 때, AI에게 바로 물어보세요.
                                             </p>
                                         </motion.div>
@@ -360,24 +360,24 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                             </DialogHeader>
 
                             <motion.div
-                                className="space-y-4 py-4 relative z-10"
+                                className="space-y-3 py-3 relative z-10"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.4, duration: 0.4 }}
                             >
                                 {/* Usage Guide */}
                                 <motion.div
-                                    className="space-y-4"
+                                    className="space-y-3"
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.6, duration: 0.4 }}
                                 >
-                                    <div className="rounded-2xl p-4" style={{
+                                    <div className="rounded-xl p-3" style={{
                                         background: 'rgba(255, 255, 255, 0.05)',
                                         border: '1px solid rgba(255, 255, 255, 0.1)',
                                     }}>
-                                        <h3 className="text-lg font-bold flex items-center gap-2 mb-3 text-slate-200">
-                                            <span className="text-xl">🚀</span>
+                                        <h3 className="text-base font-bold flex items-center gap-2 mb-2 text-slate-200">
+                                            <span className="text-lg">🚀</span>
                                             사용법 안내
                                         </h3>
                                         <ol className="space-y-2 text-sm text-slate-300/90">
@@ -410,54 +410,85 @@ export default function WelcomeGuideModal({ isOpen, onClose }: WelcomeGuideModal
                                         </ol>
                                     </div>
 
-                                    <div className="rounded-2xl p-4" style={{
+                                    <div className="rounded-xl p-3" style={{
                                         background: 'rgba(255, 255, 255, 0.05)',
                                         border: '1px solid rgba(255, 255, 255, 0.1)',
                                     }}>
-                                        <h3 className="text-lg font-bold flex items-center gap-2 mb-3 text-slate-200">
-                                            <span className="text-xl">🧠</span>
+                                        <h3 className="text-base font-bold flex items-center gap-2 mb-2 text-slate-200">
+                                            <span className="text-lg">🧠</span>
                                             AI 지식 수준
                                         </h3>
                                         <ul className="space-y-2 text-sm text-slate-300/90">
-                                            <motion.li
-                                                className="flex gap-2 items-start"
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 0.9, duration: 0.3 }}
-                                            >
-                                                <span className="flex-shrink-0 w-2 h-2 rounded-full bg-emerald-400 mt-1.5"></span>
-                                                <span>
-                                                    <strong className="text-slate-200">2023년까지 게임</strong> 자신있게 답변
-                                                </span>
-                                            </motion.li>
-                                            <motion.li
-                                                className="flex gap-2 items-start"
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 1.0, duration: 0.3 }}
-                                            >
-                                                <span className="flex-shrink-0 w-2 h-2 rounded-full bg-amber-400 mt-1.5"></span>
-                                                <span>
-                                                    <strong className="text-slate-200">2024년 이후 게임</strong> 학습 중 (정확도 낮음)
-                                                </span>
-                                            </motion.li>
-                                            <motion.li
-                                                className="flex gap-2 items-start"
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 1.1, duration: 0.3 }}
-                                            >
-                                                <span className="flex-shrink-0 w-2 h-2 rounded-full bg-primary-400 mt-1.5"></span>
-                                                <span>
-                                                    유저분들의 소중한 피드백으로 발전합니다!
-                                                </span>
-                                            </motion.li>
+                                                                        <motion.li
+                                className="flex gap-2.5 items-start p-2 rounded-lg border border-emerald-400/30 bg-emerald-950/15"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.9, duration: 0.3 }}
+                            >
+                                <span className="flex-shrink-0 text-emerald-400 text-sm mt-0.5">✅</span>
+                                <div className="flex-1">
+                                    <div className="text-emerald-200 font-semibold text-sm">
+                                        2023년까지 출시된 게임들
+                                    </div>
+                                    <div className="text-emerald-300/90 text-xs">
+                                        자신있게 정확한 답변을 드려요!
+                                    </div>
+                                </div>
+                            </motion.li>
+                                                                        <motion.li
+                                className="flex gap-2.5 items-start p-2 rounded-lg border-2 border-red-400/40 bg-red-950/20"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 1.0, duration: 0.3 }}
+                            >
+                                <motion.span 
+                                    className="flex-shrink-0 text-red-400 text-sm mt-0.5"
+                                    animate={{ 
+                                        scale: [1, 1.1, 1],
+                                        opacity: [0.8, 1, 0.8] 
+                                    }}
+                                    transition={{ 
+                                        duration: 2, 
+                                        repeat: Infinity, 
+                                        ease: "easeInOut" 
+                                    }}
+                                >
+                                    ⚠️
+                                </motion.span>
+                                <div className="flex-1">
+                                    <div className="text-red-200 font-bold text-sm mb-0.5">
+                                        2024년 이후 출시된 게임들
+                                    </div>
+                                    <div className="text-red-300/90 text-xs">
+                                        아직 학습 중이므로 <strong className="text-red-200">답변 정확도가 낮을 수 있습니다</strong>
+                                    </div>
+                                    <div className="text-red-400/80 text-xs mt-0.5 font-medium">
+                                        피드백을 통해 지속적으로 개선하고 있어요!
+                                    </div>
+                                </div>
+                            </motion.li>
+                                                                        <motion.li
+                                className="flex gap-2.5 items-start p-2 rounded-lg border border-blue-400/30 bg-blue-950/15"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 1.1, duration: 0.3 }}
+                            >
+                                <span className="flex-shrink-0 text-blue-400 text-sm mt-0.5">💫</span>
+                                <div className="flex-1">
+                                    <div className="text-blue-200 font-semibold text-sm">
+                                        함께 성장하는 AI
+                                    </div>
+                                    <div className="text-blue-300/90 text-xs">
+                                        유저분들의 소중한 피드백으로 계속 발전해요!
+                                    </div>
+                                </div>
+                            </motion.li>
                                         </ul>
                                     </div>
                                 </motion.div>
                             </motion.div>
 
-                            <DialogFooter className="flex flex-col sm:flex-row gap-3 sm:gap-2 relative z-10 mt-3 sm:justify-between">
+                            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-2 relative z-10 mt-2 sm:justify-between">
                                 <motion.div
                                     className="flex items-center space-x-3"
                                     initial={{ opacity: 0, y: 20 }}
