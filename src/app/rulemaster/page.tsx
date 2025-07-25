@@ -160,6 +160,7 @@ function RuleMasterContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const gameParam = searchParams.get('game');
+    const skipCorrection = searchParams.get('skipCorrection') === 'true';
 
 
 
@@ -179,6 +180,9 @@ function RuleMasterContent() {
 
     // 최초 로딩 추적 상태 (게임 설정 후 첫 번째 AI 응답인지 확인)
     const [isFirstResponse, setIsFirstResponse] = useState(true);
+
+    // 교정 체크 스킵 상태 (원래 입력대로 진행 버튼을 눌렀을 때)
+    const [shouldSkipCorrection, setShouldSkipCorrection] = useState(skipCorrection);
 
     // MVP 피드백 시스템 (기존)
     const { showFeedback, FeedbackModalComponent } = useFeedbackModal();
@@ -241,8 +245,8 @@ function RuleMasterContent() {
             내용: content.slice(0, 50)
         });
 
-        // 🔧 게임명 입력 시 오타 교정 체크
-        if (chatState.conversationState === 'awaiting_game_name') {
+        // 🔧 게임명 입력 시 오타 교정 체크 (skipCorrection 플래그가 있으면 스킵)
+        if (chatState.conversationState === 'awaiting_game_name' && !shouldSkipCorrection) {
             const correctionResult = await checkGameCorrection(content.trim());
 
             if (correctionResult.needsCorrection) {
@@ -519,9 +523,20 @@ function RuleMasterContent() {
     const handleProceedWithOriginal = useCallback(() => {
         setShowCorrectionModal(false);
         clearCorrection();
-        // 원래 입력으로 진행 (이미 userMessage가 추가되어 있으므로 처리만 계속)
-        // 원래 게임명으로 진행하는 로직이 필요하다면 여기에 추가
-    }, [clearCorrection]);
+
+        // 교정 체크 스킵 상태를 true로 설정
+        setShouldSkipCorrection(true);
+
+        // 원래 입력한 게임명을 가져와서 교정 체크 없이 바로 진행
+        const lastUserMessage = chatState.messages[chatState.messages.length - 1];
+        if (lastUserMessage && lastUserMessage.role === 'user') {
+            const gameNameToProcess = lastUserMessage.content.trim();
+            console.log('🔄 [원래 입력대로 진행]:', gameNameToProcess);
+
+            // 교정 체크를 우회하고 바로 메시지 처리
+            handleSendMessage(gameNameToProcess);
+        }
+    }, [clearCorrection, chatState.messages, handleSendMessage]);
 
     const handleCancelCorrection = useCallback(() => {
         setShowCorrectionModal(false);

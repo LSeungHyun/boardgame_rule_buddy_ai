@@ -267,14 +267,14 @@ const PremiumInput = ({ value, onChange, onKeyPress, onSubmit, isLoading }: {
         animate={{ opacity: 1 }}
         transition={{ delay: 2.2, duration: 0.8 }}
       >
-                  <p className="text-slate-300/80 text-sm md:text-base">
-            보드게임 이름을 입력하고{' '}
-            <span className="inline-flex items-center gap-1">
-              <span className="text-primary-300">전송 버튼</span>
-              <Send className="w-4 h-4 text-primary-300" />
-            </span>
-            을 클릭하세요
-          </p>
+        <p className="text-slate-300/80 text-sm md:text-base">
+          보드게임 이름을 입력하고{' '}
+          <span className="inline-flex items-center gap-1">
+            <span className="text-primary-300">전송 버튼</span>
+            <Send className="w-4 h-4 text-primary-300" />
+          </span>
+          을 클릭하세요
+        </p>
       </motion.div>
     </motion.div>
   );
@@ -397,7 +397,7 @@ export default function Home() {
   const router = useRouter();
   const [gameName, setGameName] = useState('');
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState<boolean>(false);
-  
+
   // 오타 교정 기능 추가
   const { isChecking, correctionResult, checkGameCorrection, clearCorrection } = useGameCorrection();
   const [showCorrectionModal, setShowCorrectionModal] = useState(false);
@@ -476,7 +476,7 @@ export default function Home() {
     try {
       // 1. 오타 교정 체크
       const result = await checkGameCorrection(gameName.trim());
-      
+
       // 2. 교정이 필요없으면 바로 진행
       if (!result.needsCorrection) {
         router.push(`/rulemaster?game=${encodeURIComponent(gameName.trim())}`);
@@ -515,7 +515,8 @@ export default function Home() {
   const handleProceedWithOriginal = () => {
     setShowCorrectionModal(false);
     clearCorrection();
-    router.push(`/rulemaster?game=${encodeURIComponent(gameName.trim())}`);
+    // skipCorrection 플래그를 추가하여 rulemaster에서 교정 체크를 스킵하도록 함
+    router.push(`/rulemaster?game=${encodeURIComponent(gameName.trim())}&skipCorrection=true`);
   };
 
   const handleCancelCorrection = () => {
@@ -588,13 +589,13 @@ export default function Home() {
 
             {/* Enhanced Input Section */}
             <div className="mb-12">
-                          <PremiumInput
-              value={gameName}
-              onChange={(e) => setGameName(e.target.value)}
-              onKeyPress={handleKeyPress}
-              onSubmit={handleSubmit}
-              isLoading={isChecking}
-            />
+              <PremiumInput
+                value={gameName}
+                onChange={(e) => setGameName(e.target.value)}
+                onKeyPress={handleKeyPress}
+                onSubmit={handleSubmit}
+                isLoading={isChecking}
+              />
             </div>
 
           </motion.div>

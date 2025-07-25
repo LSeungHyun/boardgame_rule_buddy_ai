@@ -309,7 +309,7 @@ export default function ChatScreen({ game, onGoBack, messages, onSendMessage, is
                         transition={{ delay: 0.2, duration: 0.6 }}
                     >
                         <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-amber-100 drop-shadow-sm">
-                            📖 {game?.title || '룰마스터 AI'}
+                            📖 {game?.title || 'Rule Buddy AI'}
                         </h2>
                     </motion.div>
 

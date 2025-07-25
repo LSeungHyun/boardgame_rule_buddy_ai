@@ -135,7 +135,7 @@ export default function ChatMessage({ message, game, userQuestion, messageIndex,
                 {!isUser && (
                     <div className="flex items-center gap-2 mb-2 pb-2 border-b border-amber-400/20">
                         <span className="text-lg">📖</span>
-                        <span className="text-xs font-medium text-amber-300">룰 마스터</span>
+                        <span className="text-xs font-medium text-amber-300">Rule Buddy</span>
                     </div>
                 )}
 
