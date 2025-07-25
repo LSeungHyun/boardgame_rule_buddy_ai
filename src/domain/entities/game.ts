@@ -27,6 +27,7 @@ export interface GameEntity {
     max: number;
   };
   readonly age: number;
+  readonly publishedYear?: number; // BGG에서 가져온 출시년도
   readonly isActive: boolean;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -99,6 +100,44 @@ export class GameBusinessRules {
   // 게임이 활성 상태인지 확인
   static isActive(game: GameEntity): boolean {
     return game.isActive;
+  }
+
+  /**
+   * 최신 게임 여부 확인 (2024, 2025년 게임)
+   */
+  static isRecentGame(game: GameEntity): boolean {
+    if (!game.publishedYear) return false;
+    
+    const currentYear = new Date().getFullYear();
+    const recentYears = [2024, 2025];
+    
+    return recentYears.includes(game.publishedYear);
+  }
+
+  /**
+   * 게임 년도 기반 경고 메시지 생성
+   */
+  static getYearWarningMessage(game: GameEntity): string | null {
+    if (!this.isRecentGame(game)) return null;
+    
+    const year = game.publishedYear;
+    
+    return `⚠️ **최신 게임 안내**\n\n` +
+           `**${game.title}**은(는) ${year}년에 출시된 최신 게임입니다.\n` +
+           `최신 게임의 경우 룰 정보가 아직 충분히 수집되지 않아 ` +
+           `**답변의 정확도가 낮을 수 있습니다**.\n\n` +
+           `더 정확한 정보가 필요하시다면:\n` +
+           `• 📖 공식 룰북을 확인해 주세요\n` +
+           `• 🌐 BGG(BoardGameGeek) 커뮤니티를 참고해 주세요\n` +
+           `• 👥 다른 플레이어들과 상의해 보세요`;
+  }
+
+  /**
+   * 게임 년도 유효성 검사
+   */
+  static isValidPublishedYear(year: number): boolean {
+    const currentYear = new Date().getFullYear();
+    return year >= 1900 && year <= currentYear + 2; // 미래 2년까지 허용 (사전주문 등)
   }
 
   // 검색 조건에 맞는지 종합 확인

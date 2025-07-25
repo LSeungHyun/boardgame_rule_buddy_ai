@@ -11,6 +11,7 @@ import { Send, Bot, User, Lightbulb, BookOpen, ThumbsUp, ThumbsDown, HelpCircle,
 import { ruleMasterService } from '@/lib/rule-master-service';
 import { gameTermsService } from '@/lib/game-terms-service';
 import { RuleMasterResponse, TermSearchResult } from '@/types/game-terms';
+import { YearWarningDisplay, useGameYearInfo } from '@/components/ui/year-warning-display';
 
 interface Message {
     id: string;
@@ -53,6 +54,11 @@ export default function RuleMasterChat() {
         needMoreCount: 0,
         averageConfidence: 0
     });
+    const [showYearWarning, setShowYearWarning] = useState(false);
+    
+    // 선택된 게임의 년도 정보 조회
+    const selectedGameName = availableGames.find(g => g.id === selectedGame)?.name || '';
+    const yearInfo = useGameYearInfo(selectedGameName);
 
     useEffect(() => {
         // 초기화
@@ -60,6 +66,15 @@ export default function RuleMasterChat() {
         // 피드백 통계 로드
         loadFeedbackStats();
     }, []);
+
+    // 년도 정보가 로드되면 최신 게임인 경우 경고 표시
+    useEffect(() => {
+        if (yearInfo.isRecentGame && !yearInfo.isLoading) {
+            setShowYearWarning(true);
+        } else {
+            setShowYearWarning(false);
+        }
+    }, [yearInfo.isRecentGame, yearInfo.isLoading]);
 
     const initializeChat = async () => {
         // 사용 가능한 게임 목록 로딩
@@ -299,6 +314,16 @@ export default function RuleMasterChat() {
                     </div>
                 </CardHeader>
             </Card>
+
+            {/* 년도 경고 표시 */}
+            {yearInfo.publishedYear && (
+                <YearWarningDisplay
+                    gameName={selectedGameName}
+                    publishedYear={yearInfo.publishedYear}
+                    isVisible={showYearWarning}
+                    onDismiss={() => setShowYearWarning(false)}
+                />
+            )}
 
             {/* 메시지 영역 */}
             <div className="flex-1 overflow-y-auto space-y-4 min-h-96">

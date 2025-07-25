@@ -31,6 +31,7 @@ import { FloatingFeedbackFAB } from '@/components/ui/floating-feedback-fab';
 import { useUnifiedFeedback } from '@/components/feedback/UnifiedFeedbackModal';
 import { API_ENDPOINTS, CONFIDENCE_CHECK } from '@/lib/constants';
 import { findGameByExactName } from '@/features/games/api';
+import { YearWarningDisplay, useGameYearInfo } from '@/components/ui/year-warning-display';
 
 // 🎨 Enhanced Floating Particles Component (루트 페이지와 동일)
 const FloatingParticles = () => {
@@ -198,6 +199,19 @@ function RuleMasterContent() {
     const { isChecking, correctionResult, checkGameCorrection, clearCorrection } = useGameCorrection();
     const [showCorrectionModal, setShowCorrectionModal] = useState(false);
 
+    // BGG API 년도 경고 시스템
+    const [showYearWarning, setShowYearWarning] = useState(false);
+    const currentGameName = chatState.gameContext?.gameName || '';
+    
+    // 게임 컨텍스트가 확정된 후에만 BGG API 호출
+    const shouldCallBggApi = Boolean(
+        chatState.gameContext && 
+        chatState.gameContext.gameName && 
+        chatState.conversationState === 'in_conversation'
+    );
+    
+    const yearInfo = useGameYearInfo(shouldCallBggApi ? currentGameName : '');
+
     // Analytics 훅
     const questionTracking = useQuestionTracking();
     const engagementTracking = useEngagementTracking();
@@ -237,6 +251,29 @@ function RuleMasterContent() {
             engagementTracking.trackSessionStart(chatState.sessionId);
         }
     }, [gameParam]);
+
+    // 년도 정보가 로드되면 최신 게임인 경우 경고 표시
+    useEffect(() => {
+        if (yearInfo.isRecentGame && !yearInfo.isLoading && currentGameName && yearInfo.publishedYear) {
+            console.log('🚨 [BGG API] 최신 게임 감지:', {
+                게임명: currentGameName,
+                출시년도: yearInfo.publishedYear,
+                경고표시: true,
+                소스: yearInfo.source
+            });
+            setShowYearWarning(true);
+        } else {
+            console.log('🔍 [BGG API] 경고 조건 미충족:', {
+                게임명: currentGameName,
+                최신게임: yearInfo.isRecentGame,
+                로딩중: yearInfo.isLoading,
+                출시년도: yearInfo.publishedYear,
+                소스: yearInfo.source,
+                에러: yearInfo.error
+            });
+            setShowYearWarning(false);
+        }
+    }, [yearInfo.isRecentGame, yearInfo.isLoading, yearInfo.publishedYear, yearInfo.source, yearInfo.error, currentGameName]);
 
     // 통합된 메시지 핸들러
     const handleSendMessage = useCallback(async (content: string) => {
@@ -642,6 +679,33 @@ function RuleMasterContent() {
                     transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                 >
                     <ChatScreenSuspense>
+                        {/* BGG API 년도 경고 */}
+                        {shouldCallBggApi && (
+                            <div className="max-w-4xl mx-auto p-4">
+                                {yearInfo.isLoading ? (
+                                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <div className="flex items-center gap-2 text-blue-800">
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                            <span className="text-sm">게임 출시년도 확인 중...</span>
+                                        </div>
+                                    </div>
+                                ) : yearInfo.publishedYear ? (
+                                    <YearWarningDisplay
+                                        gameName={currentGameName}
+                                        publishedYear={yearInfo.publishedYear}
+                                        isVisible={showYearWarning}
+                                        onDismiss={() => setShowYearWarning(false)}
+                                    />
+                                ) : yearInfo.error && process.env.NODE_ENV === 'development' ? (
+                                    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                        <div className="text-yellow-800 text-sm">
+                                            <strong>BGG API 조회 실패:</strong> {yearInfo.error}
+                                        </div>
+                                    </div>
+                                ) : null}
+                            </div>
+                        )}
+
                         <ChatScreen
                             game={game}
                             onGoBack={handleGoBack}
