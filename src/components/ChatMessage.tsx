@@ -81,7 +81,7 @@ export default function ChatMessage({ message, game, userQuestion, messageIndex,
 
     // 환경 메시지는 피드백 제외 - 진짜 간단한 환영 메시지만 해당
     const isWelcomeMessage = message.role === 'assistant' &&
-        message.content.includes('무엇이든 물어보세요') && 
+        message.content.includes('무엇이든 물어보세요') &&
         !message.content.includes('룰 마스터입니다') &&
         !message.content.includes('Universal Rule Master (Beta)');
 
@@ -95,7 +95,7 @@ export default function ChatMessage({ message, game, userQuestion, messageIndex,
             message.content.includes('베타 서비스 안내') &&
             (message.content.includes('도움을 드릴 수 있어서 기쁩니다') || message.content.includes('도움을 드리겠습니다'))) ||
         // 게임명이 포함된 첫 번째 답변 (더 포괄적인 조건)
-        (messageIndex === 1 && game && game.title && 
+        (messageIndex === 0 && game && game.title &&
             (message.content.includes(game.title) || message.content.includes('베타 서비스')))
     );
 
@@ -200,15 +200,15 @@ export default function ChatMessage({ message, game, userQuestion, messageIndex,
                 )}
 
                 {/* 피드백 버튼 (실질적인 답변에만, 첫 번째와 두 번째 AI 답변 제외) */}
-                {message.role === 'assistant' && !isWelcomeMessage && 
-                 messageIndex !== undefined && messageIndex > 3 && (
-                    <FeedbackButtons
-                        messageId={messageId}
-                        gameId={game?.id || 'unknown-game'}
-                        question={userQuestion || '질문 정보 없음'}
-                        answer={message.content}
-                    />
-                )}
+                {message.role === 'assistant' && !isWelcomeMessage &&
+                    messageIndex !== undefined && messageIndex > 3 && (
+                        <FeedbackButtons
+                            messageId={messageId}
+                            gameId={game?.id || 'unknown-game'}
+                            question={userQuestion || '질문 정보 없음'}
+                            answer={message.content}
+                        />
+                    )}
             </div>
 
             {/* 환영 메시지와 첫 번째 게임 답변 아래 퀵 액션 버튼들 */}
