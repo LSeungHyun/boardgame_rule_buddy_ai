@@ -32,6 +32,8 @@ import { useUnifiedFeedback } from '@/components/feedback/UnifiedFeedbackModal';
 import { API_ENDPOINTS, CONFIDENCE_CHECK } from '@/lib/constants';
 import { findGameByExactName } from '@/features/games/api';
 import { YearWarningDisplay, useGameYearInfo } from '@/components/ui/year-warning-display';
+import { InitializeRuleMasterUseCase, RuleMasterInitResult, InitializationStage } from '@/usecases/initialize-rulemaster';
+import { FloatingQuickActionsFAB } from '@/components/ui/floating-quick-actions-fab';
 
 // 🎨 Enhanced Floating Particles Component (루트 페이지와 동일)
 const FloatingParticles = () => {
@@ -154,7 +156,7 @@ const WELCOME_MESSAGE = `안녕하세요! 🎲 저는 RuleBuddy(Beta)입니다.�
 
 예: "카탄", "스플렌더", "윙스팬", "아그리콜라" 등
 
-💡 **Tip**: 365개의 인기 게임은 전문가 수준으로, 그 외 게임도 최선을 다해 도와드립니다!`;
+💡 **Tip**: 다양한 보드게임에 대해 최선을 다해 도와드립니다!`;
 
 // Suspense로 감싸져야 하는 부분을 별도 컴포넌트로 분리
 function RuleMasterContent() {
@@ -184,6 +186,11 @@ function RuleMasterContent() {
 
     // 교정 체크 스킵 상태 (원래 입력대로 진행 버튼을 눌렀을 때)
     const [shouldSkipCorrection, setShouldSkipCorrection] = useState(skipCorrection);
+
+    // 🚀 새로운 초기화 상태 관리
+    const [isInitializing, setIsInitializing] = useState(false);
+    const [initStage, setInitStage] = useState<InitializationStage>();
+    const [initResult, setInitResult] = useState<RuleMasterInitResult | null>(null);
 
     // MVP 피드백 시스템 (기존)
     const { showFeedback, FeedbackModalComponent } = useFeedbackModal();
@@ -222,33 +229,33 @@ function RuleMasterContent() {
     // 게임 파라미터 처리 여부를 추적하는 ref
     const gameParamProcessed = useRef(false);
 
-    // 컴포넌트 마운트 시 환영 메시지 표시 및 게임 파라미터 처리
+    // 🚀 새로운 초기화 플로우 - 게임 파라미터와 함께 진입
     useEffect(() => {
-        const welcomeMessage: ChatMessage = {
-            role: 'assistant',
-            content: WELCOME_MESSAGE
-        };
-
-        setChatState(prev => ({
-            ...prev,
-            messages: [welcomeMessage]
-        }));
-
         // 새로운 세션 시작 시 최초 응답 상태 초기화
         setIsFirstResponse(true);
-
-        // 게임 파라미터가 있고 아직 처리되지 않았으면 자동으로 게임명을 입력
-        if (gameParam && !gameParamProcessed.current) {
-            gameParamProcessed.current = true;
-            // 약간의 지연 후 게임명 자동 입력
-            setTimeout(() => {
-                handleSendMessage(gameParam);
-            }, 500);
-        }
 
         // 세션 시작 추적
         if (engagementTracking?.trackSessionStart) {
             engagementTracking.trackSessionStart(chatState.sessionId);
+        }
+
+        // 게임 파라미터가 있고 아직 처리되지 않았으면 새로운 초기화 플로우 시작
+        if (gameParam && !gameParamProcessed.current) {
+            gameParamProcessed.current = true;
+            
+            // 즉시 초기화 플로우 시작
+            initializeRuleMaster(gameParam);
+        } else {
+            // 게임 파라미터가 없으면 기본 환영 메시지 표시
+            const defaultWelcomeMessage: ChatMessage = {
+                role: 'assistant',
+                content: WELCOME_MESSAGE
+            };
+
+            setChatState(prev => ({
+                ...prev,
+                messages: [defaultWelcomeMessage]
+            }));
         }
     }, [gameParam]);
 
@@ -274,6 +281,91 @@ function RuleMasterContent() {
             setShowYearWarning(false);
         }
     }, [yearInfo.isRecentGame, yearInfo.isLoading, yearInfo.publishedYear, yearInfo.source, yearInfo.error, currentGameName]);
+
+    // 🚀 새로운 룰마스터 초기화 함수
+    const initializeRuleMaster = useCallback(async (gameName: string) => {
+        try {
+            console.log('🚀 [새로운 초기화] 시작:', gameName);
+            
+            // 로딩 시작
+            setIsInitializing(true);
+            setIsLoading(true);
+
+            // InitializeRuleMasterUseCase 실행
+            const result = await InitializeRuleMasterUseCase.execute(
+                gameName,
+                (stage) => {
+                    console.log('📊 [초기화 단계]:', stage);
+                    setInitStage(stage);
+                }
+            );
+
+            console.log('✅ [초기화 완료]:', result);
+            setInitResult(result);
+
+            // 조건부 환영 메시지 표시
+            const welcomeMessage: ChatMessage = {
+                role: 'assistant',
+                content: result.welcomeMessage.content
+            };
+
+            setChatState(prev => ({
+                ...prev,
+                messages: [welcomeMessage]
+            }));
+
+            // 게임 컨텍스트 설정 (BGG 정보가 있는 경우)
+            if (result.gameInfo) {
+                const gameContext = {
+                    gameName: result.gameInfo.name,
+                    gameId: undefined, // BGG ID는 별도 처리
+                    setAt: new Date(),
+                    turnNumber: 1,
+                    confidenceResult: {
+                        confidenceScore: result.gameInfo.isRecentGame ? 0.6 : 0.9,
+                        serviceMode: result.gameInfo.isRecentGame ? 'beta' as const : 'expert' as const
+                    },
+                    isFromDatabase: result.gameInfo.source === 'database'
+                };
+
+                setChatState(prev => ({
+                    ...prev,
+                    conversationState: 'in_conversation',
+                    gameContext,
+                    serviceMode: gameContext.confidenceResult.serviceMode
+                }));
+            }
+
+            // 최초 응답 완료
+            setIsFirstResponse(false);
+
+        } catch (error) {
+            console.error('❌ [초기화 실패]:', error);
+            
+            // 폴백 환영메시지
+            const fallbackMessage: ChatMessage = {
+                role: 'assistant',
+                content: `안녕하세요! 🎲 저는 RuleBuddy(Beta)입니다. 🤖
+
+**"${gameName}"**에 대해 도와드리겠습니다!
+
+⚠️ 초기화 중 일부 문제가 발생했지만, 최선을 다해 도움을 드리겠습니다!
+
+궁금한 것이 있으시면 자유롭게 질문해 주세요. 🎯`
+            };
+
+            setChatState(prev => ({
+                ...prev,
+                messages: [fallbackMessage]
+            }));
+        } finally {
+            // 로딩 완료
+            setTimeout(() => {
+                setIsInitializing(false);
+                setIsLoading(false);
+            }, 500); // 부드러운 전환을 위한 지연
+        }
+    }, []);
 
     // 통합된 메시지 핸들러
     const handleSendMessage = useCallback(async (content: string) => {
@@ -679,30 +771,20 @@ function RuleMasterContent() {
                     transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                 >
                     <ChatScreenSuspense>
-                        {/* BGG API 년도 경고 */}
-                        {shouldCallBggApi && (
-                            <div className="max-w-4xl mx-auto p-4">
-                                {yearInfo.isLoading ? (
-                                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                        <div className="flex items-center gap-2 text-blue-800">
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                                            <span className="text-sm">게임 출시년도 확인 중...</span>
-                                        </div>
+                        {/* BGG API 년도 확인은 완전히 백그라운드에서만 처리 - UI 표시 제거 */}
+                        {/* yearInfo.isLoading 메시지 제거 - 모든 년도 확인 작업은 백그라운드에서만 진행 */}
+                        
+                        {/* YearWarningDisplay 제거 - 이제 환영메시지에 통합됨 */}
+
+                        {/* 기존의 간단한 로딩 표시로 복구 */}
+                        {isInitializing && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+                                <div className="glass-card p-6 rounded-2xl border border-amber-400/30 bg-amber-950/20">
+                                    <div className="flex items-center gap-3">
+                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-400"></div>
+                                        <span className="text-amber-200">룰버디 준비 중...</span>
                                     </div>
-                                ) : yearInfo.publishedYear ? (
-                                    <YearWarningDisplay
-                                        gameName={currentGameName}
-                                        publishedYear={yearInfo.publishedYear}
-                                        isVisible={showYearWarning}
-                                        onDismiss={() => setShowYearWarning(false)}
-                                    />
-                                ) : yearInfo.error && process.env.NODE_ENV === 'development' ? (
-                                    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                        <div className="text-yellow-800 text-sm">
-                                            <strong>BGG API 조회 실패:</strong> {yearInfo.error}
-                                        </div>
-                                    </div>
-                                ) : null}
+                                </div>
                             </div>
                         )}
 
@@ -711,11 +793,19 @@ function RuleMasterContent() {
                             onGoBack={handleGoBack}
                             messages={chatState.messages}
                             onSendMessage={handleSendMessage}
-                            isLoading={isLoading}
+                            isLoading={isLoading && !isInitializing}
                             onQuestionClick={handleQuestionClick}
                             headerActions={<HeaderFeedbackButton />}
-                            showFullProgressOverlay={isFirstResponse}
+                            showFullProgressOverlay={false} // 새로운 오버레이 사용
                         />
+
+                        {/* 🎯 새로운 플로팅 퀵액션 FAB */}
+                        <FloatingQuickActionsFAB 
+                            onActionClick={handleQuestionClick}
+                            isVisible={!isInitializing && !isLoading}
+                        />
+
+                        {/* 플로팅 피드백 FAB는 그대로 유지 */}
                     </ChatScreenSuspense>
                 </motion.div>
             </main>

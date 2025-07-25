@@ -38,4 +38,6 @@ export { InteractiveDiagram } from './interactive-diagram';
 export { default as VisualDiagram } from './visual-diagram';
 export { default as InteractiveBoardLayout } from './interactive-board-layout';
 export { FloatingFeedbackFAB } from './floating-feedback-fab';
+export { FloatingQuickActionsFAB } from './floating-quick-actions-fab';
 export { Alert, AlertTitle, AlertDescription } from './alert';
+export { YearWarningDisplay, YearBadge, YearInfoSkeleton, useGameYearInfo } from './year-warning-display';

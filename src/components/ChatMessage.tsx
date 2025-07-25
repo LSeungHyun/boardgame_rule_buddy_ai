@@ -79,11 +79,18 @@ export default function ChatMessage({ message, game, userQuestion, messageIndex,
 
     const sanitizedHtml = message.role === 'assistant' ? marked(message.content) : message.content;
 
-    // 환경 메시지는 피드백 제외 - 진짜 간단한 환영 메시지만 해당
-    const isWelcomeMessage = message.role === 'assistant' &&
-        message.content.includes('무엇이든 물어보세요') && 
-        !message.content.includes('룰 마스터입니다') &&
-        !message.content.includes('Universal Rule Master (Beta)');
+    // 환영메시지와 경고메시지 판별 - 실제 메시지 내용에 맞게 수정
+    const isWelcomeMessage = message.role === 'assistant' && (
+        // 일반 환영메시지: "안녕하세요! 🎲 저는 RuleBuddy(Beta)입니다"
+        (message.content.includes('안녕하세요!') && message.content.includes('RuleBuddy(Beta)')) ||
+        // 최신 게임 경고메시지: "🚨 **최신 게임 안내**"
+        (message.content.includes('🚨') && message.content.includes('최신 게임 안내')) ||
+        // 기본 환영메시지 (게임명 없이)
+        (message.content.includes('어떤 보드게임에 대해 알려드릴까요')) ||
+        // 폴백 환영메시지
+        (message.content.includes('RuleBuddy(Beta)') && 
+         (message.content.includes('도와드리겠습니다') || message.content.includes('최선을 다해')))
+    );
 
     // 첫 번째 게임 답변인지 확인 (게임 전문 룰마스터 소개 메시지 또는 Universal Rule Master Beta 첫 답변)
     const isFirstGameAnswer = message.role === 'assistant' && (
@@ -211,16 +218,8 @@ export default function ChatMessage({ message, game, userQuestion, messageIndex,
                 )}
             </div>
 
-            {/* 환영 메시지와 첫 번째 게임 답변 아래 퀵 액션 버튼들 */}
-            {message.role === 'assistant' && (isWelcomeMessage || isFirstGameAnswer) && game && onQuestionClick && (
-                <div className="mt-4 w-full max-w-md lg:max-w-2xl">
-                    <GameQuickActions
-                        game={game}
-                        onActionClick={onQuestionClick}
-                    />
-                </div>
-            )}
-
+            {/* 퀵액션 제거 - 이제 FloatingQuickActionsFAB으로 대체됨 */}
+            {/* 기존 중복 렌더링 문제 해결: 인라인 퀵액션 완전 제거 */}
 
         </div>
     );
