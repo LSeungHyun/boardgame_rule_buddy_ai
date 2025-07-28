@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import ReactPlugin from '@stagewise-plugins/react';
 
 // StagewiseToolbar를 클라이언트 사이드에서만 로드
 const StagewiseToolbar = dynamic(
@@ -15,7 +16,7 @@ export function StagewiseToolbarWrapper() {
   return (
     <StagewiseToolbar
       config={{
-        plugins: [],
+        plugins: [ReactPlugin],
       }}
     />
   );

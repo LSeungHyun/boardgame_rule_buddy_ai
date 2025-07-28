@@ -6,7 +6,21 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:reset": "supabase db reset",
+    "supabase:push": "supabase db push",
+    "supabase:deploy-functions": "supabase functions deploy",
+    "supabase:deploy-rulebook-processor": "supabase functions deploy rulebook-processor",
+    "supabase:logs": "supabase functions logs rulebook-processor",
+    "supabase:secrets": "supabase secrets list",
+    "rag:migrate": "supabase db push",
+    "rag:process-rulebook": "node scripts/process-rulebook.js",
+    "rag:seed-golden-dataset": "node scripts/seed-golden-dataset.js",
+    "rag:evaluate": "node scripts/evaluate-rag.js",
+    "rag:setup": "npm run rag:migrate && npm run rag:seed-golden-dataset && npm run rag:process-rulebook",
+    "rag:test": "npm run rag:evaluate"
   },
   "dependencies": {
     "@hookform/resolvers": "^4",
@@ -23,6 +37,7 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-toast": "^1.2.6",
+    "@stagewise-plugins/react": "^0.6.2",
     "@stagewise/toolbar-next": "^0.6.1",
     "@supabase/supabase-js": "^2.51.0",
     "@tanstack/react-query": "^5",
@@ -49,7 +64,13 @@
     "server-only": "0.0.1",
     "ts-pattern": "^5",
     "zod": "^3",
-    "zustand": "^4"
+    "zustand": "^4",
+    "langchain": "^0.3.0",
+    "@langchain/openai": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "openai": "^4.0.0",
+    "autoevals": "^0.4.0",
+    "dotenv": "^16.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

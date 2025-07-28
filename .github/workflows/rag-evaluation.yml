@@ -1,0 +1,278 @@
+name: RAG System Evaluation
+
+# 트리거 조건
+on:
+  # 매일 오전 9시 (UTC) 실행
+  schedule:
+    - cron: '0 9 * * *'
+  
+  # Pull Request 생성 시 실행
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'src/app/api/chat/**'
+      - 'scripts/**'
+      - 'supabase/migrations/**'
+  
+  # 수동 실행 가능
+  workflow_dispatch:
+    inputs:
+      max_questions:
+        description: '평가할 최대 질문 수'
+        required: false
+        default: '20'
+        type: string
+      game_id:
+        description: '게임 ID'
+        required: false
+        default: 'ARK_NOVA'
+        type: string
+
+# 환경 변수
+env:
+  NODE_VERSION: '18'
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+
+jobs:
+  evaluate-rag:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # 1. 코드 체크아웃
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 전체 히스토리 가져오기 (커밋 해시용)
+    
+    # 2. Node.js 설정
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    # 3. 의존성 설치
+    - name: Install dependencies
+      run: |
+        npm ci
+        npm install autoevals dotenv
+    
+    # 4. Next.js 애플리케이션 빌드
+    - name: Build Next.js application
+      run: npm run build
+    
+    # 5. Next.js 서버 시작 (백그라운드)
+    - name: Start Next.js server
+      run: |
+        npm start &
+        echo "NEXT_PID=$!" >> $GITHUB_ENV
+        # 서버가 시작될 때까지 대기
+        timeout 60 bash -c 'until curl -f http://localhost:3000/api/chat; do sleep 2; done'
+      env:
+        PORT: 3000
+    
+    # 6. 서버 상태 확인
+    - name: Check server health
+      run: |
+        curl -f http://localhost:3000/api/chat || exit 1
+        echo "✅ Next.js 서버가 정상적으로 실행 중입니다."
+    
+    # 7. RAG 시스템 평가 실행
+    - name: Run RAG evaluation
+      id: evaluation
+      run: |
+        cd scripts
+        node evaluate-rag.js
+      env:
+        NEXT_PUBLIC_APP_URL: 'http://localhost:3000'
+        MAX_QUESTIONS: ${{ github.event.inputs.max_questions || '20' }}
+        GAME_ID: ${{ github.event.inputs.game_id || 'ARK_NOVA' }}
+    
+    # 8. 평가 결과 아티팩트 저장
+    - name: Upload evaluation results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: evaluation-results-${{ github.sha }}
+        path: |
+          scripts/evaluation-*.json
+          scripts/evaluation-*.log
+        retention-days: 30
+    
+    # 9. Next.js 서버 종료
+    - name: Stop Next.js server
+      if: always()
+      run: |
+        if [ ! -z "$NEXT_PID" ]; then
+          kill $NEXT_PID || true
+        fi
+        pkill -f "next start" || true
+    
+    # 10. 평가 결과 요약 (PR 코멘트용)
+    - name: Generate evaluation summary
+      if: github.event_name == 'pull_request'
+      id: summary
+      run: |
+        # Supabase에서 최신 평가 결과 조회
+        SUMMARY=$(node -e "
+          const { createClient } = require('@supabase/supabase-js');
+          const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+          
+          (async () => {
+            const { data } = await supabase
+              .from('evaluation_results')
+              .select('*')
+              .eq('commit_hash', process.env.GITHUB_SHA)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+            
+            if (data) {
+              console.log('## 🤖 RAG 시스템 평가 결과');
+              console.log('');
+              console.log('| 지표 | 점수 | 상태 |');
+              console.log('|------|------|------|');
+              console.log('| Faithfulness | ' + (data.faithfulness_score * 100).toFixed(1) + '% | ' + (data.faithfulness_score >= 0.7 ? '✅' : '❌') + ' |');
+              console.log('| Answer Relevancy | ' + (data.answer_relevancy_score * 100).toFixed(1) + '% | ' + (data.answer_relevancy_score >= 0.8 ? '✅' : '❌') + ' |');
+              console.log('| Context Recall | ' + (data.context_recall_score * 100).toFixed(1) + '% | ' + (data.context_recall_score >= 0.6 ? '✅' : '❌') + ' |');
+              console.log('| Context Precision | ' + (data.context_precision_score * 100).toFixed(1) + '% | ' + (data.context_precision_score >= 0.7 ? '✅' : '❌') + ' |');
+              console.log('');
+              console.log('**평가 상세:**');
+              console.log('- 평가된 질문 수: ' + data.total_questions_evaluated);
+              console.log('- 평균 응답 시간: ' + data.average_response_time_ms + 'ms');
+              console.log('- 커밋: ' + data.commit_hash.substring(0, 7));
+              console.log('- 브랜치: ' + data.branch_name);
+            } else {
+              console.log('평가 결과를 찾을 수 없습니다.');
+            }
+          })();
+        ")
+        
+        echo "EVALUATION_SUMMARY<<EOF" >> $GITHUB_OUTPUT
+        echo "$SUMMARY" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+    
+    # 11. PR에 평가 결과 코멘트 추가
+    - name: Comment PR with evaluation results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const summary = `${{ steps.summary.outputs.EVALUATION_SUMMARY }}`;
+          
+          if (summary && summary.trim()) {
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+          }
+
+  # 성능 저하 알림 작업
+  performance-alert:
+    runs-on: ubuntu-latest
+    needs: evaluate-rag
+    if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm install @supabase/supabase-js
+    
+    # 성능 저하 확인 및 알림
+    - name: Check performance degradation
+      run: |
+        node -e "
+          const { createClient } = require('@supabase/supabase-js');
+          const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+          
+          (async () => {
+            // 최근 2개 평가 결과 조회
+            const { data } = await supabase
+              .from('evaluation_results')
+              .select('*')
+              .order('created_at', { ascending: false })
+              .limit(2);
+            
+            if (data && data.length >= 2) {
+              const [latest, previous] = data;
+              const alerts = [];
+              
+              // 성능 저하 임계값 (5% 이상 감소)
+              const degradationThreshold = 0.05;
+              
+              const metrics = [
+                { name: 'Faithfulness', current: latest.faithfulness_score, previous: previous.faithfulness_score, threshold: 0.7 },
+                { name: 'Answer Relevancy', current: latest.answer_relevancy_score, previous: previous.answer_relevancy_score, threshold: 0.8 },
+                { name: 'Context Recall', current: latest.context_recall_score, previous: previous.context_recall_score, threshold: 0.6 },
+                { name: 'Context Precision', current: latest.context_precision_score, previous: previous.context_precision_score, threshold: 0.7 }
+              ];
+              
+              for (const metric of metrics) {
+                // 임계값 미달 확인
+                if (metric.current < metric.threshold) {
+                  alerts.push('🚨 ' + metric.name + ' 점수가 임계값(' + (metric.threshold * 100) + '%)보다 낮습니다: ' + (metric.current * 100).toFixed(1) + '%');
+                }
+                
+                // 성능 저하 확인
+                const degradation = previous - metric.current;
+                if (degradation > degradationThreshold) {
+                  alerts.push('📉 ' + metric.name + ' 점수가 ' + (degradation * 100).toFixed(1) + '%p 감소했습니다: ' + (previous * 100).toFixed(1) + '% → ' + (metric.current * 100).toFixed(1) + '%');
+                }
+              }
+              
+              if (alerts.length > 0) {
+                console.log('PERFORMANCE_ALERTS=true');
+                console.log('ALERT_MESSAGE=' + alerts.join('\\n'));
+                process.exit(1); // 알림을 위해 실패 상태로 종료
+              } else {
+                console.log('✅ 성능 저하가 감지되지 않았습니다.');
+              }
+            } else {
+              console.log('⚠️ 비교할 이전 평가 결과가 없습니다.');
+            }
+          })();
+        "
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    
+    # Slack 알림 (선택사항)
+    - name: Send Slack notification
+      if: failure() && env.PERFORMANCE_ALERTS == 'true'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: |
+          🚨 **RAG 시스템 성능 저하 감지**
+          
+          ${{ env.ALERT_MESSAGE }}
+          
+          **상세 정보:**
+          - Repository: ${{ github.repository }}
+          - Branch: ${{ github.ref_name }}
+          - Commit: ${{ github.sha }}
+          - Workflow: ${{ github.workflow }}
+          
+          [평가 결과 확인하기](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      continue-on-error: true
+
+# 워크플로우 권한
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
