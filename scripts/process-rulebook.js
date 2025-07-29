@@ -1,21 +1,21 @@
 /**
  * ARK NOVA 룰북 처리 스크립트
- * output.txt 파일을 의미론적으로 청킹하고 OpenAI 임베딩을 생성하여 Supabase에 저장
+ * output.txt 파일을 의미론적으로 청킹하고 Gemini 임베딩을 생성하여 Supabase에 저장
  */
 
 const fs = require('fs').promises;
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
-const OpenAI = require('openai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
 
 // 환경 변수 검증
-require('dotenv').config();
+require('dotenv').config({ path: '.env.local' });
 
 const requiredEnvVars = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
-  'OPENAI_API_KEY'
+  'GEMINI_API_KEY'
 ];
 
 for (const envVar of requiredEnvVars) {
@@ -31,9 +31,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 /**
  * 의미론적 청킹을 위한 설정
@@ -125,17 +123,14 @@ function extractMetadata(chunk, chunkIndex, totalChunks) {
 }
 
 /**
- * OpenAI 임베딩 생성
+ * Gemini 임베딩 생성
  */
 async function generateEmbedding(text) {
   try {
-    const response = await openai.embeddings.create({
-      model: 'text-embedding-3-small',
-      input: text,
-      encoding_format: 'float',
-    });
+    const model = genAI.getGenerativeModel({ model: 'embedding-001' });
+    const result = await model.embedContent(text);
     
-    return response.data[0].embedding;
+    return result.embedding.values;
   } catch (error) {
     console.error('❌ 임베딩 생성 실패:', error.message);
     throw error;

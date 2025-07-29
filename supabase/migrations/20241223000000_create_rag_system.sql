@@ -145,14 +145,14 @@ CREATE OR REPLACE FUNCTION hybrid_search_documents(
     query_text text,
     game_filter text DEFAULT 'ARK_NOVA',
     match_count int DEFAULT 5,
-    similarity_threshold float DEFAULT 0.7
+    similarity_threshold double precision DEFAULT 0.7
 )
 RETURNS TABLE (
     id bigint,
     content text,
     metadata jsonb,
-    similarity float,
-    text_rank float
+    similarity double precision,
+    text_rank double precision
 )
 LANGUAGE plpgsql
 AS $$

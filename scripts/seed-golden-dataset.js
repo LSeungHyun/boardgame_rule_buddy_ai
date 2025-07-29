@@ -38,7 +38,7 @@ const GOLDEN_DATASET = [
       '게임 종료 시 두 점수 중 낮은 점수가 최종 점수가 됩니다.'
     ],
     category: 'game_objective',
-    difficulty_level: 'beginner',
+    difficulty_level: 'easy',
     tags: ['목표', '점수', '어필포인트', '보존포인트']
   },
   {
@@ -52,7 +52,7 @@ const GOLDEN_DATASET = [
       '사용된 카드는 맨 오른쪽으로 이동하고 강도가 0이 됩니다.'
     ],
     category: 'game_mechanics',
-    difficulty_level: 'beginner',
+    difficulty_level: 'easy',
     tags: ['액션카드', '턴', '강도', '카드이동']
   },
   {
@@ -66,7 +66,7 @@ const GOLDEN_DATASET = [
       '일부 동물은 특별한 배치 규칙이 적용됩니다.'
     ],
     category: 'animal_placement',
-    difficulty_level: 'intermediate',
+    difficulty_level: 'medium',
     tags: ['동물카드', '인클로저', '서식지', '배치규칙']
   },
   {
@@ -80,7 +80,7 @@ const GOLDEN_DATASET = [
       '보존 프로젝트 완료 시 스폰서 카드를 획득할 수 있습니다.'
     ],
     category: 'sponsor_cards',
-    difficulty_level: 'intermediate',
+    difficulty_level: 'medium',
     tags: ['스폰서카드', '즉시효과', '영구효과', '보존프로젝트']
   },
   {
@@ -94,7 +94,7 @@ const GOLDEN_DATASET = [
       '브레이크 토큰 보유자는 추가 혜택을 받을 수 있습니다.'
     ],
     category: 'game_mechanics',
-    difficulty_level: 'advanced',
+    difficulty_level: 'hard',
     tags: ['브레이크토큰', '게임종료', '종료조건', '추가점수']
   },
   {
@@ -108,7 +108,7 @@ const GOLDEN_DATASET = [
       '완료된 프로젝트는 스폰서 카드도 제공합니다.'
     ],
     category: 'conservation_projects',
-    difficulty_level: 'intermediate',
+    difficulty_level: 'medium',
     tags: ['보존프로젝트', '완료조건', '보존포인트', '스폰서카드']
   },
   {
@@ -122,7 +122,7 @@ const GOLDEN_DATASET = [
       '전략적 자원 관리가 중요합니다.'
     ],
     category: 'resources',
-    difficulty_level: 'beginner',
+    difficulty_level: 'easy',
     tags: ['X토큰', '자원', '동물구매', '인클로저건설']
   },
   {
@@ -136,7 +136,7 @@ const GOLDEN_DATASET = [
       '종료 조건 만족 시 현재 라운드를 완료합니다.'
     ],
     category: 'game_end',
-    difficulty_level: 'beginner',
+    difficulty_level: 'easy',
     tags: ['게임종료', '종료조건', '어필포인트', '보존포인트']
   },
   {
@@ -150,7 +150,7 @@ const GOLDEN_DATASET = [
       '한쪽 점수만 높아서는 승리할 수 없습니다.'
     ],
     category: 'scoring',
-    difficulty_level: 'beginner',
+    difficulty_level: 'easy',
     tags: ['최종점수', '어필포인트', '보존포인트', '균형']
   },
   {
@@ -164,7 +164,7 @@ const GOLDEN_DATASET = [
       '여러 난이도 레벨을 선택할 수 있습니다.'
     ],
     category: 'solo_game',
-    difficulty_level: 'intermediate',
+    difficulty_level: 'medium',
     tags: ['솔로게임', 'AI상대', '난이도', '자동화규칙']
   }
 ];
