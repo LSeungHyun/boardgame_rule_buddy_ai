@@ -471,26 +471,51 @@ function RuleMasterContent() {
 
                 const newGeminiHistory = [...chatState.geminiChatHistory, userGeminiMessage];
 
-                // Step 4: Universal Beta API 호출 (서비스 모드 포함)
-                const response = await fetch('/api/universal-beta', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        gameName,
-                        chatHistory: newGeminiHistory,
-                        isFirstResponse: true,
-                        serviceMode: finalServiceMode
-                    })
-                });
+                // Step 4: 아크 노바일 경우 RAG API, 그 외에는 Universal Beta API 호출
+                const isArkNova = gameName.toLowerCase().includes('ark nova') || 
+                                 gameName.toLowerCase().includes('아크노바') || 
+                                 gameName.toLowerCase().includes('아크 노바') ||
+                                 dbGame?.gameId?.toString() === 'ARK_NOVA';
+                
+                const apiUrl = isArkNova ? '/api/chat' : '/api/universal-beta';
+                
+                console.log(`🔗 [API 선택] ${gameName} → ${apiUrl}`);
+                
+                let response;
+                if (isArkNova) {
+                    // RAG API 호출 (아크 노바 전용)
+                    response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: content,
+                            gameId: 'ARK_NOVA'
+                        })
+                    });
+                } else {
+                    // Universal Beta API 호출 (기타 게임)
+                    response = await fetch('/api/universal-beta', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            gameName,
+                            chatHistory: newGeminiHistory,
+                            isFirstResponse: true,
+                            serviceMode: finalServiceMode
+                        })
+                    });
+                }
 
                 if (!response.ok) {
                     throw new Error('API 호출 실패');
                 }
 
                 const responseData = await response.json();
-                const aiResponse = responseData.response;
+                const aiResponse = isArkNova ? responseData.answer : responseData.response;
 
                 // AI 응답을 Gemini 히스토리에 추가
                 const aiGeminiMessage: GeminiContent = {
@@ -547,26 +572,51 @@ function RuleMasterContent() {
 
                 const newGeminiHistory = [...chatState.geminiChatHistory, userGeminiMessage];
 
-                // Universal Beta API 호출 (후속 질문)
-                const response = await fetch('/api/universal-beta', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        gameName: chatState.gameContext.gameName,
-                        chatHistory: newGeminiHistory,
-                        isFirstResponse: false,
-                        serviceMode: chatState.serviceMode
-                    })
-                });
+                // 아크 노바일 경우 RAG API, 그 외에는 Universal Beta API 호출 (후속 질문)
+                const isArkNova = chatState.gameContext.gameName.toLowerCase().includes('ark nova') || 
+                                 chatState.gameContext.gameName.toLowerCase().includes('아크노바') || 
+                                 chatState.gameContext.gameName.toLowerCase().includes('아크 노바') ||
+                                 chatState.gameContext.gameId === 'ARK_NOVA';
+                
+                const apiUrl = isArkNova ? '/api/chat' : '/api/universal-beta';
+                
+                console.log(`🔗 [후속 질문 API 선택] ${chatState.gameContext.gameName} → ${apiUrl}`);
+                
+                let response;
+                if (isArkNova) {
+                    // RAG API 호출 (아크 노바 전용)
+                    response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: content,
+                            gameId: 'ARK_NOVA'
+                        })
+                    });
+                } else {
+                    // Universal Beta API 호출 (기타 게임)
+                    response = await fetch('/api/universal-beta', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            gameName: chatState.gameContext.gameName,
+                            chatHistory: newGeminiHistory,
+                            isFirstResponse: false,
+                            serviceMode: chatState.serviceMode
+                        })
+                    });
+                }
 
                 if (!response.ok) {
                     throw new Error('API 호출 실패');
                 }
 
                 const responseData = await response.json();
-                const aiResponse = responseData.response;
+                const aiResponse = isArkNova ? responseData.answer : responseData.response;
 
                 // AI 응답을 Gemini 히스토리에 추가
                 const aiGeminiMessage: GeminiContent = {
