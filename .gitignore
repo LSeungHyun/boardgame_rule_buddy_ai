@@ -51,3 +51,4 @@ next-env.d.ts
 kiro/
 .trae/
 output.txt
+web-bundles/

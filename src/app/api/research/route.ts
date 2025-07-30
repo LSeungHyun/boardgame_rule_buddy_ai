@@ -231,21 +231,21 @@ async function performWebSearch(gameTitle: string, question: string, englishKeyw
   const apiKey = process.env.GOOGLE_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
   const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID || process.env.NEXT_PUBLIC_GOOGLE_SEARCH_ENGINE_ID;
 
-  // 🚀 향상된 디버깅 로그 (Context7 스타일)
-  console.log('🔑 [Google API 환경변수 디버깅]', {
-    'GOOGLE_API_KEY 존재': !!process.env.GOOGLE_API_KEY,
-    'NEXT_PUBLIC_GOOGLE_API_KEY 존재': !!process.env.NEXT_PUBLIC_GOOGLE_API_KEY,
-    'GOOGLE_SEARCH_ENGINE_ID 존재': !!process.env.GOOGLE_SEARCH_ENGINE_ID,
-    'NEXT_PUBLIC_GOOGLE_SEARCH_ENGINE_ID 존재': !!process.env.NEXT_PUBLIC_GOOGLE_SEARCH_ENGINE_ID,
-    '사용할 API키 존재': !!apiKey,
-    '사용할 검색엔진ID 존재': !!searchEngineId,
-    'API키 길이': apiKey ? apiKey.length : 0,
-    'API키 시작': apiKey ? apiKey.substring(0, 10) + '...' : 'undefined',
-    '검색엔진ID': searchEngineId || 'undefined',
-    '실행 환경': typeof window === 'undefined' ? 'server' : 'client',
-    'Next.js 버전': 'v15.4.3',
-    'Turbopack 활성화': true
-  });
+  // 🚀 향상된 디버깅 로그 (Context7 스타일) - 보안 강화
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔑 [Google API 환경변수 디버깅]', {
+      'GOOGLE_API_KEY 존재': !!process.env.GOOGLE_API_KEY,
+      'NEXT_PUBLIC_GOOGLE_API_KEY 존재': !!process.env.NEXT_PUBLIC_GOOGLE_API_KEY,
+      'GOOGLE_SEARCH_ENGINE_ID 존재': !!process.env.GOOGLE_SEARCH_ENGINE_ID,
+      'NEXT_PUBLIC_GOOGLE_SEARCH_ENGINE_ID 존재': !!process.env.NEXT_PUBLIC_GOOGLE_SEARCH_ENGINE_ID,
+      '사용할 API키 존재': !!apiKey,
+      '사용할 검색엔진ID 존재': !!searchEngineId,
+      'API키 길이': apiKey ? apiKey.length : 0,
+      '실행 환경': typeof window === 'undefined' ? 'server' : 'client',
+      'Next.js 버전': 'v15.4.3',
+      'Turbopack 활성화': true
+    });
+  }
 
   if (!apiKey || !searchEngineId) {
     console.error('❌ [환경변수 누락 상세]', {
@@ -1109,4 +1109,4 @@ function getSourceLabel(domain: string): string {
   if (domain.includes('boardlife.co.kr')) return '보드라이프';
   if (domain.includes('boardm.co.kr')) return '보드엠';
   return '웹';
-} 
+}

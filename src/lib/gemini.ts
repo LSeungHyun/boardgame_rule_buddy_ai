@@ -927,22 +927,19 @@ export async function askUniversalBetaQuestion(
     });
 
     // 환경변수 강제 설정 (서버 사이드에서 로드 실패 시)
-    if (!process.env.GEMINI_API_KEY && !process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
-        console.log('⚠️ [Universal Beta] 환경변수 수동 설정');
-        process.env.GEMINI_API_KEY = 'AIzaSyDKh7zI-W1zx2LkttbopdGAWsuJVlIqVOo';
-        process.env.NEXT_PUBLIC_GEMINI_API_KEY = 'AIzaSyDKh7zI-W1zx2LkttbopdGAWsuJVlIqVOo';
-    }
-
     // API 키 확인 (서버 사이드에서는 일반 환경변수 사용)
     const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-    console.log('🔑 [환경변수 디버깅]', {
-        'GEMINI_API_KEY 존재': !!process.env.GEMINI_API_KEY,
-        'NEXT_PUBLIC_GEMINI_API_KEY 존재': !!process.env.NEXT_PUBLIC_GEMINI_API_KEY,
-        '사용할 키 존재': !!apiKey,
-        '키 길이': apiKey ? apiKey.length : 0,
-        '키 시작': apiKey ? apiKey.substring(0, 10) + '...' : 'undefined',
-        '실행 환경': typeof window === 'undefined' ? 'server' : 'client'
-    });
+    
+    // 개발 환경에서만 디버깅 로그 출력
+    if (process.env.NODE_ENV === 'development') {
+        console.log('🔑 [환경변수 디버깅]', {
+            'GEMINI_API_KEY 존재': !!process.env.GEMINI_API_KEY,
+            'NEXT_PUBLIC_GEMINI_API_KEY 존재': !!process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+            '사용할 키 존재': !!apiKey,
+            '키 길이': apiKey ? apiKey.length : 0,
+            '실행 환경': typeof window === 'undefined' ? 'server' : 'client'
+        });
+    }
 
     if (!apiKey) {
         console.error('❌ [Gemini API] 환경변수 누락:', {
@@ -1322,4 +1319,4 @@ async function callGeminiAPI(prompt: string, retryCount = 0, originalQuestion?: 
     // 예상치 못한 응답 구조인 경우 전체 응답을 로깅
     console.error('❌ [예상치 못한 API 응답 구조]', JSON.stringify(result, null, 2));
     return "죄송합니다. 답변을 생성하는 데 문제가 발생했습니다.";
-} 
+}
