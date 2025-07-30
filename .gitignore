@@ -42,3 +42,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# AI tools and local development
+.bmad/
+.claude/
+.cursor/
+.gemini/
+kiro/
+.trae/
+output.txt
