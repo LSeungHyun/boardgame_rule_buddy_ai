@@ -1,162 +1,100 @@
-이 프로젝트는 [`EasyNext`](https://github.com/easynext/easynext)를 사용해 생성된 [Next.js](https://nextjs.org) 프로젝트입니다.
+# 🎲 Gemini Rule Master
 
-## Getting Started
+**AI 기반 보드게임 룰 마스터 - 복잡한 게임 규칙을 쉽고 정확하게 해결하는 스마트 어시스턴트**
 
-개발 서버를 실행합니다.<br/>
-환경에 따른 명령어를 사용해주세요.
+## 🚀 Live Demo & Preview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+<!-- 🔗 **Live Service:** [여기에 배포된 서비스 링크를 추가하세요] -->
 
-브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 결과를 확인할 수 있습니다.
+<!-- 📸 **Screenshot/GIF:** 여기에 메인 화면 스크린샷이나 사용 데모 GIF를 추가하세요 -->
 
-`app/page.tsx` 파일을 수정하여 페이지를 편집할 수 있습니다. 파일을 수정하면 자동으로 페이지가 업데이트됩니다.
+## 📖 Project Introduction
 
-## Analytics 설정
+복잡한 보드게임 규칙으로 인해 게임 진행이 막힐 때가 있나요? **Gemini Rule Master**는 AI 기술을 활용하여 보드게임 규칙에 대한 정확하고 신뢰할 수 있는 답변을 제공하는 스마트 어시스턴트입니다.
 
-### Microsoft Clarity 설정
+게임별 전문 용어 데이터베이스와 Google Gemini AI를 결합하여, 단순한 키워드 검색을 넘어선 맥락적이고 지능적인 답변을 생성합니다.
 
-1. 프로젝트 루트에 `.env.local` 파일을 생성하세요.
-2. Microsoft Clarity 프로젝트 ID를 추가하세요:
+<!-- 💭 **개발 동기 및 해결하고자 한 문제:**
+여기에 이 프로젝트를 시작하게 된 개인적인 동기나 해결하고자 했던 구체적인 문제를 작성해주세요.
+예: "복잡한 보드게임을 즐기면서 겪었던 룰 해석의 어려움을 해결하고 싶었습니다" 등 -->
 
-```bash
-# .env.local
-NEXT_PUBLIC_CLARITY_PROJECT_ID=sj90hw1c3j
-```
+## ✨ Key Features
 
-### Google Analytics 설정 (선택사항)
+### 🎯 **지능형 게임 규칙 검증**
+- 질문과 선택된 게임의 일치도를 사전 검증하여 정확한 답변 보장
+- 게임별 전문 용어 매핑을 통한 맥락적 이해
 
-Google Analytics를 사용하려면 다음 환경변수를 추가하세요:
+### 🤖 **AI 기반 답변 생성**
+- Google Gemini AI와 RAG(Retrieval-Augmented Generation) 기술 결합
+- 신뢰도 점수 기반의 답변 품질 관리 시스템
 
-```bash
-# .env.local
-NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-```
+### 📊 **신뢰도 기반 응답 시스템**
+- 답변의 확실성을 0-100% 점수로 표시
+- 낮은 신뢰도 시 추가 확인 권장 및 대안 제시
 
-## 기본 포함 라이브러리
+### 🎮 **게임별 특화 데이터**
+- 아크노바, 세븐원더스 듀얼 등 인기 보드게임 지원
+- 게임별 전문 용어 및 규칙 데이터베이스 구축
 
-- [Next.js](https://nextjs.org)
-- [React](https://react.dev)
-- [Tailwind CSS](https://tailwindcss.com)
-- [TypeScript](https://www.typescriptlang.org)
-- [ESLint](https://eslint.org)
-- [Prettier](https://prettier.io)
-- [Shadcn UI](https://ui.shadcn.com)
-- [Lucide Icon](https://lucide.dev)
-- [date-fns](https://date-fns.org)
-- [react-use](https://github.com/streamich/react-use)
-- [es-toolkit](https://github.com/toss/es-toolkit)
-- [Zod](https://zod.dev)
-- [React Query](https://tanstack.com/query/latest)
-- [React Hook Form](https://react-hook-form.com)
-- [TS Pattern](https://github.com/gvergnaud/ts-pattern)
-- [Microsoft Clarity](https://clarity.microsoft.com) - 사용자 행동 분석
+## 🛠 Tech Stack
 
-## 사용 가능한 명령어
+### **Frontend**
+- **Next.js 15** - React 기반 풀스택 프레임워크
+- **React 19** - 사용자 인터페이스 라이브러리
+- **TypeScript** - 타입 안전성을 위한 정적 타입 언어
+- **Tailwind CSS** - 유틸리티 우선 CSS 프레임워크
+- **Framer Motion** - 애니메이션 및 인터랙션
+- **Shadcn/ui** - 재사용 가능한 UI 컴포넌트
+- **Radix UI** - 접근성 중심의 헤드리스 UI 컴포넌트
 
-한글버전 사용
+### **Backend & Database**
+- **Supabase** - PostgreSQL 기반 백엔드 서비스
+- **Supabase Edge Functions** - 서버리스 함수
+- **PostgreSQL** - 관계형 데이터베이스
 
-```sh
-easynext lang ko
-```
+### **AI & Data Processing**
+- **Google Gemini AI** - 대화형 AI 모델
+- **LangChain** - AI 애플리케이션 개발 프레임워크
+- **RAG (Retrieval-Augmented Generation)** - 검색 증강 생성
+- **Vector Search** - 의미론적 검색
 
-최신버전으로 업데이트
+### **State Management & Utils**
+- **Zustand** - 경량 상태 관리
+- **React Query (TanStack Query)** - 서버 상태 관리
+- **React Hook Form** - 폼 상태 관리
+- **Zod** - 스키마 검증
+- **ES-Toolkit** - 유틸리티 함수
 
-```sh
-npm i -g @easynext/cli@latest
-# or
-yarn add -g @easynext/cli@latest
-# or
-pnpm add -g @easynext/cli@latest
-```
+### **Development & Analytics**
+- **ESLint** - 코드 품질 관리
+- **Microsoft Clarity** - 사용자 행동 분석
+- **Google Analytics** - 웹 분석
 
-Supabase 설정
+## 🎯 Core Experiences & What I Learned
 
-```sh
-easynext supabase
-```
+<!-- 💡 **핵심 기술적 성과 및 학습 내용:**
 
-Next-Auth 설정
+이 섹션에서는 프로젝트를 통해 얻은 핵심적인 기술적 성과와 학습 내용을 작성해주세요.
+다음과 같은 내용을 1-3개 포인트로 구체적으로 작성하시면 됩니다:
 
-```sh
-easynext auth
+1. **기술적 도전과 해결 과정:**
+   - 어떤 기술적 문제를 마주했고, 어떻게 해결했는지
+   - 예: "RAG 시스템 구현 시 검색 정확도 향상을 위해 벡터 임베딩 최적화 작업을 진행했습니다"
 
-# ID,PW 로그인
-easynext auth idpw
-# 카카오 로그인
-easynext auth kakao
-```
+2. **새로 학습한 기술이나 개념:**
+   - 프로젝트를 통해 새롭게 배운 기술이나 개념
+   - 예: "LangChain을 활용한 AI 파이프라인 구축 경험을 쌓았습니다"
 
-유용한 서비스 연동
+3. **성능 최적화나 사용자 경험 개선:**
+   - 어떤 최적화를 통해 어떤 결과를 얻었는지
+   - 예: "신뢰도 기반 응답 시스템을 도입하여 사용자 만족도를 X% 향상시켰습니다"
 
-```sh
-# Google Analytics
-easynext gtag
+구체적인 수치나 결과가 있다면 함께 포함해주세요. -->
 
-# Microsoft Clarity
-easynext clarity
+## 📄 License
 
-# ChannelIO
-easynext channelio
+This project is private and proprietary.
 
-# Sentry
-easynext sentry
+---
 
-# Google Adsense
-easynext adsense
-```
-
-## Analytics 사용법
-
-### 기본 Analytics 훅 사용
-
-```typescript
-import { useAnalytics } from '@/lib/analytics';
-
-function MyComponent() {
-  const { trackEvent, clarityEvent } = useAnalytics();
-  
-  const handleClick = () => {
-    // Google Analytics 이벤트
-    trackEvent('button_click', { component: 'my_component' });
-    
-    // Microsoft Clarity 이벤트
-    clarityEvent('button_click');
-  };
-  
-  return <button onClick={handleClick}>클릭</button>;
-}
-```
-
-### Microsoft Clarity 전용 기능
-
-```typescript
-import { useClarityTracking } from '@/lib/analytics';
-
-function GameComponent() {
-  const { trackUserBehavior, setCustomTag, upgradeSession } = useClarityTracking();
-  
-  const handleImportantAction = () => {
-    // 사용자 행동 추적
-    trackUserBehavior('game_action', { 
-      action_type: 'important_click',
-      game_name: 'example_game'
-    });
-    
-    // 커스텀 태그 설정
-    setCustomTag('user_level', 'advanced');
-    
-    // 세션 우선순위 업그레이드
-    upgradeSession('important_game_action');
-  };
-  
-  return <button onClick={handleImportantAction}>중요한 액션</button>;
-}
-```
+**Built with ❤️ using Next.js and Google Gemini AI**
